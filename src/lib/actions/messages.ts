@@ -2,11 +2,27 @@
 
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "./users";
+import { createAdminNotification } from "./notifications";
 
 export async function getProjectMessages(projectId: string) {
     try {
+        // Get both direct project messages and messages from project conversations
         const messages = await prisma.message.findMany({
-            where: { projectId },
+            where: {
+                OR: [
+                    // Direct project messages
+                    {
+                        projectId,
+                        conversationId: null
+                    },
+                    // Messages from project conversations
+                    {
+                        conversation: {
+                            projectId
+                        }
+                    }
+                ]
+            },
             include: {
                 sender: true,
             },
@@ -36,6 +52,20 @@ export async function sendChatMessage(projectId: string, text: string) {
                 sender: true,
             },
         });
+
+        // Notify admins of new client message
+        if (user.role === "CLIENT") {
+            const project = await prisma.project.findUnique({
+                where: { id: projectId },
+                select: { title: true }
+            });
+            await createAdminNotification(
+                "Nouveau Message Client",
+                `${user.name} a envoyé un message sur "${project?.title}"`,
+                `/admin/chat`
+            );
+        }
+
         return message;
     } catch (error) {
         console.error("[Action Error] sendChatMessage:", error);

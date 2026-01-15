@@ -1,9 +1,13 @@
+// TODO: Implement PortfolioProject model in Prisma schema
+/*
 "use server";
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/utils/adminAuth";
 
 export async function getPortfolioProjects() {
+    await requireAdmin();
     try {
         return await prisma.portfolioProject.findMany({
             orderBy: { createdAt: 'desc' }
@@ -23,6 +27,7 @@ export async function createPortfolioProject(data: {
     githubUrl?: string;
     liveUrl?: string;
 }) {
+    await requireAdmin();
     try {
         const project = await prisma.portfolioProject.create({
             data
@@ -37,6 +42,7 @@ export async function createPortfolioProject(data: {
 }
 
 export async function updatePortfolioProject(id: string, data: any) {
+    await requireAdmin();
     try {
         await prisma.portfolioProject.update({
             where: { id },
@@ -52,6 +58,7 @@ export async function updatePortfolioProject(id: string, data: any) {
 }
 
 export async function deletePortfolioProject(id: string) {
+    await requireAdmin();
     try {
         await prisma.portfolioProject.delete({
             where: { id }
@@ -64,3 +71,4 @@ export async function deletePortfolioProject(id: string) {
         return { success: false, error: "Deletion failed" };
     }
 }
+*/

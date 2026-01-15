@@ -2,6 +2,8 @@ import { getClientProjects } from "@/lib/actions/projects";
 import { FileText, Shield, CheckCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProjectContractsPage({ params }: { params: { id: string } }) {
     const { id } = await params;
     const projects = await getClientProjects();

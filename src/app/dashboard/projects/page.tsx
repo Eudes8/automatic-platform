@@ -2,6 +2,8 @@ import { getClientProjects } from "@/lib/actions/projects";
 import Link from "next/link";
 import { Lock, FileSignature, ChevronRight } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProjectsPage() {
     const projects = await getClientProjects();
 

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { MoreHorizontal, Plus, Users, Clock, AlertCircle, FileCheck } from "lucide-react";
 import { updateProjectStatus } from "@/lib/actions/admin";
 import { useState } from "react";
+import { ProjectStatus } from "@prisma/client";
 
 const COLUMNS = [
     { id: "ONBOARDING", title: "Nouveaux Leads", color: "blue" },
@@ -15,7 +16,7 @@ const COLUMNS = [
 export default function Kanban({ initialProjects }: { initialProjects: any[] }) {
     const [projects, setProjects] = useState(initialProjects);
 
-    const moveProject = async (projectId: string, newStatus: string) => {
+    const moveProject = async (projectId: string, newStatus: ProjectStatus) => {
         // Optimistic update
         const updatedProjects = projects.map(p =>
             p.id === projectId ? { ...p, status: newStatus } : p

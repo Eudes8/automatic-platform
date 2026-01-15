@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { User, Menu, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
@@ -25,19 +26,22 @@ export default function Navbar() {
 
     return (
         <nav
-            className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled
-                ? "py-4 bg-background/80 backdrop-blur-md border-b border-primary/5"
-                : "py-6 bg-transparent"
-                }`}
+            className={`fixed top-0 w-full z-50 transition-all duration-700 ${
+                isScrolled
+                    ? "py-4 bg-gradient-card backdrop-blur-xl border-b border-premium shadow-card"
+                    : "py-8 bg-transparent"
+            }`}
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-3 group">
-                    <div className="relative w-8 h-8 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-primary rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-primary/20 rounded-lg -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
-                        <span className="relative text-background font-black text-xs">A</span>
-                    </div>
-                    <span className="text-xl font-heading font-bold tracking-tight text-primary uppercase letter-spacing-widest">
+                <Link href="/" className="flex items-center gap-4 group">
+                    <Image
+                        src="/logo.svg"
+                        alt="AUTOMATIC Logo"
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <span className="text-xl font-heading font-bold tracking-tight text-primary uppercase">
                         Automatic
                     </span>
                 </Link>

@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { ContractStatus } from "@prisma/client";
 
 export async function getClientProjects() {
     try {
@@ -64,24 +65,37 @@ export async function signContract(projectId: string, signatureBase64?: string) 
             include: { client: true }
         });
 
-        if (!project) return { success: false, error: "Project not found" };
+        if (!project) {
+            console.error(`[Action] Project not found: ${projectId}`);
+            return { success: false, error: "Project not found" };
+        }
 
         let pdfUrl = null;
 
         if (signatureBase64) {
-            // 1. Generate PDF
-            const pdfBytes = await generateContractPDF(
-                project.title,
-                project.client?.name || "Client",
-                signatureBase64,
-                new Date()
-            );
+            try {
+                // 1. Generate PDF
+                console.log("[Action] Generating contract PDF...");
+                const pdfBytes = await generateContractPDF(
+                    project.title,
+                    project.client?.name || "Client",
+                    signatureBase64,
+                    new Date()
+                );
+                console.log("[Action] PDF generated:", pdfBytes.length, "bytes");
 
-            // 2. Upload PDF
-            const path = `contracts/${projectId}/${Date.now()}_signed_contract.pdf`;
-            pdfUrl = await uploadFileToStorage("project-assets", path, Buffer.from(pdfBytes), "application/pdf");
+                // 2. Upload PDF
+                const path = `contracts/${projectId}/${Date.now()}_signed_contract.pdf`;
+                console.log("[Action] Uploading PDF to storage:", path);
+                pdfUrl = await uploadFileToStorage("project-assets", path, Buffer.from(pdfBytes), "application/pdf");
+                console.log("[Action] PDF uploaded:", pdfUrl);
+            } catch (pdfError) {
+                console.error("[Action] Error generating/uploading PDF:", pdfError);
+                // Continue without PDF upload, still save signature
+            }
         }
 
+        console.log("[Action] Updating project...");
         const result = await prisma.project.update({
             where: { id: projectId },
             data: {
@@ -89,12 +103,13 @@ export async function signContract(projectId: string, signatureBase64?: string) 
                 contractUrl: pdfUrl
             }
         });
+        console.log("[Action] Project updated:", result.id);
 
         // Update or Create Contract Record
         const contractData = {
             signatureBase64,
             signedAt: new Date(),
-            status: "SIGNED",
+            status: ContractStatus.SIGNED,
             content: "Contrat signé généré automatiquement.",
         };
 
@@ -103,11 +118,13 @@ export async function signContract(projectId: string, signatureBase64?: string) 
         });
 
         if (existingContract) {
+            console.log("[Action] Updating existing contract...");
             await prisma.contract.update({
                 where: { id: existingContract.id },
                 data: contractData
             });
         } else {
+            console.log("[Action] Creating new contract...");
             await prisma.contract.create({
                 data: {
                     projectId,
@@ -121,9 +138,48 @@ export async function signContract(projectId: string, signatureBase64?: string) 
         revalidatePath(`/dashboard/projects/${projectId}`);
         revalidatePath('/dashboard/projects');
 
+        console.log("[Action] Contract signed successfully!");
         return { success: true, pdfUrl };
     } catch (error) {
         console.error("[Action Error] signContract:", error);
-        return { success: false, error };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+}
+
+export async function getUserProjects() {
+    try {
+        const cookieStore = await cookies();
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    get(name: string) {
+                        return cookieStore.get(name)?.value;
+                    },
+                },
+            }
+        );
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user || !user.email) return [];
+
+        const projects = await prisma.project.findMany({
+            where: {
+                client: {
+                    email: user.email
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        return projects;
+    } catch (error) {
+        console.error("[Action Error] getUserProjects:", error);
+        return [];
     }
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { Mail, Lock, Loader2, Zap } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("");
@@ -55,16 +56,20 @@ export default function LoginForm() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md p-10 glass-premium rounded-[3rem]"
+            className="w-full max-w-md p-10 bg-white/80 backdrop-blur-xl border border-white rounded-[3rem] shadow-2xl ring-1 ring-slate-900/5"
         >
             <div className="flex flex-col items-center mb-10">
-                <div className="relative w-12 h-12 flex items-center justify-center mb-6">
-                    <div className="absolute inset-0 bg-primary rounded-xl rotate-45" />
-                    <div className="absolute inset-0 bg-primary/20 rounded-xl -rotate-12" />
-                    <span className="relative text-background font-black text-lg">A</span>
+                <div className="relative w-16 h-16 flex items-center justify-center mb-6">
+                    <Image
+                        src="/logo.svg"
+                        alt="Automatic Logo"
+                        fill
+                        className="object-contain"
+                        priority
+                    />
                 </div>
-                <h2 className="text-3xl font-heading font-bold text-primary tracking-tight">Bienvenue</h2>
-                <p className="text-secondary font-medium tracking-wide text-xs mt-2 uppercase">Console Client Automatic</p>
+                <h2 className="text-3xl font-heading font-bold text-slate-900 tracking-tight">Bienvenue</h2>
+                <p className="text-slate-500 font-medium tracking-wide text-xs mt-2 uppercase">Console Client Automatic</p>
             </div>
 
             {magicLinkSent ? (

@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/lib/actions/users";
 import { User, Lock, Bell, CreditCard, LogOut } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage() {
     const user = await getCurrentUser();
 

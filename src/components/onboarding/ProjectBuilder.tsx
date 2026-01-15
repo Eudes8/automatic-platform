@@ -48,14 +48,23 @@ const formSchema = z.object({
     projectTitle: z.string().min(3, "Donnez un nom ambitieux à votre projet"),
     type: z.string().min(1, "Veuillez choisir un type de projet"),
     features: z.array(z.string()).min(1, "Sélectionnez au moins une fonctionnalité"),
-    budget: z.string().default("medium"),
-    timeline: z.string().default("standard"),
+    budget: z.string().optional().default("medium"),
+    timeline: z.string().optional().default("standard"),
     name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
     email: z.string().email("Email invalide"),
     password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = {
+    projectTitle: string;
+    type: string;
+    features: string[];
+    budget?: string;
+    timeline?: string;
+    name: string;
+    email: string;
+    password: string;
+};
 
 export default function ProjectBuilder() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -197,7 +206,7 @@ export default function ProjectBuilder() {
                                                     {...register("projectTitle")}
                                                     autoFocus
                                                     placeholder="ex: NEXUS CORE PLATFORM"
-                                                    className="relative w-full bg-slate-50 border border-slate-200 p-8 rounded-2xl text-2xl font-heading font-bold text-slate-900 placeholder:text-slate-300 focus:border-blue-500 focus:bg-white outline-none transition-all uppercase tracking-tight"
+                                                    className="relative w-full bg-slate-50 border border-slate-200 p-8 rounded-2xl text-2xl font-heading font-bold text-slate-900 placeholder:text-slate-300 focus:border-blue-500 focus:bg-white outline-none transition-all tracking-tight"
                                                 />
                                             </div>
                                             {errors.projectTitle && <p className="text-red-500 text-xs font-bold pl-1">{errors.projectTitle.message}</p>}
@@ -311,7 +320,7 @@ export default function ProjectBuilder() {
                                                 <input
                                                     {...register("name")}
                                                     placeholder="VOTRE NOM COMPLET"
-                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold uppercase tracking-tight text-slate-900 placeholder:text-slate-300"
+                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold tracking-tight text-slate-900 placeholder:text-slate-300"
                                                 />
                                                 {errors.name && <p className="text-red-500 text-xs font-bold pl-1">{errors.name.message}</p>}
                                             </div>
@@ -321,7 +330,7 @@ export default function ProjectBuilder() {
                                                     {...register("email")}
                                                     type="email"
                                                     placeholder="ACCES@ENTREPRISE.COM"
-                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold uppercase tracking-tight text-slate-900 placeholder:text-slate-300"
+                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold tracking-tight text-slate-900 placeholder:text-slate-300"
                                                 />
                                                 {errors.email && <p className="text-red-500 text-xs font-bold pl-1">{errors.email.message}</p>}
                                             </div>

@@ -7,19 +7,21 @@ import { ChevronRight } from "lucide-react";
 export default function Hero() {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-mesh">
-      {/* Decorative Grid */}
-      <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] pointer-events-none" />
+      {/* Enhanced Decorative Elements */}
+      <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.015] pointer-events-none" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-100/20 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 relative z-10 pt-20">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card mb-10 backdrop-blur-sm"
+            className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-premium bg-gradient-card shadow-card backdrop-blur-sm mb-12"
           >
-            <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-secondary">
+            <div className="flex h-2 w-2 rounded-full bg-success animate-pulse shadow-sm" />
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-primary">
               Votre Vision, Notre Code — Disponible en 2026
             </span>
           </motion.div>
@@ -28,20 +30,20 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl md:text-8xl font-heading font-bold mb-8 tracking-[-0.03em] leading-[0.95] text-primary"
+            className="text-6xl md:text-9xl font-heading font-black mb-10 tracking-[-0.04em] leading-[0.9] text-primary"
           >
             Créez votre futur <br />
-            <span className="text-gradient">applicatif aujourd'hui.</span>
+            <span className="text-gradient-premium">applicatif aujourd'hui.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg md:text-xl text-secondary max-w-2xl mx-auto mb-12 leading-relaxed"
+            className="text-xl md:text-2xl text-secondary max-w-3xl mx-auto mb-16 leading-relaxed font-medium"
           >
             Nous concevons des SaaS et applications Web d'exception pour les entrepreneurs ambitieux.
-            Design sobre, architecture robuste, scalabilité infinie.
+            <span className="text-accent font-semibold"> Design sobre, architecture robuste, scalabilité infinie.</span>
           </motion.p>
 
           <motion.div

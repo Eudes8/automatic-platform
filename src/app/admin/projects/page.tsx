@@ -2,6 +2,8 @@ import Kanban from "@/components/admin/Kanban";
 import { getProjectsByStatus } from "@/lib/actions/admin";
 import ProjectCRUDModal from "@/components/admin/projects/ProjectCRUDModal";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminProjectsPage() {
     const projects = await getProjectsByStatus();
 

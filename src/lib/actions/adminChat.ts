@@ -1,25 +1,77 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/utils/adminAuth";
 
-export async function getAllProjectsWithMessages() {
-    // Fetch projects that have messages or just all projects with their messages
-    return await prisma.project.findMany({
-        where: {
-            // Optional: filter only active projects?
-        },
-        include: {
-            client: true,
-            messages: {
-                include: {
-                    sender: true
+export type ChatChannel = {
+    id: string;
+    type: 'PROJECT' | 'SUPPORT';
+    title: string;
+    client: any;
+    messages: any[];
+    updatedAt: string;
+    status: string;
+    originalId: string;
+};
+
+export async function getAllChatChannels(): Promise<ChatChannel[]> {
+    await requireAdmin();
+
+    const [projects, conversations] = await Promise.all([
+        prisma.project.findMany({
+            include: {
+                client: true,
+                messages: {
+                    include: { sender: true },
+                    orderBy: { createdAt: 'asc' }
+                }
+            },
+            orderBy: { updatedAt: 'desc' }
+        }),
+        prisma.conversation.findMany({
+            include: {
+                users: true,
+                messages: {
+                    include: { sender: true },
+                    orderBy: { createdAt: 'asc' }
                 },
-                orderBy: { createdAt: 'asc' },
-                take: 100
-            }
-        },
-        orderBy: {
-            updatedAt: 'desc'
-        }
+                project: true
+            },
+            orderBy: { updatedAt: 'desc' }
+        })
+    ]);
+
+    // Map projects to channels
+    const projectChannels: ChatChannel[] = projects
+        .map((p: any) => ({
+            id: p.id,
+            type: 'PROJECT' as const,
+            title: p.title,
+            client: p.client,
+            messages: p.messages.filter((m: any) => !m.conversationId), // Only project-direct messages
+            updatedAt: p.updatedAt.toISOString(),
+            status: p.status,
+            originalId: p.id // Keep original ID for determining message target
+        }));
+
+    // Map conversations to channels
+    const conversationChannels: ChatChannel[] = conversations.map((c: any) => {
+        const client = c.users.find((u: any) => u.role === 'CLIENT') || c.users[0];
+        return {
+            id: c.id,
+            type: 'SUPPORT' as const,
+            title: c.subject || (c.project ? `${c.project.title} (Support)` : "Support Général"),
+            client: client,
+            messages: c.messages,
+            updatedAt: c.updatedAt.toISOString(),
+            status: 'ACTIVE',
+            originalId: c.id
+        };
     });
+
+    const all: ChatChannel[] = [...projectChannels, ...conversationChannels].sort((a: any, b: any) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+
+    return all;
 }

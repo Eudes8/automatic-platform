@@ -5,6 +5,8 @@ import Link from "next/link";
 import SmsSender from "@/components/admin/projects/SmsSender";
 import AssetUploader from "@/components/admin/projects/AssetUploader";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminProjectDetails({ params }: { params: { id: string } }) {
     const { id } = await params;
     const project = await getProjectDetails(id);

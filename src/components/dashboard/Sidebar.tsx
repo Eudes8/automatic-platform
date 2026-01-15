@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,7 +14,9 @@ import {
     ChevronRight,
     LogOut,
     Users,
-    Briefcase
+    Briefcase,
+    Receipt,
+    HelpCircle
 } from "lucide-react";
 
 const CLIENT_NAV_ITEMS = [
@@ -21,6 +24,7 @@ const CLIENT_NAV_ITEMS = [
     { label: "Mon Projet", icon: FolderLock, href: "/dashboard/projects" },
     { label: "Messages", icon: MessageSquare, href: "/dashboard/chat" },
     { label: "Contrats", icon: FileText, href: "/dashboard/contracts" },
+    { label: "Support", icon: HelpCircle, href: "/dashboard/tickets" },
     { label: "Configuration", icon: Settings, href: "/dashboard/settings" },
 ];
 
@@ -28,6 +32,8 @@ const ADMIN_NAV_ITEMS = [
     { label: "Command Center", icon: LayoutDashboard, href: "/admin" },
     { label: "CRM Clients", icon: Users, href: "/admin/users" },
     { label: "Gestion Projets", icon: FolderLock, href: "/admin/projects" },
+    { label: "Support Tickets", icon: HelpCircle, href: "/admin/tickets" },
+    { label: "Facturation", icon: Receipt, href: "/admin/invoices" },
     { label: "Gestion Portfolio", icon: Briefcase, href: "/admin/portfolio" },
     { label: "Messagerie", icon: MessageSquare, href: "/admin/chat" },
 ];
@@ -52,100 +58,108 @@ export default function Sidebar({ user }: SidebarProps) {
     const navItems = isAdmin ? ADMIN_NAV_ITEMS : CLIENT_NAV_ITEMS;
 
     return (
-        <aside className="w-64 border-r border-white/5 flex flex-col bg-slate-900/50 backdrop-blur-xl h-screen">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <Zap className="w-5 h-5 text-white fill-current" />
+        <aside className="w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex flex-col h-screen relative z-50 shadow-sm">
+            {/* Logo Section */}
+            <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-4 group">
+                    <div className="relative w-10 h-10 flex items-center justify-center">
+                        <Image
+                            src="/logo.svg"
+                            alt="Automatic Logo"
+                            fill
+                            className="object-contain"
+                            priority
+                        />
                     </div>
-                    <span className="font-black tracking-tighter uppercase italic">AUTOMATIC</span>
+                    <div>
+                        <h3 className="text-xl font-heading font-bold text-slate-900 tracking-tight">Automatic</h3>
+                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">Console v2.0</p>
+                    </div>
                 </Link>
             </div>
 
-            <nav className="flex-1 p-4 space-y-1">
+            {/* Navigation */}
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Menu Principal</p>
                 {navItems.map((item) => {
-                    // Check if we are inside a specific project context
                     const projectMatch = pathname.match(/\/dashboard\/projects\/([^\/]+)/);
                     const projectId = projectMatch ? projectMatch[1] : null;
 
                     let href = item.href;
-                    let label = item.label;
+                    const label = item.label;
 
-                    // Dynamic Link Logic
                     if (projectId) {
-                        if (item.href === "/dashboard/projects") {
-                            // "Mon Projet" -> The specific project Overview
-                            href = `/dashboard/projects/${projectId}`;
-                            // label = "Vue Projet"; // Optional: change label
-                        } else if (item.href === "/dashboard/chat") {
-                            // "Messages" -> Project Chat
-                            href = `/dashboard/projects/${projectId}/chat`;
-                        } else if (item.href === "/dashboard/contracts") {
-                            // "Contrats" -> Project Contracts
-                            href = `/dashboard/projects/${projectId}/contracts`;
-                        } else if (item.href === "/dashboard") {
-                            // "Vue d'ensemble" -> Go back to global list? Or stay global.
-                            // Let's keep /dashboard as the "Exit to List" button essentially.
-                        }
+                        if (item.href === "/dashboard/projects") href = `/dashboard/projects/${projectId}`;
+                        else if (item.href === "/dashboard/chat") href = `/dashboard/projects/${projectId}/chat`;
+                        else if (item.href === "/dashboard/contracts") href = `/dashboard/projects/${projectId}/contracts`;
                     }
 
-                    // Active state calculation
                     let isActive = pathname === href;
-                    // Handle "Mon Projet" active state when in sub-routes
                     if (projectId && item.href === "/dashboard/projects") {
                         isActive = pathname === `/dashboard/projects/${projectId}` || pathname === href;
                     }
-                    // standard prefix check for other items if not in strict project mode
                     if (!projectId) {
                         isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                     }
 
-
                     return (
                         <Link
-                            key={item.href} // Use original href as key to maintain stability
+                            key={item.href}
                             href={href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive
-                                ? "bg-blue-600/10 text-blue-400 border border-blue-600/20"
-                                : "text-slate-500 hover:text-white hover:bg-white/5"
+                            className={`flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive
+                                ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
+                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
                                 }`}
                         >
-                            <item.icon className="w-5 h-5" />
-                            <span className="font-bold text-sm tracking-tight">{label}</span>
-                            {isActive && <ChevronRight className="ml-auto w-4 h-4" />}
+                            {isActive && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-r-full" />
+                            )}
+
+                            <item.icon className={`w-5 h-5 transition-all duration-300 ${isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+                                }`} />
+
+                            <span className="font-medium text-sm tracking-wide">
+                                {label}
+                            </span>
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="p-4 border-t border-white/5">
+            {/* User Profile & Actions */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50/50 backdrop-blur-md">
                 {(() => {
                     const projectMatch = pathname.match(/\/dashboard\/projects\/([^\/]+)/);
                     const projectId = projectMatch ? projectMatch[1] : null;
                     const supportLink = projectId ? `/dashboard/projects/${projectId}/chat` : "/dashboard/chat";
 
                     return (
-                        <div className="p-4 rounded-2xl bg-blue-600/5 border border-blue-500/10 mb-4 group cursor-pointer hover:bg-blue-600/10 transition-all">
-                            <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] mb-1 italic">Support Direct</p>
-                            <p className="text-[11px] text-slate-400 leading-tight mb-3">Une question technique ? Nos experts vous répondent.</p>
-                            <Link href={supportLink} className="block w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest text-center transition-all">
-                                Ouvrir le Salon
-                            </Link>
-                        </div>
+                        <Link href={supportLink} className="group relative block w-full p-4 mb-6 rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-blue-400 hover:shadow-md transition-all">
+                            <div className="flex items-center gap-3 relative z-10">
+                                <div className="p-2 bg-blue-600 rounded-lg text-white shadow-md shadow-blue-500/20">
+                                    <Zap className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-slate-900 font-bold text-xs uppercase tracking-wider">Support VIP</p>
+                                    <p className="text-[10px] text-slate-500">Réponse &lt; 5 min</p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-slate-400 ml-auto group-hover:translate-x-1 group-hover:text-blue-500 transition-all" />
+                            </div>
+                        </Link>
                     );
                 })()}
 
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-black uppercase shadow-lg shrink-0">
+                <div className="flex items-center gap-3 pl-1">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 border border-white flex items-center justify-center text-slate-600 text-xs font-black uppercase shadow-sm">
                         {initials}
                     </div>
                     <div className="flex flex-col overflow-hidden flex-1">
-                        <span className="text-[11px] font-black truncate text-white uppercase italic">{user?.name || "Client"}</span>
-                        <span className="text-[9px] text-slate-500 truncate lowercase font-bold tracking-tight">{user?.email || "chargement..."}</span>
+                        <span className="text-sm font-bold truncate text-slate-900">{user?.name || "Client"}</span>
+                        <span className="text-[10px] text-slate-500 truncate font-mono">{user?.email}</span>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-red-400 transition-colors"
+                        className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
                         title="Déconnexion"
                     >
                         <LogOut className="w-4 h-4" />

@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "./users";
 import { revalidatePath } from "next/cache";
+import { createAdminNotification } from "./notifications";
 
 export async function sendAdminMessage(projectId: string, text: string) {
     const admin = await getCurrentUser();

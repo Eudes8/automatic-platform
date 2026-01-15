@@ -4,19 +4,23 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Github } from "lucide-react";
 import Image from "next/image";
-import { getPortfolioProjects } from "@/lib/actions/portfolio";
+// import { getPortfolioProjects } from "@/lib/actions/portfolio"; // TODO: Implement PortfolioProject model
 
 export default function Portfolio() {
     const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // TODO: Implement portfolio loading
+        /*
         const load = async () => {
             const data = await getPortfolioProjects();
             setProjects(data);
             setLoading(false);
         };
         load();
+        */
+        setLoading(false);
     }, []);
 
     const displayProjects = projects.length > 0 ? projects : [
@@ -43,6 +47,24 @@ export default function Portfolio() {
         },
     ];
 
+    const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+
+    const handleImageError = (projectTitle: string) => {
+        setImageErrors(prev => new Set(prev).add(projectTitle));
+    };
+
+    const getImageSrc = (project: any) => {
+        if (imageErrors.has(project.title)) {
+            return "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800"; // fallback image
+        }
+        try {
+            new URL(project.image);
+            return project.image;
+        } catch {
+            return "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800"; // fallback image
+        }
+    };
+
     return (
         <section id="portfolio" className="py-32 bg-background transition-colors">
             <div className="container mx-auto px-6">
@@ -67,10 +89,11 @@ export default function Portfolio() {
                         >
                             <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-8 bg-card border border-border">
                                 <Image
-                                    src={project.image}
+                                    src={getImageSrc(project)}
                                     alt={project.title}
                                     width={800}
                                     height={1000}
+                                    onError={() => handleImageError(project.title)}
                                     className="w-full h-full object-cover transition-transform duration-700 scale-105 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-80 group-hover:opacity-100"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-10">

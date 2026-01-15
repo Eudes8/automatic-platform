@@ -43,8 +43,8 @@ export default function ProjectStats({ project }: { project: any }) {
 
     return (
         <div className="space-y-8">
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden backdrop-blur-xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] rounded-full" />
+            <div className="bg-gradient-card border border-premium rounded-3xl p-10 relative overflow-hidden shadow-premium">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/40 blur-3xl rounded-full" />
 
                 <div className="flex flex-col md:flex-row justify-between items-end gap-10 relative z-10">
                     <div className="flex-1">

@@ -78,7 +78,7 @@ export default function Home() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
               <div className="max-w-2xl">
                 <h2 className="text-4xl md:text-6xl font-heading font-bold text-primary tracking-tight">
-                  L'expérience d'une <br /><span className="text-secondary opacity-50">agence de nouvelle génération.</span>
+                  L&apos;expérience d&apos;une <br /><span className="text-secondary opacity-50">agence de nouvelle génération.</span>
                 </h2>
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function Home() {
                 Construisons votre <br /> futur ensemble.
               </h2>
               <p className="text-background/60 text-lg md:text-xl max-w-2xl mx-auto mb-16 font-medium">
-                Vous avez l'idée, nous avons l'expertise. Rejoignez les fondateurs qui font confiance à Automatic pour lancer leurs SaaS.
+                Vous avez l&apos;idée, nous avons l&apos;expertise. Rejoignez les fondateurs qui font confiance à Automatic pour lancer leurs SaaS.
               </p>
               <Link
                 href="/onboarding"

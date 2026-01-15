@@ -12,12 +12,32 @@ import {
 } from "lucide-react";
 import { getAdminStats } from "@/lib/actions/admin";
 import Link from "next/link";
-import { getAllProjectsWithMessages } from "@/lib/actions/adminChat";
+import { getAllChatChannels } from "@/lib/actions/adminChat";
+import { getAdminNotifications } from "@/lib/actions/notifications";
+import { Bell, Check } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
+
+type RecentMessage = {
+    id: string;
+    text: string;
+    createdAt: string;
+    sender?: { role: string };
+    project?: { title: string };
+};
 
 export default async function AdminDashboard() {
     const stats = await getAdminStats();
-    const activeProjects = await getAllProjectsWithMessages(); // Get recent activity
-    const recentMessages = activeProjects.flatMap(p => p.messages).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+    const activeProjects = await getAllChatChannels(); // Get recent activity
+    const recentMessages = activeProjects.flatMap((p: any) => 
+        p.messages.map((m: any) => ({
+            ...m,
+            createdAt: m.createdAt.toISOString(),
+            project: { title: p.title }
+        }))
+    ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+
+    const notifications = await getAdminNotifications();
 
     return (
         <div className="min-h-screen bg-background p-8 text-secondary font-sans transition-colors">
@@ -81,7 +101,7 @@ export default async function AdminDashboard() {
                 <div className="lg:col-span-3 glass-premium p-8 rounded-[2.5rem] min-h-[450px]">
                     <div className="flex justify-between items-center mb-8">
                         <h3 className="text-primary font-heading font-bold uppercase text-sm tracking-widest flex items-center gap-2">
-                            <Activity className="w-4 h-4 text-primary" /> Flux d'Activité en Direct
+                            <Activity className="w-4 h-4 text-primary" /> Flux d&apos;Activité en Direct
                         </h3>
                         <Link href="/admin/chat" className="text-[10px] text-primary/40 hover:text-primary uppercase tracking-[0.2em] font-black flex items-center gap-1 transition-colors">
                             Voir toutes les opérations <ArrowUpRight className="w-3 h-3" />
@@ -89,7 +109,7 @@ export default async function AdminDashboard() {
                     </div>
 
                     <div className="space-y-3">
-                        {recentMessages.length > 0 ? recentMessages.map((msg: any) => (
+                        {recentMessages.length > 0 ? recentMessages.map((msg: RecentMessage) => (
                             <div key={msg.id} className="flex items-center gap-6 p-4 rounded-xl hover:bg-primary/5 transition-all group border border-transparent hover:border-border">
                                 <span className="text-[10px] font-bold text-secondary/40 w-20">{new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                                 <div className="w-9 h-9 bg-primary/5 rounded-lg flex items-center justify-center text-[10px] font-black text-secondary group-hover:text-primary transition-colors">
@@ -113,6 +133,33 @@ export default async function AdminDashboard() {
 
                 {/* System Status Side Panel */}
                 <div className="lg:col-span-1 space-y-6">
+                    {/* Notifications Panel */}
+                    <div className="glass-premium p-6 rounded-2xl">
+                        <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <Bell className="w-4 h-4" /> Notifications ({notifications.filter(n => !n.read).length})
+                        </h4>
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                            {notifications.length > 0 ? notifications.slice(0, 5).map((notification) => (
+                                <div key={notification.id} className={`p-3 rounded-lg border ${notification.read ? 'bg-slate-800/50 border-slate-700' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                                    <h5 className="text-xs font-bold text-white mb-1">{notification.title}</h5>
+                                    <p className="text-[10px] text-slate-300 mb-2">{notification.message}</p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[8px] text-slate-500 uppercase">
+                                            {new Date(notification.createdAt).toLocaleDateString()}
+                                        </span>
+                                        {!notification.read && (
+                                            <button className="text-[8px] text-blue-400 hover:text-blue-300 uppercase font-bold">
+                                                Marquer lu
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )) : (
+                                <p className="text-[10px] text-slate-500 italic">Aucune notification</p>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="glass-premium p-6 rounded-2xl">
                         <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-6">Données Réseau</h4>
                         <div className="space-y-4">

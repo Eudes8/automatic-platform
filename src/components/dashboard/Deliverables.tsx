@@ -11,6 +11,7 @@ interface DeliverablesProps {
     contracts?: any[];
     clientName?: string;
     budget?: string;
+    description?: string;
 }
 
 export default function Deliverables({
@@ -19,7 +20,8 @@ export default function Deliverables({
     projectAssets = [],
     contracts = [],
     clientName = "Client",
-    budget = "0€"
+    budget = "0€",
+    description
 }: DeliverablesProps) {
     const [downloadingContract, setDownloadingContract] = useState<string | null>(null);
 
@@ -34,7 +36,8 @@ export default function Deliverables({
                 clientName,
                 budget,
                 contract.signatureBase64,
-                projectId
+                projectId,
+                description
             );
 
             const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });

@@ -11,9 +11,10 @@ interface ContractBarrierProps {
     projectId: string;
     clientName?: string;
     budget?: string;
+    description?: string;
 }
 
-export default function ContractBarrier({ projectName, projectId, clientName, budget }: ContractBarrierProps) {
+export default function ContractBarrier({ projectName, projectId, clientName, budget, description }: ContractBarrierProps) {
     const [isSignerOpen, setIsSignerOpen] = useState(false);
 
     return (
@@ -72,9 +73,33 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                 projectId={projectId}
                 clientName={clientName}
                 budget={budget}
+                description={description}
                 onSign={async (signatureData) => {
-                    await signContract(projectId, signatureData);
-                    window.location.reload();
+                    try {
+                        console.log("ContractBarrier: Signing contract...", { projectId });
+                        const result = await signContract(projectId, signatureData);
+                        console.log("ContractBarrier: Sign result:", result);
+                        if (result.success) {
+                            // Reload after a short delay to ensure DB is updated
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            const errorMsg = typeof result.error === 'string' 
+                                ? result.error 
+                                : JSON.stringify(result.error);
+                            console.error("ContractBarrier: Sign failed:", errorMsg);
+                            alert(`❌ Erreur lors de la signature: ${errorMsg}`);
+                            // Fermer le modal en cas d'erreur
+                            setIsSignerOpen(false);
+                        }
+                    } catch (error) {
+                        const errorMsg = error instanceof Error ? error.message : String(error);
+                        console.error("ContractBarrier: Error signing contract:", error);
+                        alert(`❌ Erreur lors de la signature du contrat: ${errorMsg}`);
+                        // Fermer le modal en cas d'erreur
+                        setIsSignerOpen(false);
+                    }
                 }}
             />
         </div>

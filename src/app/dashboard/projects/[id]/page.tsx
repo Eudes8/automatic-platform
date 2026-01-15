@@ -7,6 +7,8 @@ import { Zap, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
     const projects = await getClientProjects();
@@ -24,6 +26,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 projectId={project.id}
                 clientName={project.client?.name || "Client"}
                 budget={project.budget ? `${project.budget}€` : undefined}
+                description={project.description || undefined}
             />
         );
     }
@@ -74,6 +77,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         contracts={project.contracts}
                         clientName={project.client?.name || "Client"}
                         budget={project.budget ? `${project.budget}€` : "Non spécifié"}
+                        description={project.description || undefined}
                     />
                 </div>
             </div>

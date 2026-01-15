@@ -1,8 +1,10 @@
-import { getAllProjectsWithMessages } from "@/lib/actions/adminChat";
+import { getAllChatChannels } from "@/lib/actions/adminChat";
 import AdminChatInterface from "@/components/admin/chat/AdminChatInterface";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminChatPage() {
-    const projects = await getAllProjectsWithMessages();
+    const channels = await getAllChatChannels();
 
     return (
         <div className="p-8 h-screen flex flex-col">
@@ -12,7 +14,7 @@ export default async function AdminChatPage() {
             </header>
 
             <div className="flex-1 min-h-0">
-                <AdminChatInterface projects={projects} />
+                <AdminChatInterface projects={channels} />
             </div>
         </div>
     );

@@ -4,8 +4,10 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { generateInvoicePDF } from "@/lib/pdf-generator";
 import { uploadFileToStorage } from "@/lib/storage";
+import { requireAdmin } from "@/lib/utils/adminAuth";
 
 export async function createInvoice(formData: FormData) {
+    await requireAdmin();
     const projectId = formData.get("projectId") as string;
     const amount = parseFloat(formData.get("amount") as string);
     const dueDate = new Date(formData.get("dueDate") as string);
@@ -53,5 +55,21 @@ export async function createInvoice(formData: FormData) {
     } catch (error) {
         console.error("Failed to create invoice", error);
         return { success: false, error: "Create failed" };
+    }
+}
+
+export async function getAllInvoices() {
+    await requireAdmin();
+    try {
+        return await prisma.invoice.findMany({
+            include: {
+                client: true,
+                project: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    } catch (error) {
+        console.error("Failed to fetch invoices:", error);
+        return [];
     }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Moon, Sun } from "lucide-react"
+import { Sun, Palette } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function ThemeToggle() {
@@ -9,12 +9,12 @@ export function ThemeToggle() {
 
     return (
         <button
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-white/10 dark:hover:bg-white/5 shadow-sm"
-            aria-label="Toggle theme"
+            onClick={() => setTheme("light")}
+            className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:scale-105"
+            aria-label="Forcer le mode clair"
         >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-primary" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-primary" />
+            <Sun className="h-5 w-5 text-primary transition-all duration-300 group-hover:text-blue-500 group-hover:rotate-12" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </button>
     )
 }

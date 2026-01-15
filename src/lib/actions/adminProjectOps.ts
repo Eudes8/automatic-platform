@@ -3,8 +3,10 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { uploadFileToStorage } from "@/lib/storage";
+import { requireAdmin } from "@/lib/utils/adminAuth";
 
 export async function createProjectAsset(formData: FormData) {
+    await requireAdmin();
     const projectId = formData.get("projectId") as string;
     const name = formData.get("name") as string;
     const type = formData.get("type") as string;
@@ -47,6 +49,7 @@ export async function createProjectAsset(formData: FormData) {
 }
 
 export async function sendProjectSMS(projectId: string, message: string) {
+    await requireAdmin();
     // Simulator
     console.log(`[SMS SIMULATION] To Project ${projectId}: ${message}`);
     // In a real app, you'd call Twilio/Vonage here
@@ -57,6 +60,7 @@ export async function sendProjectSMS(projectId: string, message: string) {
 }
 
 export async function getProjectDetails(projectId: string) {
+    await requireAdmin();
     return await prisma.project.findUnique({
         where: { id: projectId },
         include: {

@@ -1,5 +1,6 @@
 
 import prisma from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -15,6 +16,22 @@ export async function GET() {
             role: "ADMIN"
         }
     });
+
+    // Also update Supabase user metadata
+    try {
+        const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+        const supabaseUser = users.users.find(u => u.email === email);
+
+        if (supabaseUser) {
+            await supabaseAdmin.auth.admin.updateUserById(supabaseUser.id, {
+                app_metadata: {
+                    role: 'ADMIN'
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error updating Supabase metadata:', error);
+    }
 
     return NextResponse.json({ success: true, user });
 }
