@@ -37,16 +37,9 @@ export function TicketStats() {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 {[...Array(4)].map((_, i) => (
-                    <Card key={i}>
-                        <CardHeader className="pb-2">
-                            <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="h-8 bg-gray-200 rounded animate-pulse" />
-                        </CardContent>
-                    </Card>
+                    <div key={i} className="h-40 bg-card/10 border border-border/50 rounded-[2.5rem] animate-pulse" />
                 ))}
             </div>
         );
@@ -55,42 +48,49 @@ export function TicketStats() {
     if (!stats) return null;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total Tickets</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.total}</div>
-                </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            <div className="p-8 bg-card/10 border border-border/50 rounded-[2.5rem] shadow-xl group hover:bg-white transition-all duration-500 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                    <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary transition-colors">TOTAL_TICKETS_LOG</span>
+                </div>
+                <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{stats.total}</p>
+                <div className="mt-4 flex items-center gap-2 text-secondary/20">
+                    <span className="text-[8px] font-black uppercase tracking-widest italic">BASE_RECORDS_SYNC</span>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Ouverts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
-                </CardContent>
-            </Card>
+            <div className="p-8 bg-card/10 border border-border/50 rounded-[2.5rem] shadow-xl group hover:bg-white transition-all duration-500 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                    <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary transition-colors">UNITES_OUVERTES</span>
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                </div>
+                <p className="text-4xl font-black text-blue-600 tracking-tighter italic uppercase">{stats.open}</p>
+                <div className="mt-4 flex items-center gap-2 text-secondary/20">
+                    <span className="text-[8px] font-black uppercase tracking-widest italic">AWAITING_RESPONSE</span>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">En cours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
-                </CardContent>
-            </Card>
+            <div className="p-8 bg-card/10 border border-border/50 rounded-[2.5rem] shadow-xl group hover:bg-white transition-all duration-500 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                    <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary transition-colors">FLUX_EN_COURS</span>
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                </div>
+                <p className="text-4xl font-black text-amber-600 tracking-tighter italic uppercase">{stats.inProgress}</p>
+                <div className="mt-4 flex items-center gap-2 text-secondary/20">
+                    <span className="text-[8px] font-black uppercase tracking-widest italic">ACTIVE_PROCESSING</span>
+                </div>
+            </div>
 
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Urgents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{stats.urgent}</div>
-                </CardContent>
-            </Card>
+            <div className="p-8 bg-card/10 border border-border/50 rounded-[2.5rem] shadow-xl group hover:bg-white transition-all duration-500 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6 border-b border-red-500/10 pb-2">
+                    <span className="text-[9px] text-red-500 font-black uppercase tracking-[0.3em] italic group-hover:text-red-600 transition-colors">CRITIQUE_PRIORITY.X</span>
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-ping shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                </div>
+                <p className="text-4xl font-black text-red-600 tracking-tighter italic uppercase">{stats.urgent}</p>
+                <div className="mt-4 flex items-center gap-2 text-secondary/20">
+                    <span className="text-[8px] font-black text-red-500/40 uppercase tracking-widest italic">IMMEDIATE_ACTION_REQ</span>
+                </div>
+            </div>
         </div>
     );
 }

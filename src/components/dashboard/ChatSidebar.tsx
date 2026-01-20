@@ -15,12 +15,14 @@ import {
     Smile,
     Video,
     MoreVertical,
-    Reply
+    Reply,
+    Zap
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getProjectMessages, sendChatMessage } from "@/lib/actions/messages";
 import { format, isSameDay, isYesterday, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface TypingUser {
     id: string;
@@ -199,10 +201,18 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
             })
             .subscribe();
 
+        // 1s Polling Fallback as requested
+        const pollingInterval = setInterval(() => {
+            if (isSubscribed) {
+                refreshMessages();
+            }
+        }, 1000);
+
         return () => {
             isSubscribed = false;
             supabase.removeChannel(messageChannel);
             supabase.removeChannel(typingChannel);
+            clearInterval(pollingInterval);
             console.log("Chat [Client]: Cleaned up realtime for project:", projectId);
         };
     }, [projectId]);
@@ -310,45 +320,47 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
     };
 
     return (
-        <div className="flex flex-col h-full glass-premium rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
+        <div className="flex flex-col h-full bg-background border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/2 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+
             {/* Header */}
-            <div className="p-6 sm:p-8 border-b border-border bg-card/10 flex items-center justify-between">
-                <div className="flex items-center gap-4 sm:gap-5">
+            <div className="p-8 border-b border-border/50 bg-card/10 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-5">
                     <div className="relative">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                            <span className="text-background font-black text-base sm:text-lg">A</span>
+                        <div className="w-12 h-12 rounded-[1.5rem] bg-primary text-background flex items-center justify-center shadow-2xl shadow-primary/20">
+                            <Zap size={20} className="animate-pulse" />
                         </div>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 bg-green-500 border-2 border-background rounded-full shadow-sm" />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-background rounded-full shadow-inner" />
                     </div>
                     <div>
-                        <h4 className="font-heading font-bold text-primary tracking-tight text-sm sm:text-base">Support Technique</h4>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                            <p className="text-[10px] text-secondary/60 font-bold uppercase tracking-widest">En ligne</p>
+                        <h4 className="font-heading font-black text-primary tracking-tighter text-lg uppercase italic">UNITÉ_SUPPORT.ALPHA</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.3em] italic">NODE_ACTIVE // CH-256V</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                    <button onClick={() => setShowSearch(!showSearch)} className="p-2 sm:p-3 hover:bg-primary/5 rounded-xl transition-all text-secondary/60 hover:text-primary">
-                        <Search className="w-4.5 h-4.5" />
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setShowSearch(!showSearch)} className="p-3 hover:bg-primary/5 rounded-[1rem] transition-all text-secondary/40 hover:text-primary border border-transparent hover:border-border/50">
+                        <Search size={18} />
                     </button>
-                    <button className="hidden sm:block p-3 hover:bg-primary/5 rounded-xl transition-all text-secondary/60 hover:text-primary"><Video className="w-4.5 h-4.5" /></button>
-                    <button className="p-2 sm:p-3 hover:bg-primary/5 rounded-xl transition-all text-secondary/60 hover:text-primary"><MoreVertical className="w-4.5 h-4.5" /></button>
+                    <button className="p-3 hover:bg-primary/5 rounded-[1rem] transition-all text-secondary/40 hover:text-primary border border-transparent hover:border-border/50">
+                        <MoreVertical size={18} />
+                    </button>
                 </div>
             </div>
 
             {/* Search */}
             <AnimatePresence>
                 {showSearch && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-6 pb-6 overflow-hidden">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/30 w-4 h-4" />
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-8 pb-6 overflow-hidden bg-card/10 border-b border-border/50">
+                        <div className="relative mt-4">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/30 w-4 h-4" />
                             <input
                                 type="text"
-                                placeholder="Rechercher..."
+                                placeholder="XFER_FIND: Rechercher messages..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-secondary/5 border border-border rounded-2xl text-sm outline-none focus:border-primary/30 transition-all font-medium"
+                                className="w-full pl-12 pr-4 py-4 bg-background border border-border/50 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest outline-none focus:border-primary/30 transition-all italic shadow-inner"
                             />
                         </div>
                     </motion.div>
@@ -356,19 +368,19 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
             </AnimatePresence>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 custom-scrollbar bg-background/5 scroll-smooth">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-4 custom-scrollbar bg-background/30 scroll-smooth">
                 {isLoading ? (
-                    <div className="space-y-6 pt-10">
-                        <div className="flex justify-start"><div className="w-32 h-10 bg-secondary/5 animate-pulse rounded-2xl" /></div>
-                        <div className="flex justify-end"><div className="w-48 h-10 bg-primary/5 animate-pulse rounded-2xl" /></div>
-                        <div className="flex justify-start"><div className="w-40 h-10 bg-secondary/5 animate-pulse rounded-2xl" /></div>
+                    <div className="space-y-8 pt-10">
+                        <div className="flex justify-start"><div className="w-48 h-16 bg-secondary/5 animate-pulse rounded-[1.5rem]" /></div>
+                        <div className="flex justify-end"><div className="w-64 h-16 bg-primary/5 animate-pulse rounded-[1.5rem]" /></div>
+                        <div className="flex justify-start"><div className="w-56 h-16 bg-secondary/5 animate-pulse rounded-[1.5rem]" /></div>
                     </div>
                 ) : filteredMessages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center px-10">
-                        <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mb-6">
-                            <MessageSquare className="w-8 h-8 text-secondary/20" />
+                    <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
+                        <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center mb-8 border border-primary/10 shadow-inner">
+                            <MessageSquare size={32} className="text-secondary/20" />
                         </div>
-                        <p className="text-secondary/40 text-xs font-bold uppercase tracking-widest">Aucun message</p>
+                        <p className="text-[10px] text-secondary/40 font-black uppercase tracking-[0.5em] italic">// AUCUN_HISTORIQUE_XFER</p>
                     </div>
                 ) : (
                     <>
@@ -384,82 +396,91 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             return (
                                 <div key={msg.id} className="flex flex-col">
                                     {isFirstInDay && (
-                                        <div className="flex justify-center my-8">
-                                            <span className="text-[10px] bg-secondary/10 text-secondary/60 px-4 py-1.5 rounded-full font-bold uppercase tracking-[0.2em] shadow-sm">
-                                                {isToday(messageTime) ? "Aujourd'hui" : isYesterday(messageTime) ? "Hier" : format(messageTime, "d MMMM yyyy", { locale: fr })}
+                                        <div className="flex justify-center my-10">
+                                            <span className="text-[9px] bg-secondary/5 text-secondary/40 px-6 py-2 rounded-full font-black uppercase tracking-[0.3em] border border-border/50 italic">
+                                                {isToday(messageTime) ? "JOUR_ACTUEL" : isYesterday(messageTime) ? "VEILLE_LOG" : format(messageTime, "dd_MM_yyyy", { locale: fr })}
                                             </span>
                                         </div>
                                     )}
 
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        className={`flex ${isClient ? "justify-end" : "justify-start"} group relative mb-1`}
+                                        className={`flex ${isClient ? "justify-end" : "justify-start"} group relative mb-2`}
                                     >
-                                        <div className={`flex gap-3 max-w-[85%] sm:max-w-[75%] ${isClient ? "flex-row-reverse" : ""}`}>
-                                            {/* Avatar */}
-                                            <div className={`w-8 h-8 flex-shrink-0 flex items-end ${!isLastInGroup ? 'invisible' : ''}`}>
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black tracking-tighter shadow-sm ${isClient ? "bg-primary text-background" : "bg-card border border-border text-primary"
-                                                    }`}>
-                                                    {isClient ? "CS" : "AT"}
+                                        <div className={`flex gap-4 max-w-[85%] ${isClient ? "flex-row-reverse" : ""}`}>
+                                            <div className={`w-10 h-10 flex-shrink-0 flex items-end ${!isLastInGroup ? 'invisible' : ''}`}>
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.1em] italic shadow-inner border border-border/50",
+                                                    isClient ? "bg-primary text-background" : "bg-white text-primary"
+                                                )}>
+                                                    {isClient ? "U_S" : "A_I"}
                                                 </div>
                                             </div>
 
-                                            <div className={`flex flex-col gap-1 ${isClient ? "items-end" : "items-start"}`}>
+                                            <div className={`flex flex-col gap-1.5 ${isClient ? "items-end" : "items-start"}`}>
                                                 {!isClient && isFirstInGroup && (
-                                                    <span className="text-[10px] text-secondary/40 font-bold ml-1 uppercase tracking-widest">Automatic Support</span>
+                                                    <span className="text-[9px] text-secondary/30 font-black ml-1 uppercase tracking-[0.3em] italic">// AUTOMATIC_AGENT</span>
                                                 )}
 
-                                                <div className={`relative px-4 py-2.5 text-[13px] sm:text-sm leading-relaxed font-medium transition-all shadow-sm
-                                                    ${isClient
-                                                        ? `bg-primary text-background ${isFirstInGroup ? 'rounded-2xl rounded-tr-sm' : 'rounded-2xl'} ${!isFirstInGroup && !isLastInGroup ? 'rounded-r-sm' : ''} ${isLastInGroup && !isFirstInGroup ? 'rounded-br-2xl rounded-tr-sm' : ''}`
-                                                        : `bg-card border border-border text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-sm' : 'rounded-2xl'} ${!isFirstInGroup && !isLastInGroup ? 'rounded-l-sm' : ''} ${isLastInGroup && !isFirstInGroup ? 'rounded-bl-2xl rounded-tl-sm' : ''}`
-                                                    }
-                                                `}>
+                                                <div className={cn(
+                                                    "relative px-6 py-4 text-sm font-bold tracking-tight leading-relaxed transition-all shadow-xl",
+                                                    isClient
+                                                        ? `bg-primary text-background shadow-primary/10 ${isFirstInGroup ? 'rounded-[1.5rem] rounded-tr-none' : 'rounded-[1.5rem]'}`
+                                                        : `bg-white border border-border/50 text-primary ${isFirstInGroup ? 'rounded-[1.5rem] rounded-tl-none' : 'rounded-[1.5rem]'}`
+                                                )}>
                                                     {msg.replyTo && (
-                                                        <div className={`text-xs mb-2 p-2 rounded-lg border-l-2 ${isClient ? "bg-black/10 border-white/30" : "bg-secondary/5 border-primary/30"}`}>
-                                                            <div className="flex items-center gap-1.5 opacity-60 mb-0.5">
-                                                                <Reply className="w-3 h-3" />
-                                                                <span className="font-bold text-[9px] uppercase tracking-tighter">Réponse</span>
-                                                            </div>
-                                                            <p className="truncate opacity-90 line-clamp-1 italic">{msg.replyTo}</p>
+                                                        <div className={cn(
+                                                            "text-xs mb-3 p-3 rounded-xl border-l-4 shadow-inner",
+                                                            isClient ? "bg-black/10 border-white/20" : "bg-card/30 border-primary/20"
+                                                        )}>
+                                                            <p className="text-[8px] font-black uppercase tracking-widest italic opacity-50 mb-1">XFER_REPLY:</p>
+                                                            <p className="line-clamp-2 italic opacity-80 text-xs">{msg.replyTo}</p>
                                                         </div>
                                                     )}
 
                                                     <p className="whitespace-pre-wrap">{msg.text}</p>
 
                                                     {msg.attachment && (
-                                                        <div className={`mt-2 p-2.5 rounded-xl border ${isClient ? "bg-black/10 border-white/10" : "bg-background border-border"}`}>
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isClient ? "bg-white/10" : "bg-primary/5"}`}>
-                                                                    <File className="w-4 h-4" />
+                                                        <div className={cn(
+                                                            "mt-4 p-4 rounded-[1.2rem] border shadow-inner",
+                                                            isClient ? "bg-black/10 border-white/10" : "bg-secondary/5 border-border/50"
+                                                        )}>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={cn(
+                                                                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                                                                    isClient ? "bg-white/10" : "bg-primary/5"
+                                                                )}>
+                                                                    <File size={18} />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="font-bold text-[11px] truncate">{msg.attachment.name}</p>
-                                                                    <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="text-[9px] opacity-60 hover:opacity-100 underline underline-offset-2">Télécharger</a>
+                                                                    <p className="font-black text-[10px] uppercase tracking-wider truncate italic">{msg.attachment.name}</p>
+                                                                    <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black uppercase tracking-[0.1em] opacity-40 hover:opacity-100 italic transition-opacity">DATA_FETCH_OK</a>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     )}
 
-                                                    <div className={`flex items-center gap-1.5 mt-1.5 justify-end ${isClient ? "text-white/50" : "text-secondary/40"}`}>
-                                                        <span className="text-[9px] font-bold">{format(messageTime, 'HH:mm')}</span>
+                                                    <div className={cn(
+                                                        "flex items-center gap-2 mt-3 justify-end",
+                                                        isClient ? "text-white/40" : "text-secondary/20"
+                                                    )}>
+                                                        <span className="text-[8px] font-black uppercase tracking-widest italic">{format(messageTime, 'HH:mm')}</span>
                                                         {isClient && (
                                                             msg.id.startsWith('temp-')
                                                                 ? <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                                                                : <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                                                                : <CheckCheck className="w-4 h-4 text-accent" />
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Actions */}
-                                            <div className={`flex flex-col justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${isClient ? "items-end" : "items-start"}`}>
-                                                <button onClick={() => setReplyingTo(msg)} className="p-1.5 hover:bg-secondary/10 rounded-full text-secondary/40 hover:text-primary transition-colors">
-                                                    <Reply className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => setShowEmojiPicker(true)} className="p-1.5 hover:bg-secondary/10 rounded-full text-secondary/40 hover:text-primary transition-colors">
-                                                    <Smile className="w-4 h-4" />
+                                            <div className={cn(
+                                                "flex flex-col justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300",
+                                                isClient ? "items-end" : "items-start"
+                                            )}>
+                                                <button onClick={() => setReplyingTo(msg)} className="p-2 hover:bg-secondary/5 rounded-lg text-secondary/30 hover:text-primary transition-colors border border-transparent hover:border-border/50">
+                                                    <Reply size={16} />
                                                 </button>
                                             </div>
                                         </div>
@@ -472,56 +493,56 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                 )}
             </div>
 
-            {/* Typing */}
+            {/* Typing Indicator */}
             {typingUsers.length > 0 && (
-                <div className="px-8 py-3 bg-background/50 border-t border-border">
-                    <div className="flex items-center gap-2">
-                        <div className="flex space-x-1">
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce delay-75" />
-                            <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce delay-150" />
+                <div className="px-8 py-3 bg-secondary/2 border-t border-border/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="flex space-x-1.5">
+                            <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce" />
+                            <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.2s]" />
+                            <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.4s]" />
                         </div>
-                        <p className="text-[10px] text-secondary/60 font-medium italic">Support en train d'écrire...</p>
+                        <p className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic">UNITÉ_SUPPORT EN TRAIN D'ÉCRIRE...</p>
                     </div>
                 </div>
             )}
 
             {/* Footer / Input */}
-            <div className="p-6 sm:p-8 bg-card/5 border-t border-border">
+            <div className="p-8 bg-card/10 border-t border-border/50 relative z-10">
                 {replyingTo && (
-                    <div className="mb-4 flex items-center justify-between p-3 bg-secondary/5 border border-border rounded-2xl">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <Reply className="w-4 h-4 text-primary shrink-0" />
+                    <div className="mb-6 flex items-center justify-between p-4 bg-secondary/2 border border-border/50 rounded-[1.5rem] shadow-inner animate-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center gap-4 overflow-hidden">
+                            <Reply className="text-primary/40 shrink-0" size={16} />
                             <div className="min-w-0">
-                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Réponse</p>
-                                <p className="text-xs text-secondary/60 truncate italic">{replyingTo.text}</p>
+                                <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.3em] italic">RÉPONSE_AUX_LOGS</p>
+                                <p className="text-xs text-primary/80 truncate italic line-clamp-1">{replyingTo.text}</p>
                             </div>
                         </div>
-                        <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-secondary/10 rounded-lg text-secondary/40"><X className="w-4 h-4" /></button>
+                        <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-secondary/5 rounded-lg text-secondary/40 transition-colors"><X size={16} /></button>
                     </div>
                 )}
 
                 {selectedFile && (
-                    <div className="mb-4 flex items-center justify-between p-3 bg-primary/5 border border-primary/10 rounded-2xl">
-                        <div className="flex items-center gap-3">
-                            <File className="w-4 h-4 text-primary" />
-                            <p className="text-xs font-medium text-primary/80 truncate max-w-[200px]">{selectedFile.name}</p>
+                    <div className="mb-6 flex items-center justify-between p-4 bg-primary/2 border border-primary/20 rounded-[1.5rem] shadow-inner animate-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center gap-4 overflow-hidden">
+                            <File className="text-primary/40" size={18} />
+                            <p className="text-xs font-black text-primary/80 uppercase tracking-widest truncate italic">{selectedFile.name}</p>
                         </div>
-                        <button onClick={() => setSelectedFile(null)} className="p-1 hover:bg-primary/10 rounded-lg text-primary/40"><X className="w-4 h-4" /></button>
+                        <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-primary/5 rounded-lg text-primary/40 transition-colors"><X size={16} /></button>
                     </div>
                 )}
 
-                <div className="relative">
-                    <div className="flex items-end gap-3 bg-background/80 border border-border p-2 sm:p-3 pl-4 sm:pl-5 rounded-3xl shadow-lg focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                <div className="relative group">
+                    <div className="flex items-end gap-4 bg-white border border-border/80 p-4 pl-6 rounded-[2rem] shadow-2xl focus-within:border-primary/40 focus-within:ring-8 focus-within:ring-primary/5 transition-all duration-500">
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="mb-1.5 p-2 hover:bg-secondary/10 rounded-xl text-secondary/40 hover:text-primary transition-colors cursor-pointer"
+                            className="mb-1.5 p-3 hover:bg-secondary/5 rounded-xl text-secondary/40 hover:text-primary transition-all duration-300 active:scale-90"
                         >
-                            <Paperclip className="w-5 h-5" />
+                            <Paperclip size={20} />
                         </button>
                         <textarea
-                            placeholder="Écrire un message..."
-                            className="bg-transparent border-none outline-none flex-1 text-sm text-primary placeholder:text-secondary/30 font-medium resize-none min-h-[40px] max-h-32 py-2"
+                            placeholder="COMM_XFER: Encodez votre message..."
+                            className="bg-transparent border-none outline-none flex-1 text-sm text-primary placeholder:text-secondary/20 font-bold leading-relaxed resize-none min-h-[44px] max-h-48 py-3 italic"
                             value={input}
                             onChange={(e) => {
                                 setInput(e.target.value);
@@ -538,9 +559,9 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                         <button
                             onClick={sendMessage}
                             disabled={!input.trim() && !selectedFile}
-                            className="p-3.5 sm:p-4 bg-primary text-background rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:grayscale transition-all"
+                            className="p-4 bg-primary text-background rounded-2xl shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:grayscale transition-all duration-500 hover:shadow-primary/40"
                         >
-                            <Send className="w-4.5 h-4.5" />
+                            <Send size={20} />
                         </button>
                     </div>
                     <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => e.target.files?.[0] && setSelectedFile(e.target.files[0])} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldAlert, FileCheck, ArrowRight } from "lucide-react";
+import { ShieldAlert, FileCheck, ArrowRight, Terminal } from "lucide-react";
 import { useState } from "react";
 import ContractSigner from "./ContractSigner";
 import { signContract } from "@/lib/actions/projects";
@@ -18,49 +18,56 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
     const [isSignerOpen, setIsSignerOpen] = useState(false);
 
     return (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[100] bg-background/60 backdrop-blur-3xl flex items-center justify-center p-6">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="max-w-2xl w-full bg-slate-900 border border-blue-500/20 rounded-[3rem] p-12 text-center relative overflow-hidden shadow-2xl shadow-blue-500/10"
+                className="max-w-2xl w-full bg-background border border-border/50 rounded-[3rem] p-12 text-center relative overflow-hidden shadow-2xl"
             >
                 {/* Decorative elements */}
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]" />
-                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]" />
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-[80px]" />
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-[80px]" />
 
                 <div className="relative z-10">
-                    <div className="w-20 h-20 bg-blue-600/10 border border-blue-500/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                        <ShieldAlert className="w-10 h-10 text-blue-500" />
+                    <div className="flex items-center justify-center gap-3 mb-8">
+                        <Terminal className="w-5 h-5 text-accent animate-pulse" />
+                        <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">SÉCURITÉ_PROTOCOLE_V1</span>
                     </div>
 
-                    <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-4">
-                        Validation <span className="text-blue-500">Obligatoire.</span>
+                    <div className="w-24 h-24 bg-primary/5 border border-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
+                        <ShieldAlert className="w-12 h-12 text-primary" />
+                    </div>
+
+                    <h2 className="text-4xl md:text-5xl font-black text-primary italic uppercase tracking-tighter mb-6 leading-tight">
+                        Validation <br /><span className="text-secondary/20">Obligatoire.</span>
                     </h2>
 
-                    <p className="text-slate-400 text-lg mb-10 leading-relaxed font-medium">
-                        Pour activer votre siège virtuel et lancer le projet <span className="text-white font-bold">"{projectName}"</span>,
+                    <p className="text-secondary/60 text-lg mb-12 leading-relaxed font-medium italic">
+                        Pour activer votre siège virtuel et lancer le projet <span className="text-primary font-black not-italic">"{projectName}"</span>,
                         vous devez signer électroniquement le contrat d'engagement.
                     </p>
 
-                    <div className="bg-white/5 border border-white/5 rounded-2xl p-6 mb-10 text-left flex items-start gap-4">
-                        <FileCheck className="w-6 h-6 text-blue-400 shrink-0 mt-1" />
+                    <div className="bg-secondary/5 border border-secondary/5 rounded-3xl p-8 mb-12 text-left flex items-start gap-6">
+                        <div className="w-12 h-12 rounded-2xl bg-background border border-border/50 flex items-center justify-center shrink-0">
+                            <FileCheck className="w-6 h-6 text-primary" />
+                        </div>
                         <div>
-                            <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-1">Protection Bilatérale</h4>
-                            <p className="text-slate-500 text-xs leading-relaxed">
+                            <h4 className="text-primary font-black text-[11px] uppercase tracking-widest mb-1 italic">Protection Bilatérale</h4>
+                            <p className="text-secondary/40 text-[11px] leading-relaxed font-bold uppercase tracking-wider">
                                 Ce contrat garantit vos délais, votre budget {budget ? `(${budget})` : ""} et la propriété intellectuelle de votre application dès la première ligne de code.
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-6">
                         <button
                             onClick={() => setIsSignerOpen(true)}
-                            className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 uppercase tracking-widest group"
+                            className="w-full py-6 bg-primary text-background font-black rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 uppercase tracking-[0.3em] group text-xs italic"
                         >
-                            Signer le contrat maintenant <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            Signer le contrat <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
-                        <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">
-                            Processus sécurisé via signature électronique certifiée
+                        <p className="text-[9px] text-secondary/20 font-black uppercase tracking-[0.4em] italic">
+                            // Transfert_Sécurisé_Actif // Chiffrement_AES_256
                         </p>
                     </div>
                 </div>
@@ -80,24 +87,21 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                         const result = await signContract(projectId, signatureData);
                         console.log("ContractBarrier: Sign result:", result);
                         if (result.success) {
-                            // Reload after a short delay to ensure DB is updated
                             setTimeout(() => {
                                 window.location.reload();
                             }, 1000);
                         } else {
-                            const errorMsg = typeof result.error === 'string' 
-                                ? result.error 
+                            const errorMsg = typeof result.error === 'string'
+                                ? result.error
                                 : JSON.stringify(result.error);
                             console.error("ContractBarrier: Sign failed:", errorMsg);
                             alert(`❌ Erreur lors de la signature: ${errorMsg}`);
-                            // Fermer le modal en cas d'erreur
                             setIsSignerOpen(false);
                         }
                     } catch (error) {
                         const errorMsg = error instanceof Error ? error.message : String(error);
                         console.error("ContractBarrier: Error signing contract:", error);
                         alert(`❌ Erreur lors de la signature du contrat: ${errorMsg}`);
-                        // Fermer le modal en cas d'erreur
                         setIsSignerOpen(false);
                     }
                 }}

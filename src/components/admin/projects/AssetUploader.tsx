@@ -33,79 +33,94 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="w-full py-4 border-2 border-dashed border-slate-700 rounded-xl text-slate-500 font-bold uppercase text-xs tracking-widest hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2"
+                className="group w-full py-8 border-2 border-dashed border-border/50 rounded-[2.5rem] bg-white/40 backdrop-blur-3xl text-primary/40 font-black uppercase text-[10px] tracking-[0.4em] hover:border-primary/50 hover:text-primary hover:bg-white transition-all duration-500 flex flex-col items-center justify-center gap-4 italic shadow-sm hover:shadow-xl"
             >
-                <UploadCloud className="w-4 h-4" /> Ajouter un livrable
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-inner">
+                    <UploadCloud className="w-6 h-6" />
+                </div>
+                + DÉPLOYER_NOUVEL_ASSET
             </button>
         );
     }
 
     return (
-        <div className="bg-slate-900 border border-white/10 rounded-xl p-6 relative">
-            <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white">
-                <X className="w-4 h-4" />
+        <div className="bg-white border border-border/50 rounded-[3rem] p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+            <button
+                onClick={() => setIsOpen(false)}
+                className="absolute top-8 right-8 text-secondary/20 hover:text-primary transition-all duration-500 hover:rotate-90"
+            >
+                <X className="w-5 h-5" />
             </button>
-            <h4 className="text-white font-bold mb-4 uppercase text-xs tracking-widest">Nouveau Livrable</h4>
-            <form onSubmit={handleUpload} className="space-y-4">
-                <div>
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-widest block mb-1">Nom du fichier</label>
+
+            <div className="mb-8">
+                <p className="text-[9px] text-primary/40 font-black uppercase tracking-[0.5em] italic mb-2">IO_TERMINAL // ASSET_DEPLOY</p>
+                <h4 className="text-xl font-black text-primary italic uppercase tracking-tighter">CONFIG_LIVRABLE.</h4>
+            </div>
+
+            <form onSubmit={handleUpload} className="space-y-8">
+                <div className="space-y-3">
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">NOM_LOGIQUE_UNITÉ</label>
                     <input
-                        className="w-full bg-slate-950 border border-white/10 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none"
-                        placeholder="Ex: Maquette Home v2"
+                        className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
+                        placeholder="IDENTITÉ_FILE..."
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
                     />
                 </div>
 
-                {/* File Input for Real Upload */}
-                <div>
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-widest block mb-1">Fichier (Max 10MB)</label>
+                <div className="space-y-3">
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">XFER_SOURCE (MAX_10MB)</label>
                     <div className="relative group">
                         <input
                             type="file"
                             name="file"
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             onChange={(e) => {
-                                // Optional: auto-fill name if empty
                                 if (e.target.files?.[0] && !name) {
-                                    setName(e.target.files[0].name);
+                                    setName(e.target.files[0].name.toUpperCase());
                                 }
                             }}
                         />
-                        <div className="w-full bg-slate-950 border border-white/10 border-dashed group-hover:border-blue-500 rounded-lg p-3 text-sm text-slate-400 flex items-center gap-2">
-                            <UploadCloud className="w-4 h-4" />
-                            <span>Glisser-déposer ou cliquer pour choisir</span>
+                        <div className="w-full bg-background border border-border/50 border-dashed group-hover:border-primary group-hover:bg-primary/5 rounded-[1.5rem] p-8 text-[10px] font-black uppercase italic tracking-widest text-secondary/40 flex flex-col items-center justify-center gap-4 transition-all duration-500">
+                            <UploadCloud className="w-8 h-8 opacity-20 group-hover:opacity-100 transition-opacity" />
+                            <span>CLIQUEZ_POUR_INITIALISER_XFER</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                    {[
-                        { id: 'pdf', label: 'PDF', icon: FileText },
-                        { id: 'code', label: 'Code', icon: Code },
-                        { id: 'link', label: 'Lien', icon: Globe },
-                    ].map(t => (
-                        <div
-                            key={t.id}
-                            onClick={() => setType(t.id)}
-                            className={`cursor-pointer p-3 rounded-lg border flex flex-col items-center gap-2 transition-all ${type === t.id
-                                ? "bg-blue-600/20 border-blue-500 text-blue-400"
-                                : "bg-slate-950 border-white/5 text-slate-500 hover:bg-slate-900"
-                                }`}
-                        >
-                            <t.icon className="w-4 h-4" />
-                            <span className="text-[10px] font-bold uppercase">{t.label}</span>
-                        </div>
-                    ))}
+                <div className="space-y-3">
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">PROTOCOLE_TYPE</label>
+                    <div className="grid grid-cols-3 gap-4">
+                        {[
+                            { id: 'pdf', label: 'PDF_DOC', icon: FileText },
+                            { id: 'code', label: 'CORE_XFER', icon: Code },
+                            { id: 'link', label: 'WEB_LINK', icon: Globe },
+                        ].map(t => (
+                            <div
+                                key={t.id}
+                                onClick={() => setType(t.id)}
+                                className={`cursor-pointer p-6 rounded-[1.5rem] border flex flex-col items-center gap-3 transition-all duration-500 shadow-sm ${type === t.id
+                                    ? "bg-primary border-primary text-background shadow-xl shadow-primary/20 scale-105"
+                                    : "bg-background border-border/50 text-secondary/40 hover:text-primary hover:border-primary/30"
+                                    }`}
+                            >
+                                <t.icon className={`w-5 h-5 ${type === t.id ? "animate-pulse" : "opacity-40"}`} />
+                                <span className="text-[8px] font-black uppercase tracking-widest italic">{t.label}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {type === 'link' && (
-                    <div>
-                        <label className="text-xs text-slate-500 font-bold uppercase tracking-widest block mb-1">URL (si Lien externe)</label>
+                    <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+                        <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">EXTERNAL_NODE_URL</label>
                         <input
-                            className="w-full bg-slate-950 border border-white/10 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none"
-                            placeholder="https://..."
+                            className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 outline-none transition-all duration-500 shadow-inner"
+                            placeholder="HTTPS://..."
                             value={url}
                             onChange={e => setUrl(e.target.value)}
                         />
@@ -114,10 +129,16 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
 
                 <button
                     disabled={loading}
-                    className="w-full py-3 bg-blue-600 rounded-lg text-white font-bold uppercase text-xs tracking-widest hover:bg-blue-500 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-6 bg-primary text-background rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] italic flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 shadow-2xl shadow-primary/20 disabled:grayscale disabled:opacity-50 group/submit relative overflow-hidden"
                 >
-                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Publier le livrable
+                    <div className="relative z-10 flex items-center gap-4">
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud size={18} />}
+                        {loading ? "TRANSFERT_EN_COURS..." : "PUBLIER_DANS_MAINFRAME"}
+                    </div>
+                    {/* Scanline Effect inside button on hover */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover/submit:opacity-10 transition-opacity">
+                        <div className="w-full h-1 bg-white animate-scan-line" />
+                    </div>
                 </button>
             </form>
         </div>

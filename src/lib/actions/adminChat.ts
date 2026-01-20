@@ -48,7 +48,7 @@ export async function getAllChatChannels(): Promise<ChatChannel[]> {
             type: 'PROJECT' as const,
             title: p.title,
             client: p.client,
-            messages: p.messages.filter((m: any) => !m.conversationId), // Only project-direct messages
+            messages: p.messages, // Show all messages for the project, don't filter out those with conversationId
             updatedAt: p.updatedAt.toISOString(),
             status: p.status,
             originalId: p.id // Keep original ID for determining message target

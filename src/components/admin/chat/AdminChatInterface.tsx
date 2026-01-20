@@ -203,26 +203,28 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
 
     if (!channels || channels.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 glass-premium rounded-[2.5rem] text-center h-full">
-                <Building className="w-12 h-12 text-secondary/20 mb-4" />
-                <p className="text-secondary font-bold uppercase text-[10px] tracking-[0.2em]">Silence Radio</p>
-                <p className="text-secondary/40 text-xs mt-2">Aucune discussion active n'a été trouvée sur le réseau.</p>
-                <button onClick={refreshData} className="mt-6 flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-xl text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary/20 transition-all">
-                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} /> Actualiser
+            <div className="flex flex-col items-center justify-center p-20 bg-white/40 backdrop-blur-3xl rounded-[3rem] text-center h-full relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-64 h-64 bg-primary/2 rounded-full blur-[80px] -ml-32 -mt-32 pointer-events-none" />
+                <Building className="w-16 h-16 text-primary/10 mb-8" />
+                <p className="text-primary font-black uppercase text-[11px] tracking-[0.4em] italic">SILENCE_RADIO_GLOBAL</p>
+                <p className="text-secondary/40 text-[10px] font-bold uppercase italic tracking-widest mt-4">// AUCUNE_DISCUSSION_ACTIVE_CAPTÉE_SUR_LE_RÉSEAU.</p>
+                <button onClick={refreshData} className="mt-10 flex items-center gap-4 px-8 py-4 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all duration-500 shadow-2xl shadow-primary/20 italic group">
+                    <RefreshCw className={`w-4 h-4 group-hover:rotate-180 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    REINITIALISER_SCAN
                 </button>
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-180px)] glass-premium rounded-[2.5rem] overflow-hidden">
+        <div className="flex h-full bg-white/10 overflow-hidden relative group">
             {/* Sidebar List */}
-            <div className="w-[350px] border-r border-border bg-card/10 flex flex-col">
-                <div className="p-6 border-b border-border bg-card/5 flex items-center gap-2">
-                    <div className="relative flex-1">
+            <div className="w-[400px] border-r border-border/50 bg-white/20 flex flex-col relative z-20">
+                <div className="p-8 border-b border-border/30 bg-white/10 flex items-center gap-4">
+                    <div className="relative flex-1 group/search">
                         <input
-                            placeholder="Rechercher..."
-                            className="w-full bg-background/50 border border-border rounded-xl px-4 py-3 text-xs text-primary focus:border-primary outline-none transition-all"
+                            placeholder="SCAN_CHANNELS..."
+                            className="w-full bg-background border border-border/50 rounded-2xl px-6 py-4 text-[10px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -230,48 +232,70 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                     <button
                         onClick={refreshData}
                         disabled={isRefreshing}
-                        className="p-3 bg-primary/5 rounded-xl hover:bg-primary/10 transition-all text-primary disabled:opacity-50"
+                        className="p-4 bg-background border border-border/50 rounded-2xl hover:bg-primary hover:text-background transition-all duration-700 text-primary/40 shadow-inner disabled:opacity-50"
                     >
                         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
                     {filteredChannels.map((channel) => {
                         const lastMsg = channel.messages[channel.messages.length - 1];
+                        const isActive = selectedChannelId === channel.id;
                         return (
                             <button
                                 key={channel.id}
                                 onClick={() => setSelectedChannelId(channel.id)}
-                                className={`w-full p-5 text-left rounded-2xl transition-all group ${selectedChannelId === channel.id
-                                    ? "bg-primary text-background shadow-lg shadow-primary/10"
-                                    : "hover:bg-primary/5 text-secondary"
-                                    }`}
+                                className={cn(
+                                    "w-full p-8 text-left rounded-[2rem] transition-all duration-500 relative overflow-hidden group/item",
+                                    isActive
+                                        ? "bg-primary text-background shadow-2xl shadow-primary/30"
+                                        : "hover:bg-white hover:border-border/50 border border-transparent text-secondary shadow-sm"
+                                )}
                             >
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className={`font-heading font-bold text-sm truncate pr-2 ${selectedChannelId === channel.id ? "text-background" : "text-primary"}`}>
-                                        {channel.client?.name || "Client Inconnu"}
+                                <div className="flex justify-between items-start mb-4 relative z-10">
+                                    <span className={cn(
+                                        "text-xs font-black uppercase italic tracking-tighter truncate pr-4",
+                                        isActive ? "text-background" : "text-primary"
+                                    )}>
+                                        {channel.client?.name || "CLI_INCONNU"}
                                     </span>
-                                    <span className="text-[9px] font-bold opacity-40 whitespace-nowrap pt-1">
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase tracking-widest pt-1",
+                                        isActive ? "text-background/40" : "text-secondary/20"
+                                    )}>
                                         {lastMsg ? new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 mb-2">
-                                    {channel.type === 'SUPPORT' ? (
-                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${selectedChannelId === channel.id ? "border-white/20 bg-white/10" : "border-blue-500/20 bg-blue-500/10 text-blue-500"}`}>
-                                            Support
-                                        </span>
-                                    ) : (
-                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${selectedChannelId === channel.id ? "border-white/20 bg-white/10" : "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"}`}>
-                                            Projet
-                                        </span>
-                                    )}
-                                    <p className={`text-[10px] font-bold uppercase tracking-wider opacity-60 truncate flex-1`}>{channel.title}</p>
+                                <div className="flex items-center gap-3 mb-4 relative z-10">
+                                    <span className={cn(
+                                        "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] border italic",
+                                        isActive
+                                            ? "border-white/20 bg-white/10"
+                                            : channel.type === 'SUPPORT'
+                                                ? "border-blue-500/20 bg-blue-500/10 text-blue-500"
+                                                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
+                                    )}>
+                                        {channel.type === 'SUPPORT' ? "SUPPORT" : "PROJET"}
+                                    </span>
+                                    <p className={cn(
+                                        "text-[9px] font-black uppercase tracking-[0.2em] truncate flex-1 italic",
+                                        isActive ? "text-white/40" : "text-secondary/20"
+                                    )}>/{channel.title}</p>
                                 </div>
 
                                 {lastMsg && (
-                                    <p className={`text-xs truncate italic opacity-50`}>
-                                        "{lastMsg.text}"
+                                    <p className={cn(
+                                        "text-[10px] truncate italic font-bold uppercase tracking-tight relative z-10",
+                                        isActive ? "opacity-60" : "opacity-30"
+                                    )}>
+                                        // {lastMsg.text}
                                     </p>
+                                )}
+
+                                {isActive && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-10">
+                                        <div className="w-full h-[1px] bg-white animate-scan-line" />
+                                    </div>
                                 )}
                             </button>
                         );
@@ -280,31 +304,32 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-background/20">
+            <div className="flex-1 flex flex-col bg-transparent relative z-10">
                 {selectedChannel ? (
                     <>
-                        <header className="p-8 border-b border-border flex justify-between items-center bg-card/10 text-background">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-heading font-bold text-primary text-xl tracking-tight">{selectedChannel.title}</h3>
-                                    <div className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded text-[9px] font-black uppercase border border-blue-500/10">
-                                        {selectedChannel.status}
-                                    </div>
+                        <header className="p-10 border-b border-border/30 flex justify-between items-center bg-white/10 backdrop-blur-xl relative z-20">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-4 mb-3">
+                                    <h3 className="text-2xl font-black text-primary italic uppercase tracking-tighter leading-none">{selectedChannel.title}</h3>
+                                    <span className="px-3 py-1 bg-primary text-background rounded-lg text-[9px] font-black uppercase italic tracking-[0.3em] shadow-lg shadow-primary/20">
+                                        {selectedChannel.status}_STATUS
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-4 text-[10px] font-bold text-secondary/40 uppercase tracking-widest">
-                                    <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> {selectedChannel.client?.name || "Anonyme"}</span>
+                                <div className="flex items-center gap-8 text-[9px] font-black text-secondary/20 uppercase tracking-[0.3em] italic">
+                                    <span className="flex items-center gap-2 group/header"><User className="w-4 h-4 text-primary/40 group-hover/header:text-primary transition-colors" /> {selectedChannel.client?.name || "IDENTITE_INCONNUE"}</span>
                                     {selectedChannel.client?.email && (
-                                        <span className="flex items-center gap-1.5 border-l border-border pl-4 ml-0"><Mail className="w-3.5 h-3.5" /> {selectedChannel.client.email}</span>
+                                        <span className="flex items-center gap-2 border-l border-border/30 pl-8 group/header"><Mail className="w-4 h-4 text-primary/40 group-hover/header:text-primary transition-colors" /> {selectedChannel.client.email}</span>
                                     )}
                                 </div>
                             </div>
                         </header>
 
-                        <div className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar" ref={scrollRef}>
+                        <div className="flex-1 overflow-y-auto p-12 space-y-12 custom-scrollbar relative" ref={scrollRef}>
+                            <div className="absolute inset-0 bg-primary/2 pointer-events-none opacity-20" />
                             {selectedChannel.messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-secondary/20 italic text-sm text-center">
-                                    <MessageSquare className="w-10 h-10 mb-4 opacity-10" />
-                                    Silence opérationnel.
+                                <div className="flex flex-col items-center justify-center h-full text-secondary/10 italic text-[10px] font-black uppercase tracking-[0.5em] text-center relative z-10">
+                                    <MessageSquare className="w-20 h-20 mb-10 opacity-5" />
+                                    // SILENCE_OPÉRATIONNEL_SÉCURISÉ.
                                 </div>
                             ) : (
                                 selectedChannel.messages.map((msg: Message) => {
@@ -312,20 +337,31 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                     const isMe = senderRole === "ADMIN" || senderRole === "STAFF";
 
                                     return (
-                                        <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                                            <div className={`flex gap-4 max-w-[75%] ${isMe ? "flex-row-reverse text-right" : ""}`}>
-                                                <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-black text-[10px] ${isMe ? "bg-primary text-background" : "bg-card border border-border text-primary"
-                                                    }`}>
+                                        <div key={msg.id} className={cn("flex relative z-10", isMe ? "justify-end" : "justify-start")}>
+                                            <div className={cn("flex gap-6 max-w-[80%]", isMe ? "flex-row-reverse text-right" : "")}>
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-[1.2rem] shrink-0 flex items-center justify-center font-black text-[10px] shadow-xl italic tracking-tighter",
+                                                    isMe ? "bg-primary text-background shadow-primary/20" : "bg-white border border-border/50 text-primary shadow-sm"
+                                                )}>
                                                     {isMe ? "ADM" : "CLI"}
                                                 </div>
-                                                <div className={`flex flex-col gap-2 ${isMe ? "items-end" : "items-start"}`}>
-                                                    <div className={`p-5 rounded-2xl text-[13px] leading-relaxed font-medium ${isMe ? "bg-primary text-background rounded-tr-none shadow-xl shadow-primary/5"
-                                                        : "bg-card border border-border text-primary rounded-tl-none shadow-sm"
-                                                        }`}>
-                                                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                                                <div className={cn("flex flex-col gap-3", isMe ? "items-end" : "items-start")}>
+                                                    <div className={cn(
+                                                        "p-8 rounded-[2.5rem] text-[13px] leading-relaxed font-black uppercase italic shadow-2xl relative overflow-hidden transition-all duration-500",
+                                                        isMe
+                                                            ? "bg-primary text-background rounded-tr-none hover:bg-primary/95 shadow-primary/20"
+                                                            : "bg-white border border-border/50 text-primary rounded-tl-none hover:border-primary/50 shadow-sm"
+                                                    )}>
+                                                        <p className="whitespace-pre-wrap tracking-tight">{msg.text}</p>
+                                                        <div className={cn(
+                                                            "absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden",
+                                                            isMe ? "bg-white" : "bg-primary"
+                                                        )}>
+                                                            <div className="w-full h-[1px] bg-current animate-scan-line" />
+                                                        </div>
                                                     </div>
-                                                    <span className="text-[9px] text-secondary/40 font-bold uppercase tracking-widest">
-                                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    <span className="text-[9px] text-secondary/20 font-black uppercase tracking-[0.3em] italic px-4">
+                                                        TIMESTAMP_XFER: {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                 </div>
                                             </div>
@@ -335,13 +371,13 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                             )}
                         </div>
 
-                        <div className="p-8 border-t border-border bg-card/5">
-                            <form onSubmit={handleSend} className="relative">
+                        <div className="p-10 border-t border-border/30 bg-white/50 backdrop-blur-xl relative z-20">
+                            <form onSubmit={handleSend} className="relative group/form">
                                 <textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
-                                    placeholder={selectedChannel.type === 'SUPPORT' ? "Répondre au support..." : "Répondre sur le projet..."}
-                                    className="w-full bg-background/50 border border-border rounded-2xl py-5 pl-8 pr-16 text-primary placeholder:text-secondary/30 focus:border-primary outline-none transition-all shadow-sm font-medium resize-none"
+                                    placeholder={selectedChannel.type === 'SUPPORT' ? "XFER_REPLY_SUPPORT..." : "XFER_REPLY_PROJECT..."}
+                                    className="w-full bg-background border border-border/50 rounded-[2rem] py-8 pl-10 pr-20 text-[13px] font-black uppercase italic tracking-tight text-primary placeholder:text-secondary/10 focus:border-primary/50 focus:ring-[15px] focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner min-h-[100px] max-h-[200px]"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -353,20 +389,36 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                 <button
                                     type="submit"
                                     disabled={!message.trim()}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-4 bg-primary text-background rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/10 disabled:grayscale disabled:opacity-50"
+                                    className="absolute right-6 top-8 p-6 bg-primary text-background rounded-[1.5rem] hover:scale-110 active:scale-90 transition-all duration-500 shadow-2xl shadow-primary/20 disabled:grayscale disabled:opacity-20 disabled:scale-100 group/send"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />
                                 </button>
                             </form>
+                            <div className="mt-4 flex items-center gap-4 px-6 text-[8px] font-black text-secondary/20 uppercase tracking-[0.4em] italic">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                STATION_TERM_EN_LIGNE // CANAL_XFER_READY
+                            </div>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-secondary/20">
-                        <MessageSquare className="w-12 h-12 mb-4 opacity-5" />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Sélectionnez un canal opérationnel</span>
+                    <div className="flex-1 flex flex-col items-center justify-center p-20 text-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-primary/[0.01] pointer-events-none" />
+                        <MessageSquare className="w-24 h-24 mb-10 text-primary/5" />
+                        <span className="text-[11px] font-black uppercase tracking-[0.5em] text-secondary/10 italic animate-pulse">
+                            ATTENTE_SÉLECTION_CANAL_OPÉRATIONNEL_V2.0
+                        </span>
                     </div>
                 )}
             </div>
+
+            {/* Global Background Scanlines */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.02] overflow-hidden z-0">
+                <div className="w-full h-full bg-[linear-gradient(rgba(37,99,235,0.05)_1px,transparent_1px)] bg-[size:100%_4px]" />
+            </div>
         </div>
     );
+}
+
+function cn(...inputs: any[]) {
+    return inputs.filter(Boolean).join(' ');
 }

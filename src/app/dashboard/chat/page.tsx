@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessageSquare } from "lucide-react";
 import { getClientProjects } from "@/lib/actions/projects";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
 import Chat from "@/components/dashboard/ChatSidebar";
@@ -34,9 +35,12 @@ export default function ChatPage() {
 
     if (projects.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                <h1 className="text-4xl font-heading font-bold text-primary mb-4">Aucun projet actif</h1>
-                <p className="text-secondary max-w-md">Commencez par lancer un projet pour ouvrir un canal de communication technique.</p>
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-12 bg-card/30 border border-border/50 rounded-[3rem] shadow-2xl">
+                <div className="w-24 h-24 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-center mb-8 shadow-inner">
+                    <MessageSquare size={48} className="text-secondary/20" />
+                </div>
+                <h1 className="text-5xl font-heading font-black text-primary mb-6 italic uppercase tracking-tighter">Aucun canal_actif.</h1>
+                <p className="text-secondary/40 max-w-md font-black uppercase text-[10px] tracking-[0.4em] italic leading-relaxed">// Initialiser_Protocole_Projet pour ouvrir un canal de communication technique.</p>
             </div>
         );
     }
@@ -55,25 +59,27 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-10rem)] flex flex-col">
-            <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="h-[calc(100vh-12rem)] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
                 <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="text-blue-500 font-bold uppercase text-[10px] tracking-[0.3em] inline-block py-1.5 px-4 bg-blue-500/10 rounded-full border border-blue-500/10 animate-pulse">Session Sécurisée</span>
-                        <span className="text-secondary/40 font-bold text-[10px] uppercase tracking-widest">/ Chiffrement E2E</span>
+                    <div className="flex items-center gap-4 mb-6">
+                        <span className="text-accent font-black uppercase text-[10px] tracking-[0.5em] inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 animate-pulse italic shadow-inner">// Session_Sécurisée.Active</span>
+                        <span className="text-secondary/20 font-black text-[10px] uppercase tracking-[0.3em] italic">/ CHIFFREMENT_E2E_ACTIF</span>
                     </div>
-                    <h1 className="text-5xl font-heading font-bold text-primary tracking-tight">Salon de <span className="text-blue-500">Pilotage.</span></h1>
+                    <h1 className="text-6xl md:text-8xl font-heading font-black text-primary tracking-tighter uppercase italic leading-[0.8]">
+                        Salon de <br /><span className="text-secondary/20 tracking-[-0.05em]">Pilotage.</span>
+                    </h1>
                 </div>
 
                 {projects.length > 1 && (
-                    <div className="flex gap-2 bg-card/50 p-1.5 rounded-2xl border border-border">
+                    <div className="flex gap-3 bg-secondary/5 p-2 rounded-[2rem] border border-border/50 shadow-inner">
                         {projects.map((p) => (
                             <button
                                 key={p.id}
                                 onClick={() => setSelectedProjectId(p.id)}
-                                className={`px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${selectedProjectId === p.id
-                                        ? "bg-primary text-background shadow-lg shadow-primary/10"
-                                        : "text-secondary hover:bg-primary/5"
+                                className={`px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all italic ${selectedProjectId === p.id
+                                    ? "bg-primary text-background shadow-xl shadow-primary/20"
+                                    : "text-secondary/40 hover:text-primary hover:bg-primary/5"
                                     }`}
                             >
                                 {p.title.split(' - ')[0]}
@@ -83,7 +89,8 @@ export default function ChatPage() {
                 )}
             </header>
 
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 bg-card/30 border border-border/50 rounded-[3rem] shadow-2xl relative overflow-hidden p-1">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/2 rounded-full blur-[100px] -mr-64 -mt-64 pointer-events-none" />
                 <Chat projectId={selectedProjectId || undefined} />
             </div>
         </div>

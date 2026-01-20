@@ -1,16 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Clock, Rocket, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Rocket, ShieldCheck, Zap } from "lucide-react";
+import { formatCurrency } from "@/lib/utils/currency";
 
 const PHASES = [
-    { id: "ONBOARDING", label: "Cadrage" },
-    { id: "ANALYSIS", label: "Analyse" },
-    { id: "DESIGN", label: "Design" },
-    { id: "DEV", label: "Développement" },
-    { id: "QA", label: "Tests" },
-    { id: "DEPLOYMENT", label: "Déploiement" },
-    { id: "DONE", label: "Livré" },
+    { id: "ONBOARDING", label: "CADRAGE" },
+    { id: "ANALYSIS", label: "ANALYSE" },
+    { id: "DESIGN", label: "DESIGN" },
+    { id: "DEV", label: "DÉVELOPPEMENT" },
+    { id: "QA", label: "TESTS" },
+    { id: "DEPLOYMENT", label: "DÉPLOIEMENT" },
+    { id: "DONE", label: "TERMINÉ" },
 ];
 
 export default function ProjectStats({ project }: { project: any }) {
@@ -18,22 +19,20 @@ export default function ProjectStats({ project }: { project: any }) {
     const currentStatus = project.status || "ONBOARDING";
 
     const currentStatusIndex = PHASES.findIndex(p => p.id === currentStatus);
-    const activePhaseLabel = PHASES[currentStatusIndex]?.label || "En cours";
+    const activePhaseLabel = PHASES[currentStatusIndex]?.label || "EN_COURS";
 
     const updatedPhases = PHASES.map((p, idx) => ({
         ...p,
         status: idx < currentStatusIndex ? "completed" : idx === currentStatusIndex ? "active" : "pending"
     }));
 
-    // Calculate days since project start
     const startDate = new Date(project.createdAt);
     const today = new Date();
     const diffTime = Math.abs(today.getTime() - startDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
-    // Calculate relative time for update
     const updatedAt = new Date(project.updatedAt);
-    const timeSinceUpdate = Math.floor((today.getTime() - updatedAt.getTime()) / 60000); // minutes
+    const timeSinceUpdate = Math.floor((today.getTime() - updatedAt.getTime()) / 60000);
     let updateLabel = "À l'instant";
     if (timeSinceUpdate > 0) {
         if (timeSinceUpdate < 60) updateLabel = `Il y a ${timeSinceUpdate} min`;
@@ -42,104 +41,99 @@ export default function ProjectStats({ project }: { project: any }) {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="bg-gradient-card border border-premium rounded-3xl p-10 relative overflow-hidden shadow-premium">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/40 blur-3xl rounded-full" />
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="bg-card/30 border border-border/50 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -mr-64 -mt-64 pointer-events-none" />
 
-                <div className="flex flex-col md:flex-row justify-between items-end gap-10 relative z-10">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs">Statut du projet</span>
-                            <span className={`px-3 py-1 bg-opacity-10 border border-opacity-20 text-[10px] font-black uppercase rounded-full ${progress === 100 ? "bg-green-500 border-green-500 text-green-500" : "bg-blue-500 border-blue-500 text-blue-500"
-                                }`}>
-                                {progress === 100 ? "Terminé" : "Actif"}
-                            </span>
+                <div className="flex flex-col md:flex-row justify-between items-end gap-12 relative z-10">
+                    <div className="flex-1 w-full">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Zap className="w-4 h-4 text-accent animate-pulse" />
+                            <span className="text-secondary/40 font-black uppercase tracking-[0.4em] text-[10px] italic">// Statut_Opérationnel</span>
                         </div>
-                        <h2 className="text-5xl font-black text-white mt-2 mb-10 tracking-tighter uppercase italic leading-none">
-                            Phase <br /> <span className="text-blue-500">{activePhaseLabel}</span>
+
+                        <h2 className="text-6xl md:text-8xl font-black text-primary mt-2 mb-14 tracking-tighter uppercase italic leading-[0.8]">
+                            Phase <br /> <span className="text-secondary/20">{activePhaseLabel}.</span>
                         </h2>
 
-                        <div className="flex flex-wrap gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
                             {updatedPhases.map((phase, idx) => (
-                                <div key={phase.id} className="flex items-center gap-3">
-                                    <div className="flex flex-col gap-2 italic">
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${phase.status === "completed" ? "text-blue-400" : phase.status === "active" ? "text-orange-500" : "text-slate-600"
-                                            }`}>
-                                            {phase.label}
-                                        </span>
-                                        <div className={`h-1.5 w-24 rounded-full overflow-hidden bg-slate-800`}>
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: phase.status === "completed" ? "100%" : phase.status === "active" ? "65%" : "0%" }}
-                                                transition={{ duration: 1, delay: idx * 0.2 }}
-                                                className={`h-full ${phase.status === "completed" ? "bg-blue-500" : "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                                                    }`}
-                                            />
-                                        </div>
+                                <div key={phase.id} className="space-y-3">
+                                    <span className={`text-[9px] font-black uppercase tracking-widest block italic truncate ${phase.status === "completed" ? "text-primary" : phase.status === "active" ? "text-accent" : "text-secondary/20"
+                                        }`}>
+                                        {phase.label}
+                                    </span>
+                                    <div className="h-1 w-full rounded-full bg-secondary/5 overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: phase.status === "completed" ? "100%" : phase.status === "active" ? "65%" : "0%" }}
+                                            transition={{ duration: 1, delay: idx * 0.1 }}
+                                            className={`h-full ${phase.status === "completed" ? "bg-primary" : "bg-accent shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                                                }`}
+                                        />
                                     </div>
-                                    {idx < PHASES.length - 1 && <Circle className="w-1.5 h-1.5 text-slate-800 fill-slate-800" />}
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="text-right flex flex-col items-end">
-                        <div className="relative mb-4">
-                            <svg className="w-32 h-32 transform -rotate-90">
+                    <div className="flex flex-col items-center md:items-end w-full md:w-auto">
+                        <div className="relative mb-6">
+                            <svg className="w-40 h-40 transform -rotate-90">
                                 <circle
-                                    cx="64"
-                                    cy="64"
-                                    r="58"
+                                    cx="80"
+                                    cy="80"
+                                    r="70"
                                     stroke="currentColor"
-                                    strokeWidth="8"
+                                    strokeWidth="10"
                                     fill="transparent"
-                                    className="text-slate-800"
+                                    className="text-secondary/5"
                                 />
                                 <motion.circle
-                                    cx="64"
-                                    cy="64"
-                                    r="58"
+                                    cx="80"
+                                    cy="80"
+                                    r="70"
                                     stroke="currentColor"
-                                    strokeWidth="8"
+                                    strokeWidth="10"
                                     fill="transparent"
-                                    strokeDasharray={364.4}
-                                    initial={{ strokeDashoffset: 364.4 }}
-                                    animate={{ strokeDashoffset: 364.4 * (1 - (progress / 100)) }}
-                                    transition={{ duration: 1.5, ease: "easeOut" }}
-                                    className="text-blue-500"
+                                    strokeDasharray={439.8}
+                                    initial={{ strokeDashoffset: 439.8 }}
+                                    animate={{ strokeDashoffset: 439.8 * (1 - (progress / 100)) }}
+                                    transition={{ duration: 2, ease: "circOut" }}
+                                    className="text-primary"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-black text-white leading-none">{progress}%</span>
-                                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">Total</span>
+                                <span className="text-4xl font-black text-primary italic leading-none">{progress}%</span>
+                                <span className="text-[9px] font-black text-secondary/30 uppercase tracking-widest mt-2">Global_Sync</span>
                             </div>
                         </div>
-                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest italic">Mise à jour : {updateLabel}</p>
+                        <p className="text-secondary/20 font-black uppercase text-[9px] tracking-[0.3em] italic">Dernière_MAJ : {updateLabel}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-3xl bg-blue-600/5 border border-blue-500/10 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Clock className="w-6 h-6" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform"><Clock className="w-7 h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Temps écoulé</p>
-                        <p className="text-xl font-bold text-white tracking-tight">{diffDays} Jour{diffDays > 1 ? 's' : ''}</p>
+                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Temps_Écoulé</p>
+                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">{diffDays} Jour{diffDays > 1 ? 's' : ''}</p>
                     </div>
                 </div>
-                <div className="p-6 rounded-3xl bg-orange-600/5 border border-orange-500/10 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"><CheckCircle2 className="w-6 h-6" /></div>
+                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600 shadow-inner group-hover:scale-110 transition-transform"><CheckCircle2 className="w-7 h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest">Progression</p>
-                        <p className="text-xl font-bold text-white tracking-tight">{progress}% Complétés</p>
+                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Progression</p>
+                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">{progress}% <span className="text-secondary/20 font-black">Sync.</span></p>
                     </div>
                 </div>
-                <div className="p-6 rounded-3xl bg-purple-600/5 border border-purple-500/10 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500"><ShieldCheck className="w-6 h-6" /></div>
+                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center text-accent shadow-inner group-hover:scale-110 transition-transform"><ShieldCheck className="w-7 h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-purple-500 tracking-widest">Status Flux</p>
-                        <p className="text-xl font-bold text-white tracking-tight">{activePhaseLabel}</p>
+                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Sécurité_Node</p>
+                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">Status: {activePhaseLabel.split(' ')[0]}</p>
                     </div>
                 </div>
             </div>

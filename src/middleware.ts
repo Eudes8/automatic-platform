@@ -57,6 +57,18 @@ export async function middleware(request: NextRequest) {
     )
 
     const path = request.nextUrl.pathname;
+
+    // 1.5 Edge Geolocation: Detection du pays pour fix la monnaie
+    const preferredCurrency = request.cookies.get('automatic_preferred_currency')?.value;
+    if (!preferredCurrency) {
+        const country = request.headers.get('x-vercel-ip-country') || 'FR';
+        const initialCurrency = (country === 'CI' || country === 'SN') ? 'XOF' : 'EUR';
+        response.cookies.set('automatic_preferred_currency', initialCurrency, {
+            path: '/',
+            maxAge: 60 * 60 * 24 * 365, // 1 year
+        });
+    }
+
     console.log(`[Middleware] Request to ${path}`);
 
     // 2. Check Auth Session

@@ -34,7 +34,8 @@ export async function getClientProjects() {
             include: {
                 client: true,
                 assets: true,
-                contracts: true
+                contracts: true,
+                invoices: true
             },
             orderBy: {
                 createdAt: 'desc'
@@ -181,5 +182,31 @@ export async function getUserProjects() {
     } catch (error) {
         console.error("[Action Error] getUserProjects:", error);
         return [];
+    }
+}
+
+export async function getDashboardStats() {
+    try {
+        const projects = await getClientProjects();
+
+        const totalProjects = projects.length;
+        const activeProjects = projects.filter(p => p.status !== 'DONE').length;
+        const totalBudget = projects.reduce((acc, p) => acc + (p.budget || 0), 0);
+        const pendingContracts = projects.filter(p => !p.contractSigned).length;
+
+        return {
+            totalProjects,
+            activeProjects,
+            totalBudget,
+            pendingContracts
+        };
+    } catch (error) {
+        console.error("[Action Error] getDashboardStats:", error);
+        return {
+            totalProjects: 0,
+            activeProjects: 0,
+            totalBudget: 0,
+            pendingContracts: 0
+        };
     }
 }

@@ -52,9 +52,16 @@ export async function sendMessage(conversationId: string, content: string) {
     const user = await getCurrentUser();
     if (!user) throw new Error("Unauthorized");
 
+    // Important: Get the conversation to find if it belongs to a project
+    const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        select: { projectId: true }
+    });
+
     const message = await prisma.message.create({
         data: {
             conversationId,
+            projectId: conversation?.projectId, // Pass the project ID so project-based listeners react
             senderId: user.id,
             text: content,
             read: false,

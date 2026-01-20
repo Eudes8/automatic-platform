@@ -134,34 +134,110 @@ export async function generateInvoicePDF(
     date: Date = new Date()
 ): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
+    const page = pdfDoc.addPage([595.28, 841.89]); // A4
     const { width, height } = page.getSize();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const margin = 50;
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-    // Header
-    page.drawText('FACTURE', {
-        x: margin,
-        y: height - margin,
+    const primaryColor = rgb(0.01, 0.02, 0.09); // Dark navy
+    const accentColor = rgb(0.23, 0.51, 0.96); // Blue-500
+    const lightGray = rgb(0.95, 0.95, 0.95);
+
+    // Header Color Block
+    page.drawRectangle({
+        x: 0,
+        y: height - 150,
+        width: width,
+        height: 150,
+        color: primaryColor,
+    });
+
+    // Logo / Text
+    page.drawText("AUTOMATIC //", {
+        x: 50,
+        y: height - 60,
         size: 24,
-        font: boldFont,
-        color: rgb(0, 0, 0),
+        font: fontBold,
+        color: rgb(1, 1, 1),
     });
 
-    page.drawText(`N° ${invoiceId}`, {
-        x: margin,
-        y: height - margin - 30,
+    page.drawText("FACTURE_OFFICIELLE", {
+        x: 50,
+        y: height - 85,
         size: 10,
-        font: font,
-        color: rgb(0.5, 0.5, 0.5),
+        font: fontBold,
+        color: accentColor,
     });
 
-    // Content logic remains similar but with updated styling
-    // ... (rest of the invoice generator logic from previous version)
-    // For brevity, I'll keep the rest as it was but with minor design tweaks
+    // Company Info
+    const companyInfo = [
+        "AUTOMATIC CI",
+        "Abidjan, Cocody Riviera",
+        "contact@automatic.ci",
+        "+225 00 00 00 00"
+    ];
+    let infoY = height - 50;
+    companyInfo.forEach(line => {
+        page.drawText(line, {
+            x: width - 200,
+            y: infoY,
+            size: 8,
+            font: fontRegular,
+            color: rgb(0.8, 0.8, 0.8),
+        });
+        infoY -= 12;
+    });
 
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
+    // Invoice Ref & Date
+    let currentY = height - 190;
+    page.drawText(`RÉFÉRENCE : AUT-INV-${invoiceId.slice(-6).toUpperCase()}`, { x: 50, y: currentY, size: 10, font: fontBold });
+    page.drawText(`DATE D'ÉMISSION : ${date.toLocaleDateString("fr-FR")}`, { x: width - 200, y: currentY, size: 8, font: fontRegular });
+
+    currentY -= 40;
+
+    // Billing To
+    page.drawText("FACTURÉ À :", { x: 50, y: currentY, size: 9, font: fontBold, color: accentColor });
+    currentY -= 18;
+    page.drawText(clientName.toUpperCase(), { x: 50, y: currentY, size: 11, font: fontBold });
+    currentY -= 14;
+    page.drawText("Client Node ID: " + clientName.slice(0, 4).toUpperCase() + "-NODE", { x: 50, y: currentY, size: 8, font: fontRegular });
+
+    currentY -= 50;
+
+    // Table Header
+    page.drawRectangle({ x: 50, y: currentY - 5, width: width - 100, height: 25, color: lightGray });
+    page.drawText("DESCRIPTION DES PRESTATIONS", { x: 60, y: currentY + 5, size: 8, font: fontBold, color: primaryColor });
+    page.drawText("TOTAL (CFA)", { x: width - 130, y: currentY + 5, size: 8, font: fontBold, color: primaryColor });
+
+    currentY -= 40;
+
+    // Table Row
+    page.drawText(`PROJET : ${projectTitle.toUpperCase()}`, { x: 60, y: currentY, size: 10, font: fontBold });
+    page.drawText(`${new Intl.NumberFormat('fr-FR').format(amount)} CFA`, { x: width - 130, y: currentY, size: 10, font: fontBold });
+    currentY -= 15;
+    page.drawText("Développement et déploiement d'infrastructure numérique.", { x: 60, y: currentY, size: 8, font: fontItalic, color: rgb(0.4, 0.4, 0.4) });
+
+    currentY -= 60;
+
+    // Totals
+    const totalBoxWidth = 150;
+    page.drawRectangle({ x: width - 50 - totalBoxWidth, y: currentY - 10, width: totalBoxWidth, height: 40, color: primaryColor });
+    page.drawText("TOTAL À PAYER", { x: width - 40 - totalBoxWidth, y: currentY + 12, size: 7, font: fontBold, color: accentColor });
+    page.drawText(`${new Intl.NumberFormat('fr-FR').format(amount)} CFA`, { x: width - 40 - totalBoxWidth, y: currentY - 4, size: 12, font: fontBold, color: rgb(1, 1, 1) });
+
+    // Footer Certification
+    const footerY = 50;
+    page.drawText("DOCUMENT GÉNÉRÉ PAR LE SYSTÈME AUTOMATIC // CERTIFICATION ALPHA-ZERO", {
+        x: width / 2 - 150,
+        y: footerY,
+        size: 7,
+        font: fontItalic,
+        color: rgb(0.7, 0.7, 0.7)
+    });
+
+    page.drawRectangle({ x: 50, y: footerY + 15, width: width - 100, height: 0.5, color: rgb(0.9, 0.9, 0.9) });
+
+    return await pdfDoc.save();
 }

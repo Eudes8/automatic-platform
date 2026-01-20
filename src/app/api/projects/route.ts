@@ -8,7 +8,7 @@ const projectSchema = z.object({
     projectTitle: z.string().min(3),
     name: z.string().min(2),
     email: z.string().email(),
-    type: z.enum(["web", "mobile", "saas"]),
+    type: z.enum(["starter", "web", "mobile", "saas"]),
     features: z.array(z.string()).min(1),
     timeline: z.string(),
     password: z.string().min(8),
@@ -31,7 +31,6 @@ export async function POST(req: Request) {
         const { projectTitle, name, email, type, features, timeline, password } = result.data;
 
         // 1. Create/Update User in Supabase Auth (Directly)
-        // We try to create the user, if they exist we update their password
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
 
         if (authError) {
             if (authError.message.includes('already been registered')) {
-                // Find user to get ID and update password
                 const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
                 const existingUser = users.find(u => u.email === email);
                 if (existingUser) {
@@ -67,18 +65,17 @@ export async function POST(req: Request) {
             },
         });
 
-        // 3. Create Project
-        const basePrices = { web: 2000, mobile: 3500, saas: 5000 };
-        const featurePrices: Record<string, number> = { auth: 500, payments: 800, chat: 1200, admin: 1500 };
+        // 3. Create Project with serious-tech pricing
+        const basePrices = { starter: 800, web: 1800, mobile: 3200, saas: 5000 };
+        const featurePrices: Record<string, number> = { auth: 300, payments: 600, chat: 900, admin: 1200 };
 
-        const basePrice = basePrices[type as keyof typeof basePrices];
+        const basePrice = basePrices[type as keyof typeof basePrices] || 800;
         const featuresTotal = features.reduce((acc, f) => acc + (featurePrices[f] || 0), 0);
         const totalBudget = basePrice + featuresTotal;
 
         const project = await prisma.project.create({
             data: {
                 title: projectTitle.toUpperCase(),
-                description: `Architecture: ${type.toUpperCase()} | Modules: ${features.join(", ")} | Timeline: ${timeline.toUpperCase()}`,
                 status: "ONBOARDING",
                 clientId: user.id,
                 progress: 10,
@@ -86,27 +83,28 @@ export async function POST(req: Request) {
             },
         });
 
-        // 4. Send Custom Estimation Email (Confirmation only, no need for link)
+        // 4. Send Custom Estimation Email
         await resend.emails.send({
             from: 'AUTOMATIC <hello@resend.dev>',
             to: email,
-            subject: `🚀 Projet Confirmé - Votre Estimation AUTOMATIC`,
+            subject: `🚀 Protocole Initialisé - Nexus Build Overview`,
             html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #020617; color: white; padding: 40px; border-radius: 20px; border: 1px solid #1e293b;">
-          <h1 style="color: #3b82f6; font-size: 24px;">AUTOMATIC // CONFIRMATION</h1>
-          <p style="color: #94a3b8;">Bonjour ${name},</p>
-          <p>Votre projet <strong>${project.title}</strong> est maintenant initialisé.</p>
+        <div style="font-family: 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; background: #000000; color: #ffffff; padding: 40px; border: 1px solid #333;">
+          <h1 style="color: #ffffff; font-size: 20px; border-bottom: 1px solid #222; padding-bottom: 20px;">AUTOMATIC_SYSTÈME // RAPPORT_INITIAL</h1>
+          <p style="color: #666; font-size: 12px;">ID_SESSION: ${project.id}</p>
+          <p>Opérateur ${name}, votre demande d'initialisation pour <strong>${project.title}</strong> a été enregistrée.</p>
           
-          <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 25px; border-radius: 15px; margin: 30px 0; text-align: center;">
-            <p style="margin: 0; font-size: 14px; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px;">Estimation Immédiate</p>
-            <p style="margin: 10px 0 0 0; font-size: 42px; font-weight: 900; color: #ffffff;">${totalBudget}€</p>
+          <div style="background: #111; border: 1px solid #222; padding: 25px; border-radius: 4px; margin: 30px 0; text-align: center;">
+            <p style="margin: 0; font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 2px;">Estimation_Ressources</p>
+            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 900; color: #ffffff;">${totalBudget}€</p>
+            <p style="margin: 5px 0 0 0; font-size: 10px; color: #333;">~ ${Math.round(totalBudget * 655).toLocaleString()} FCFA</p>
           </div>
 
-          <p style="color: #94a3b8; line-height: 1.6;">Vous pouvez maintenant vous connecter à votre console avec l'e-mail et le mot de passe que vous venez de choisir.</p>
+          <p style="color: #888; font-size: 13px; line-height: 1.6;">Le manifeste de mission a été injecté dans votre Command Center. Authentifiez-vous pour superviser le build.</p>
           
           <div style="text-align: center; margin-top: 30px;">
-            <a href="${new URL(req.url).origin}/login" style="display: inline-block; background: #2563eb; color: white; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px;">
-              ACCÉDER À MA CONSOLE
+            <a href="${new URL(req.url).origin}/login" style="display: inline-block; background: #ffffff; color: #000000; padding: 15px 30px; border-radius: 2px; text-decoration: none; font-weight: bold; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;">
+              ACCÉDER_AU_MAINFRAME
             </a>
           </div>
         </div>
@@ -119,3 +117,4 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
     }
 }
+

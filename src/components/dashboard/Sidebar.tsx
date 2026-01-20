@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -18,24 +17,27 @@ import {
     Receipt,
     HelpCircle
 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Logo } from "../shared/Logo";
 
 const CLIENT_NAV_ITEMS = [
-    { label: "Vue d'ensemble", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Mon Projet", icon: FolderLock, href: "/dashboard/projects" },
-    { label: "Messages", icon: MessageSquare, href: "/dashboard/chat" },
-    { label: "Contrats", icon: FileText, href: "/dashboard/contracts" },
-    { label: "Support", icon: HelpCircle, href: "/dashboard/tickets" },
-    { label: "Configuration", icon: Settings, href: "/dashboard/settings" },
+    { label: "VUE_D'ENSEMBLE", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "MAINFRAME_PROJET", icon: FolderLock, href: "/dashboard/projects" },
+    { label: "CANAL_COMMUNICATION", icon: MessageSquare, href: "/dashboard/chat" },
+    { label: "PROTOCOLES_LÉGAUX", icon: FileText, href: "/dashboard/contracts" },
+    { label: "FACTURATION_SYSTEM", icon: Receipt, href: "/dashboard/invoices" },
+    { label: "UNITÉ_SUPPORT", icon: HelpCircle, href: "/dashboard/tickets" },
+    { label: "PARAMÈTRES_SYSTÈME", icon: Settings, href: "/dashboard/settings" },
 ];
 
 const ADMIN_NAV_ITEMS = [
-    { label: "Command Center", icon: LayoutDashboard, href: "/admin" },
-    { label: "CRM Clients", icon: Users, href: "/admin/users" },
-    { label: "Gestion Projets", icon: FolderLock, href: "/admin/projects" },
-    { label: "Support Tickets", icon: HelpCircle, href: "/admin/tickets" },
-    { label: "Facturation", icon: Receipt, href: "/admin/invoices" },
-    { label: "Gestion Portfolio", icon: Briefcase, href: "/admin/portfolio" },
-    { label: "Messagerie", icon: MessageSquare, href: "/admin/chat" },
+    { label: "COMMAND_CENTER", icon: LayoutDashboard, href: "/admin" },
+    { label: "CRM_MAINFRAME", icon: Users, href: "/admin/users" },
+    { label: "OPS_ENGINE", icon: FolderLock, href: "/admin/projects" },
+    { label: "TICKET_STATION", icon: HelpCircle, href: "/admin/tickets" },
+    { label: "FINANCIAL_SYSTEM", icon: Receipt, href: "/admin/invoices" },
+    { label: "ARCHIVES_NEXUS", icon: Briefcase, href: "/admin/portfolio" },
+    { label: "CENTRAL_COMMS", icon: MessageSquare, href: "/admin/chat" },
 ];
 
 interface SidebarProps {
@@ -58,29 +60,20 @@ export default function Sidebar({ user }: SidebarProps) {
     const navItems = isAdmin ? ADMIN_NAV_ITEMS : CLIENT_NAV_ITEMS;
 
     return (
-        <aside className="w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex flex-col h-screen relative z-50 shadow-sm">
+        <aside className="w-80 bg-background border-r border-border/50 flex flex-col h-screen relative z-50 overflow-hidden shadow-2xl">
+            {/* Serious Tech Background element */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_40px] pointer-events-none opacity-20" />
+
             {/* Logo Section */}
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-8 border-b border-border/50 flex items-center justify-between relative z-10">
                 <Link href="/" className="flex items-center gap-4 group">
-                    <div className="relative w-10 h-10 flex items-center justify-center">
-                        <Image
-                            src="/logo.svg"
-                            alt="Automatic Logo"
-                            fill
-                            className="object-contain"
-                            priority
-                        />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-heading font-bold text-slate-900 tracking-tight">Automatic</h3>
-                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">Console v2.0</p>
-                    </div>
+                    <Logo />
                 </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Menu Principal</p>
+            <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar relative z-10">
+                <p className="px-4 text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] mb-6 mt-2 italic">// Core_Navigation</p>
                 {navItems.map((item) => {
                     const projectMatch = pathname.match(/\/dashboard\/projects\/([^\/]+)/);
                     const projectId = projectMatch ? projectMatch[1] : null;
@@ -106,61 +99,60 @@ export default function Sidebar({ user }: SidebarProps) {
                         <Link
                             key={item.href}
                             href={href}
-                            className={`flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive
-                                ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
-                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
+                            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden ${isActive
+                                ? "bg-primary/5 border border-primary/20 text-primary shadow-lg shadow-primary/5"
+                                : "text-secondary/60 hover:text-primary hover:bg-primary/[0.02] border border-transparent"
                                 }`}
                         >
                             {isActive && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 rounded-r-full" />
+                                <motion.div
+                                    layoutId="nav-active"
+                                    className="absolute inset-0 bg-primary/[0.03] -z-10"
+                                />
                             )}
 
-                            <item.icon className={`w-5 h-5 transition-all duration-300 ${isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+                            <item.icon className={`w-4 h-4 transition-all duration-300 ${isActive ? "text-primary" : "text-secondary/40 group-hover:text-primary"
                                 }`} />
 
-                            <span className="font-medium text-sm tracking-wide">
+                            <span className="font-black text-[10px] uppercase tracking-[0.2em] italic">
                                 {label}
                             </span>
+
+                            {isActive && (
+                                <div className="ml-auto w-1 h-1 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                            )}
                         </Link>
                     );
                 })}
             </nav>
 
             {/* User Profile & Actions */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50/50 backdrop-blur-md">
-                {(() => {
-                    const projectMatch = pathname.match(/\/dashboard\/projects\/([^\/]+)/);
-                    const projectId = projectMatch ? projectMatch[1] : null;
-                    const supportLink = projectId ? `/dashboard/projects/${projectId}/chat` : "/dashboard/chat";
+            <div className="p-6 border-t border-border/50 bg-card/30 backdrop-blur-md relative z-10">
+                <div className="mb-6">
+                    <div className="p-4 rounded-2xl bg-primary text-background flex items-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform cursor-pointer group">
+                        <div className="p-2 bg-background/20 rounded-lg">
+                            <Zap className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest italic">Signal_Urgence</p>
+                            <p className="text-[8px] font-black opacity-60 uppercase tracking-widest leading-none mt-0.5">Priorité_Alpha : On</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 opacity-40 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                </div>
 
-                    return (
-                        <Link href={supportLink} className="group relative block w-full p-4 mb-6 rounded-2xl bg-white border border-slate-200 overflow-hidden hover:border-blue-400 hover:shadow-md transition-all">
-                            <div className="flex items-center gap-3 relative z-10">
-                                <div className="p-2 bg-blue-600 rounded-lg text-white shadow-md shadow-blue-500/20">
-                                    <Zap className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <p className="text-slate-900 font-bold text-xs uppercase tracking-wider">Support VIP</p>
-                                    <p className="text-[10px] text-slate-500">Réponse &lt; 5 min</p>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-slate-400 ml-auto group-hover:translate-x-1 group-hover:text-blue-500 transition-all" />
-                            </div>
-                        </Link>
-                    );
-                })()}
-
-                <div className="flex items-center gap-3 pl-1">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 border border-white flex items-center justify-center text-slate-600 text-xs font-black uppercase shadow-sm">
+                <div className="flex items-center gap-4 pl-1">
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-black uppercase shadow-inner italic">
                         {initials}
                     </div>
                     <div className="flex flex-col overflow-hidden flex-1">
-                        <span className="text-sm font-bold truncate text-slate-900">{user?.name || "Client"}</span>
-                        <span className="text-[10px] text-slate-500 truncate font-mono">{user?.email}</span>
+                        <span className="text-[11px] font-black text-primary truncate uppercase italic tracking-tight">{user?.name || "Invité"}</span>
+                        <span className="text-[9px] text-secondary/40 truncate font-mono uppercase tracking-widest">{user?.role || "Inconnu"}</span>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                        title="Déconnexion"
+                        className="p-3 hover:bg-red-500/10 rounded-xl text-secondary/20 hover:text-red-500 transition-all border border-transparent hover:border-red-500/20"
+                        title="Purger la session"
                     >
                         <LogOut className="w-4 h-4" />
                     </button>

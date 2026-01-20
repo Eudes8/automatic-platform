@@ -228,3 +228,17 @@ model TicketResponse {
   @@index([ticketId])
   @@index([authorId])
 }
+
+model PortfolioProject {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  description String   @db.Text
+  image       String
+  tech        String[]
+  url         String?
+  github      String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

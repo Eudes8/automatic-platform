@@ -3,6 +3,7 @@ import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import AuthSync from "@/components/auth/AuthSync";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { Toaster } from "sonner";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -49,12 +50,17 @@ export default function RootLayout({
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
-          enableSystem={false}
+          defaultTheme="light"
+          enableSystem
           disableTransitionOnChange
         >
           <AuthSync />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              className: "glass-premium rounded-2xl border-premium p-4 font-bold text-xs uppercase tracking-widest",
+            }}
+          />
           {children}
         </ThemeProvider>
       </body>

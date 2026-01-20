@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Globe,
@@ -16,59 +16,61 @@ import {
     Cpu,
     Zap,
     Briefcase,
+    ChevronLeft,
+    Terminal,
     ArrowRight,
-    ChevronLeft
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { formatCurrency, getClientCurrency, Currency } from "@/lib/utils/currency";
+import { Logo } from "../shared/Logo";
 
 const STEPS = [
-    { id: "concept", title: "Concept" },
-    { id: "type", title: "Architecture" },
-    { id: "features", title: "Composants" },
-    { id: "timeline", title: "Fréquence" },
-    { id: "account", title: "Identité" }
+    { id: "concept", title: "DÉSIGNATION" },
+    { id: "type", title: "ARCHITECTURE" },
+    { id: "features", title: "MODULES_SYSTÈME" },
+    { id: "timeline", title: "DÉLAIS" },
+    { id: "account", title: "UNITÉ_OPÉRATIONNELLE" }
 ];
 
 const PROJECT_TYPES = [
-    { id: "web", title: "Application Web", icon: Globe, basePrice: 2000, desc: "Interface haute performance réactive." },
-    { id: "mobile", title: "App Mobile", icon: Smartphone, basePrice: 3500, desc: "Expérience native iOS & Android." },
-    { id: "saas", title: "Plateforme SaaS", icon: Database, basePrice: 5000, desc: "Système multi-tenant évolutif." },
+    { id: "starter", title: "Solution_Lite", icon: Cpu, basePrice: 800, desc: "Parfait pour un MVP ou un petit outil interne." },
+    { id: "web", title: "Plateforme_Web", icon: Globe, basePrice: 1800, desc: "Idéal pour un SaaS, un ERP ou un site complexe." },
+    { id: "mobile", title: "Application_Mobile", icon: Smartphone, basePrice: 3200, desc: "Pour iOS et Android avec performance maximale." },
 ];
 
 const FEATURES = [
-    { id: "auth", title: "Auth & Sécurité", price: 500, icon: ShieldCheck, desc: "JWT, OAuth & chiffrement." },
-    { id: "payments", title: "Transactionnel", price: 800, icon: CreditCard, desc: "Stripe, Facturation & Taxes." },
-    { id: "chat", title: "Flux Temps Réel", price: 1200, icon: MessageSquare, desc: "Websockets & Notifications." },
-    { id: "admin", title: "Console Admin", price: 1500, icon: Layout, desc: "Gestion totale des données." },
+    { id: "auth", title: "Client_Node", price: 300, icon: ShieldCheck, desc: "Comptes sécurisés, emails et profils." },
+    { id: "payments", title: "Fiscal_Bridge", price: 600, icon: CreditCard, desc: "Acceptez les cartes et générez des factures." },
+    { id: "chat", title: "Comm_Interface", price: 900, icon: MessageSquare, desc: "Messagerie instantanée interne pour vos utilisateurs." },
+    { id: "admin", title: "Command_Center", price: 1200, icon: Layout, desc: "Outil complet pour gérer toute votre activité." },
 ];
 
 const formSchema = z.object({
-    projectTitle: z.string().min(3, "Donnez un nom ambitieux à votre projet"),
-    type: z.string().min(1, "Veuillez choisir un type de projet"),
-    features: z.array(z.string()).min(1, "Sélectionnez au moins une fonctionnalité"),
-    budget: z.string().optional().default("medium"),
-    timeline: z.string().optional().default("standard"),
-    name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    projectTitle: z.string().min(3, "Donnez un nom à votre projet"),
+    type: z.string().min(1, "Veuillez choisir une base"),
+    features: z.array(z.string()).min(1, "Sélectionnez au moins une option"),
+    budget: z.string(),
+    timeline: z.string(),
+    name: z.string().min(2, "Nom requis"),
     email: z.string().email("Email invalide"),
-    password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+    password: z.string().min(8, "8 caractères minimum"),
 });
 
-type FormData = {
-    projectTitle: string;
-    type: string;
-    features: string[];
-    budget?: string;
-    timeline?: string;
-    name: string;
-    email: string;
-    password: string;
-};
+type FormData = z.infer<typeof formSchema>;
 
 export default function ProjectBuilder() {
     const [currentStep, setCurrentStep] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const [currency, setCurrency] = useState<Currency>('EUR');
+
+    useEffect(() => {
+        setCurrency(getClientCurrency());
+        const sync = () => setCurrency(getClientCurrency());
+        window.addEventListener('currencyChange', sync);
+        return () => window.removeEventListener('currencyChange', sync);
+    }, []);
 
     const {
         register,
@@ -81,7 +83,7 @@ export default function ProjectBuilder() {
         resolver: zodResolver(formSchema),
         defaultValues: {
             projectTitle: "",
-            type: "web",
+            type: "starter",
             features: ["auth"],
             budget: "medium",
             timeline: "standard",
@@ -92,6 +94,7 @@ export default function ProjectBuilder() {
     });
 
     const formData = watch();
+
 
     const nextStep = async () => {
         let fieldsToValidate: (keyof FormData)[] = [];
@@ -148,40 +151,53 @@ export default function ProjectBuilder() {
     }, [formData.type, formData.features]);
 
     return (
-        <div className="w-full max-w-7xl mx-auto py-20 px-6 font-sans">
-            {/* Steps Progress - Sleeker Light Mode */}
-            <div className="flex justify-center mb-16 px-4 relative z-10">
-                <div className="flex items-center gap-4 bg-white/60 backdrop-blur-xl border border-slate-200/60 p-2.5 rounded-2xl shadow-sm">
+        <div className="w-full max-w-7xl mx-auto py-20 px-6">
+
+            {/* Serious Tech Background */}
+            <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]" />
+                <div className="absolute inset-0 bg-background/90" />
+            </div>
+
+            {/* Steps Progress - Technical Bar */}
+            <div className="max-w-4xl mx-auto mb-16 relative z-10 px-4">
+                <div className="h-1 w-full bg-border/20 rounded-full overflow-hidden mb-8">
+                    <motion.div
+                        className="h-full bg-primary"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+                        transition={{ duration: 0.5, ease: "circOut" }}
+                    />
+                </div>
+                <div className="flex justify-center flex-wrap gap-2">
                     {STEPS.map((step, idx) => (
                         <div key={step.id} className="flex items-center">
                             <button
+                                type="button"
                                 onClick={() => idx < currentStep && setCurrentStep(idx)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-300 ${idx === currentStep
-                                    ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10 scale-105"
+                                className={`flex items-center gap-3 px-6 py-2 rounded-full transition-all duration-500 border ${idx === currentStep
+                                    ? "bg-primary text-background border-primary shadow-[0_0_20px_rgba(37,99,235,0.2)] scale-105"
                                     : idx < currentStep
-                                        ? "text-slate-900 hover:bg-slate-100"
-                                        : "text-slate-400 pointer-events-none"
+                                        ? "text-primary border-primary/20 hover:bg-primary/5"
+                                        : "text-secondary/20 border-transparent pointer-events-none"
                                     }`}
                             >
-                                <span className="text-[10px] font-black uppercase tracking-widest leading-none">
-                                    {idx + 1}. {step.title}
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">
+                                    {step.title}
                                 </span>
                                 {idx < currentStep && <CheckCircle2 className="w-3.5 h-3.5" />}
                             </button>
-                            {idx < STEPS.length - 1 && (
-                                <div className="w-6 h-px bg-slate-200 mx-3" />
-                            )}
                         </div>
                     ))}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
                 {/* Main Form Area */}
                 <div className="lg:col-span-8">
-                    <div className="bg-white p-10 md:p-16 rounded-[2.5rem] min-h-[550px] flex flex-col relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100">
+                    <div className="bg-card/30 backdrop-blur-sm p-12 md:p-20 rounded-[3rem] min-h-[650px] flex flex-col relative overflow-hidden shadow-2xl border border-border/50">
                         {/* Decorative background element */}
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-full blur-[100px] -mr-48 -mt-48 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none" />
 
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -189,53 +205,60 @@ export default function ProjectBuilder() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
+                                transition={{ duration: 0.5 }}
                                 className="flex-grow relative z-10"
                             >
                                 {currentStep === 0 && (
-                                    <div className="space-y-12">
+                                    <div className="space-y-16">
                                         <div>
-                                            <h2 className="text-5xl font-heading font-black text-slate-900 tracking-tighter mb-4 uppercase italic">Vision <span className="text-blue-600">Initiale.</span></h2>
-                                            <p className="text-slate-500 text-lg font-medium">Comment s'appelle votre prochain succès technologique ?</p>
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className="w-10 h-[1px] bg-accent" />
+                                                <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">IDENT_NAMESPACE</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Nom du <span className="text-secondary/20">Projet.</span></h2>
+                                            <p className="text-secondary/60 text-lg font-medium max-w-xl italic">Comment souhaitez-vous appeler votre mission ?</p>
                                         </div>
-                                        <div className="space-y-4">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Nom du Projet</label>
-                                            <div className="relative group">
-                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-1000"></div>
+                                        <div className="space-y-6">
+                                            <div className="relative flex items-center group">
                                                 <input
                                                     {...register("projectTitle")}
                                                     autoFocus
-                                                    placeholder="ex: NEXUS CORE PLATFORM"
-                                                    className="relative w-full bg-slate-50 border border-slate-200 p-8 rounded-2xl text-2xl font-heading font-bold text-slate-900 placeholder:text-slate-300 focus:border-blue-500 focus:bg-white outline-none transition-all tracking-tight"
+                                                    placeholder="EX: MA_PLATEFORME_2026"
+                                                    aria-label="Nom du projet"
+                                                    className="w-full bg-background/50 border border-border/50 p-10 rounded-[2rem] text-4xl font-black text-primary placeholder:text-secondary/10 focus:border-primary outline-none transition-all tracking-tighter italic uppercase"
                                                 />
                                             </div>
-                                            {errors.projectTitle && <p className="text-red-500 text-xs font-bold pl-1">{errors.projectTitle.message}</p>}
+                                            {errors.projectTitle && <p className="text-red-500 text-[10px] font-black tracking-widest pl-2 uppercase italic">// ERROR: {errors.projectTitle.message}</p>}
                                         </div>
                                     </div>
                                 )}
 
                                 {currentStep === 1 && (
-                                    <div className="space-y-12">
+                                    <div className="space-y-16">
                                         <div>
-                                            <h2 className="text-5xl font-heading font-black text-slate-900 tracking-tighter mb-4 uppercase italic">Architecture.</h2>
-                                            <p className="text-slate-500 text-lg font-medium">Sur quel support votre vision doit-elle s'ancrer ?</p>
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className="w-10 h-[1px] bg-accent" />
+                                                <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">BASE_ARCHITECTURE</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Le <span className="text-secondary/20">Type.</span></h2>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                             {PROJECT_TYPES.map((type) => (
                                                 <button
                                                     key={type.id}
+                                                    type="button"
                                                     onClick={() => setValue("type", type.id, { shouldValidate: true })}
-                                                    className={`p-8 rounded-[2rem] border transition-all text-left flex flex-col group relative overflow-hidden ${formData.type === type.id
-                                                        ? "border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-500/10"
-                                                        : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/50"
+                                                    className={`p-10 rounded-[2.5rem] border-2 transition-all text-left flex flex-col group relative overflow-hidden ${formData.type === type.id
+                                                        ? "border-primary bg-primary/5 shadow-2xl"
+                                                        : "border-border/30 bg-background/20 hover:border-primary/30"
                                                         }`}
                                                 >
-                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all ${formData.type === type.id ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 rotate-3" : "bg-white border border-slate-100 text-slate-400 group-hover:text-blue-600 group-hover:rotate-6"}`}>
-                                                        <type.icon className="w-7 h-7" />
+                                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-10 transition-all ${formData.type === type.id ? "bg-primary text-background rotate-6 shadow-lg shadow-primary/20" : "bg-card border border-border/50 text-secondary/40 group-hover:text-primary"}`}>
+                                                        <type.icon className="w-8 h-8" />
                                                     </div>
-                                                    <h3 className={`font-heading font-bold text-xl mb-3 ${formData.type === type.id ? "text-blue-900" : "text-slate-900"}`}>{type.title}</h3>
-                                                    <p className="text-slate-500 text-xs leading-relaxed mb-6">{type.desc}</p>
-                                                    <p className={`text-[10px] font-black uppercase tracking-widest mt-auto italic ${formData.type === type.id ? "text-blue-600" : "text-slate-300"}`}>Start: {type.basePrice}€</p>
+                                                    <h3 className={`font-black text-xl mb-4 uppercase italic tracking-tight ${formData.type === type.id ? "text-primary" : "text-primary/60"}`}>{type.title}</h3>
+                                                    <p className="text-secondary/50 text-[11px] font-medium leading-relaxed mb-10">{type.desc}</p>
+                                                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] mt-auto italic ${formData.type === type.id ? "text-primary" : "text-secondary/20"}`}>À partir de: {formatCurrency(type.basePrice, currency)}</p>
                                                 </button>
                                             ))}
                                         </div>
@@ -243,31 +266,35 @@ export default function ProjectBuilder() {
                                 )}
 
                                 {currentStep === 2 && (
-                                    <div className="space-y-12">
+                                    <div className="space-y-16">
                                         <div>
-                                            <h2 className="text-5xl font-heading font-black text-slate-900 tracking-tighter mb-4 uppercase italic">Composants.</h2>
-                                            <p className="text-slate-500 text-lg font-medium">Activez les modules techniques nécessaires.</p>
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className="w-10 h-[1px] bg-accent" />
+                                                <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">CORE_FEATURES</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Options <span className="text-secondary/20">Clés.</span></h2>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             {FEATURES.map((feature) => (
                                                 <button
                                                     key={feature.id}
+                                                    type="button"
                                                     onClick={() => toggleFeature(feature.id)}
-                                                    className={`p-8 rounded-[2rem] border transition-all text-left flex items-center gap-8 group relative ${formData.features.includes(feature.id)
-                                                        ? "border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-500/10"
-                                                        : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200"
+                                                    className={`p-10 rounded-[2.5rem] border-2 transition-all text-left flex items-center gap-10 group relative ${formData.features.includes(feature.id)
+                                                        ? "border-primary bg-primary/5 shadow-2xl"
+                                                        : "border-border/30 bg-background/20 hover:border-primary/30"
                                                         }`}
                                                 >
-                                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all ${formData.features.includes(feature.id) ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "bg-white border border-slate-100 text-slate-400 group-hover:scale-105"}`}>
-                                                        <feature.icon className="w-7 h-7" />
+                                                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 transition-all ${formData.features.includes(feature.id) ? "bg-primary text-background shadow-lg shadow-primary/20" : "bg-card border border-border/50 text-secondary/40 group-hover:scale-105"}`}>
+                                                        <feature.icon className="w-8 h-8" />
                                                     </div>
                                                     <div className="flex-grow">
-                                                        <h3 className={`font-heading font-bold mb-1 ${formData.features.includes(feature.id) ? "text-blue-900" : "text-slate-900"}`}>{feature.title}</h3>
-                                                        <p className="text-slate-400 text-[10px] font-medium leading-normal mb-1">{feature.desc}</p>
-                                                        <p className="text-[10px] font-black uppercase text-blue-500 tracking-wider">+{feature.price}€</p>
+                                                        <h3 className={`font-black mb-2 uppercase italic tracking-tight ${formData.features.includes(feature.id) ? "text-primary" : "text-primary/60"}`}>{feature.title}</h3>
+                                                        <p className="text-secondary/50 text-[10px] font-medium leading-normal mb-3">{feature.desc}</p>
+                                                        <p className="text-[10px] font-black uppercase text-accent tracking-[0.2em] italic">+{formatCurrency(feature.price, currency)}</p>
                                                     </div>
-                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${formData.features.includes(feature.id) ? "bg-blue-600 border-blue-600" : "border-slate-200 bg-white group-hover:border-blue-400"}`}>
-                                                        {formData.features.includes(feature.id) && <CheckCircle2 className="text-white w-4 h-4" />}
+                                                    <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all ${formData.features.includes(feature.id) ? "bg-primary border-primary" : "border-border/50 bg-card group-hover:border-primary/50"}`}>
+                                                        {formData.features.includes(feature.id) && <CheckCircle2 className="text-background w-5 h-5" />}
                                                     </div>
                                                 </button>
                                             ))}
@@ -275,33 +302,38 @@ export default function ProjectBuilder() {
                                     </div>
                                 )}
 
+
                                 {currentStep === 3 && (
-                                    <div className="space-y-12">
+                                    <div className="space-y-16">
                                         <div>
-                                            <h2 className="text-5xl font-heading font-black text-slate-900 tracking-tighter mb-4 uppercase italic">Vitesse.</h2>
-                                            <p className="text-slate-500 text-lg font-medium">Définissez le rythme de mise en production.</p>
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className="w-10 h-[1px] bg-accent" />
+                                                <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">VELOCITY_RATIO</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Ratio <span className="text-secondary/20">Accélération.</span></h2>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                             {[
-                                                { id: 'standard', title: 'Standard', desc: 'Livraison sous 6-8 semaines.', icon: Cpu },
-                                                { id: 'accelerated', title: 'Accéléré', desc: 'Rendu sous 4 semaines.', icon: Zap },
-                                                { id: 'urgent', title: 'Sprint', desc: 'MVP en 14 jours chrono.', icon: Rocket },
+                                                { id: 'standard', title: 'Stable Build', desc: 'Déploiement en 6-8 semaines.', icon: Cpu, label: "01" },
+                                                { id: 'accelerated', title: 'Overclocked', desc: 'Rendu sous 4 semaines.', icon: Zap, label: "02" },
+                                                { id: 'urgent', title: 'Mach Sprint', desc: 'MVP en 14 jours chrono.', icon: Rocket, label: "03" },
                                             ].map((t) => (
                                                 <button
                                                     key={t.id}
                                                     type="button"
                                                     onClick={() => setValue("timeline", t.id)}
-                                                    className={`p-8 rounded-[2rem] border transition-all text-left flex flex-col ${formData.timeline === t.id
-                                                        ? "border-blue-500 bg-blue-50/50 shadow-xl shadow-blue-500/10"
-                                                        : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200"
+                                                    className={`p-10 rounded-[2.5rem] border-2 transition-all text-left flex flex-col group relative ${formData.timeline === t.id
+                                                        ? "border-primary bg-primary/5 shadow-2xl"
+                                                        : "border-border/30 bg-background/20 hover:border-primary/30"
                                                         }`}
                                                 >
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 ${formData.timeline === t.id ? "bg-blue-600 text-white" : "bg-white border border-slate-100 text-slate-400"}`}>
-                                                        <t.icon className="w-5 h-5" />
+                                                    <div className="absolute top-6 right-8 text-2xl font-black text-primary/5 italic">{t.label}</div>
+                                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-8 ${formData.timeline === t.id ? "bg-primary text-background shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "bg-card border border-border/50 text-secondary/40"}`}>
+                                                        <t.icon className="w-6 h-6" />
                                                     </div>
-                                                    <h3 className={`font-heading font-bold mb-2 ${formData.timeline === t.id ? "text-blue-900" : "text-slate-900"}`}>{t.title}</h3>
-                                                    <p className="text-slate-500 text-[11px] leading-relaxed">{t.desc}</p>
+                                                    <h3 className={`font-black mb-3 uppercase italic tracking-tight ${formData.timeline === t.id ? "text-primary" : "text-primary/60"}`}>{t.title}</h3>
+                                                    <p className="text-secondary/50 text-[11px] leading-relaxed font-medium">{t.desc}</p>
                                                 </button>
                                             ))}
                                         </div>
@@ -309,51 +341,58 @@ export default function ProjectBuilder() {
                                 )}
 
                                 {currentStep === 4 && (
-                                    <div className="space-y-12 max-w-xl">
+                                    <div className="space-y-16 max-w-xl">
                                         <div>
-                                            <h2 className="text-5xl font-heading font-black text-slate-900 tracking-tighter mb-4 uppercase italic">Identité.</h2>
-                                            <p className="text-slate-500 text-lg font-medium">Finalisez votre inscription pour lancer la phase d'analyse.</p>
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className="w-10 h-[1px] bg-accent" />
+                                                <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">OPERATOR_REGISTRATION</span>
+                                            </div>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Identité <span className="text-secondary/20">Protocole.</span></h2>
                                         </div>
-                                        <div className="space-y-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Nom / Dossier</label>
+                                        <div className="space-y-8">
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary/40 ml-2 italic">// Nom_Opérateur</label>
                                                 <input
                                                     {...register("name")}
-                                                    placeholder="VOTRE NOM COMPLET"
-                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold tracking-tight text-slate-900 placeholder:text-slate-300"
+                                                    placeholder="IDENTITÉ REELLE"
+                                                    aria-label="Nom complet de l'opérateur"
+                                                    className="w-full p-8 rounded-[1.5rem] bg-background/50 border border-border/50 focus:border-primary outline-none transition-all font-black text-xl italic tracking-tight text-primary uppercase placeholder:text-secondary/10"
                                                 />
-                                                {errors.name && <p className="text-red-500 text-xs font-bold pl-1">{errors.name.message}</p>}
+                                                {errors.name && <p className="text-red-500 text-[10px] font-black tracking-widest pl-2 uppercase italic">// ERROR: {errors.name.message}</p>}
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Email Accès</label>
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary/40 ml-2 italic">// Point_Accès_Comms</label>
                                                 <input
                                                     {...register("email")}
                                                     type="email"
-                                                    placeholder="ACCES@ENTREPRISE.COM"
-                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold tracking-tight text-slate-900 placeholder:text-slate-300"
+                                                    placeholder="NAME@ENTERPRISE.COM"
+                                                    aria-label="Adresse email professionnelle"
+                                                    className="w-full p-8 rounded-[1.5rem] bg-background/50 border border-border/50 focus:border-primary outline-none transition-all font-black text-xl italic tracking-tight text-primary uppercase placeholder:text-secondary/10"
                                                 />
-                                                {errors.email && <p className="text-red-500 text-xs font-bold pl-1">{errors.email.message}</p>}
+                                                {errors.email && <p className="text-red-500 text-[10px] font-black tracking-widest pl-2 uppercase italic">// ERROR: {errors.email.message}</p>}
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Mot de passe</label>
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary/40 ml-2 italic">// Clé_Chiffrage</label>
                                                 <input
                                                     {...register("password")}
                                                     type="password"
-                                                    placeholder="••••••••"
-                                                    className="w-full p-6 rounded-2xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                                                    placeholder="••••••••••••"
+                                                    aria-label="Mot de passe de sécurité"
+                                                    className="w-full p-8 rounded-[1.5rem] bg-background/50 border border-border/50 focus:border-primary outline-none transition-all font-black text-xl text-primary placeholder:text-secondary/10"
                                                 />
-                                                {errors.password && <p className="text-red-500 text-xs font-bold pl-1">{errors.password.message}</p>}
+                                                {errors.password && <p className="text-red-500 text-[10px] font-black tracking-widest pl-2 uppercase italic">// ERROR: {errors.password.message}</p>}
                                             </div>
 
                                             <button
+                                                type="button"
                                                 onClick={handleSubmit(onFormSubmit)}
                                                 disabled={submitting}
-                                                className="w-full py-6 bg-slate-900 text-white rounded-2xl font-black text-xs tracking-[0.3em] uppercase hover:scale-[1.01] active:scale-[0.99] transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-4 mt-8 hover:bg-black"
+                                                className="w-full py-10 bg-primary text-background rounded-[1.5rem] font-black text-xs tracking-[0.4em] uppercase hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-50 flex items-center justify-center gap-6 mt-12 italic"
                                             >
                                                 {submitting ? (
-                                                    <><Loader2 className="w-5 h-5 animate-spin" /> INITIALISATION...</>
+                                                    <><Loader2 className="w-5 h-5 animate-spin" /> SYNCHRONISATION_CORE...</>
                                                 ) : (
-                                                    <>INITIALISER LE PROJET <ArrowRight className="w-5 h-5" /></>
+                                                    <>DÉPLOYER_MAINFRAME <ArrowRight className="w-5 h-5" /></>
                                                 )}
                                             </button>
                                         </div>
@@ -363,90 +402,81 @@ export default function ProjectBuilder() {
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="mt-auto flex justify-between items-center pt-10 border-t border-border/50 relative z-10">
+                        <div className="mt-20 flex justify-between items-center pt-12 border-t border-border/20 relative z-10">
                             <button
+                                type="button"
                                 onClick={prevStep}
                                 disabled={currentStep === 0}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all ${currentStep === 0 ? "opacity-0 pointer-events-none" : "text-slate-400 hover:text-slate-900 hover:bg-slate-100"}`}
+                                className={`flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all italic ${currentStep === 0 ? "opacity-0 pointer-events-none" : "text-secondary/40 hover:text-primary hover:bg-primary/5"}`}
                             >
-                                <ChevronLeft className="w-4 h-4" /> Retour
+                                <ChevronLeft className="w-4 h-4" /> PREV_SIGNAL
                             </button>
 
                             {currentStep < STEPS.length - 1 && (
                                 <button
+                                    type="button"
                                     onClick={nextStep}
-                                    className="flex items-center gap-4 px-12 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl shadow-slate-900/10"
+                                    className="flex items-center gap-6 px-16 py-6 bg-primary text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:opacity-90 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] italic"
                                 >
-                                    Suivant <ArrowRight className="w-4 h-4" />
+                                    CONTINUER <ArrowRight className="w-4 h-4" />
                                 </button>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Right Sidebar - Dynamic Summary */}
-                <div className="lg:col-span-4 sticky top-12 space-y-6">
-                    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 overflow-hidden relative shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 mb-10 flex items-center gap-2 italic">
-                            <Briefcase className="w-4 h-4 text-blue-600" /> Config_Actuelle
+                {/* Right Sidebar - Dynamic Manifest - Industrial Style */}
+                <div className="lg:col-span-4 sticky top-12 space-y-8">
+                    <div className="bg-card/30 backdrop-blur-xl p-12 rounded-[2.5rem] border border-border/50 overflow-hidden relative shadow-2xl">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-12 flex items-center gap-3 italic">
+                            <Terminal className="w-4 h-4 text-accent" /> CONFIG_MANIFEST_V1.0
                         </h3>
 
-                        <div className="space-y-8">
-                            <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Titre</span>
-                                <span className="text-xl font-heading font-black text-slate-900 uppercase italic truncate">
-                                    {formData.projectTitle || "SANS_TITRE"}
-                                </span>
+                        <div className="space-y-10">
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] italic">// Projet</p>
+                                <p className="text-2xl font-black text-primary uppercase italic tracking-tighter truncate">{formData.projectTitle || "NON DÉFINI"}</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Type</span>
-                                    <span className="text-slate-900 font-bold uppercase text-xs tracking-wider">
-                                        {formData.type || "N/A"}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Phase</span>
-                                    <span className="text-slate-900 font-bold uppercase text-xs tracking-wider">
-                                        {formData.timeline || "N/A"}
-                                    </span>
-                                </div>
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] italic">// Base</p>
+                                <p className="text-sm font-black text-primary uppercase italic">{PROJECT_TYPES.find(t => t.id === formData.type)?.title}</p>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Modules Système</span>
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] italic">// Options</p>
                                 <div className="flex flex-wrap gap-2">
-                                    {formData.features.map(f => (
-                                        <span key={f} className="text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg border border-blue-100">
-                                            {f}
+                                    {formData.features.map(fId => (
+                                        <span key={fId} className="px-3 py-1 bg-background/50 border border-border/50 rounded-lg text-[9px] font-black text-primary/60 uppercase tracking-widest italic">
+                                            {FEATURES.find(f => f.id === fId)?.title}
                                         </span>
                                     ))}
-                                    {formData.features.length === 0 && <span className="text-[9px] font-medium text-slate-300 italic">Aucun module</span>}
                                 </div>
                             </div>
 
-                            <div className="pt-8 border-t border-slate-100 mt-10">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 italic">Estimation Flux Financier</p>
-                                <div className="flex items-end gap-2">
-                                    <span className="text-5xl font-heading font-black text-slate-900 tracking-tighter">{estimate}€</span>
-                                    <span className="text-slate-300 font-black uppercase text-[10px] mb-3 tracking-widest">BASE_TECH</span>
+                            <div className="pt-10 border-t border-border/20">
+                                <div className="flex justify-between items-end">
+                                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] italic">Estimation:</span>
+                                    <span className="text-4xl font-black text-primary italic tracking-tight">{formatCurrency(estimate, currency)}</span>
                                 </div>
-                                <p className="text-[9px] text-slate-400 mt-4 leading-relaxed font-bold uppercase tracking-tight">
-                                    * Analyse technique incluse. Hébergement et maintenance calculés après audit.
+                                <p className="text-[10px] font-black text-accent uppercase tracking-widest mt-2 text-right">
+                                    ~ {Math.round(estimate * 655).toLocaleString()} FCFA
                                 </p>
                             </div>
                         </div>
+
+                        {/* Aesthetic Data Stream */}
+                        <div className="mt-12 pt-8 border-t border-border/10 font-mono text-[8px] text-secondary/20 uppercase tracking-[0.3em] space-y-1">
+                            <p>SYS_STATUS: READY</p>
+                            <p>BUF_STREAM: ${Buffer.from(formData.projectTitle).toString('hex').slice(0, 12)}</p>
+                            <p>ENCR_KEY: 256-BIT_AES</p>
+                        </div>
                     </div>
 
-                    <div className="p-8 rounded-[2rem] bg-indigo-50 border border-indigo-100 flex items-center gap-6">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <p className="text-[10px] text-indigo-900 font-bold leading-relaxed uppercase tracking-widest italic">
-                            Accès immédiat au dashboard de pilotage après validation de l'empreinte.
-                        </p>
+                    <div className="flex items-center gap-4 px-8 py-6 rounded-2xl bg-primary/5 border border-primary/10">
+                        <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                        <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] italic">Server_Sync: AF_WEST_HUB_STABLE</span>
                     </div>
                 </div>
             </div>

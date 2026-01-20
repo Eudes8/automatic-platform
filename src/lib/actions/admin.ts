@@ -46,12 +46,19 @@ export async function getAdminStats() {
 }
 
 export async function getProjectsByStatus() {
+    await requireAdmin();
     const projects = await prisma.project.findMany({
         include: {
             client: true,
+            messages: {
+                select: { id: true }
+            },
+            assets: {
+                select: { id: true }
+            }
         },
         orderBy: {
-            createdAt: "desc",
+            updatedAt: "desc",
         },
     });
 

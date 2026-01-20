@@ -135,70 +135,68 @@ export default function ContractSigner({
                                 <X size={20} />
                             </button>
 
-                            <div className="flex-1 p-8 md:p-10 flex flex-col justify-center">
-                                <div className="mb-8">
-                                    <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 mb-6">
-                                        <PenTool size={32} />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-900 italic uppercase tracking-tighter mb-2">Finalisation</h3>
-                                    <p className="text-slate-500 text-sm leading-relaxed">
-                                        Veuillez apposer votre signature ci-dessous pour valider les termes du contrat et lancer officiellement la mission.
-                                    </p>
+                            <div className="mb-10">
+                                <div className="w-20 h-20 rounded-[1.5rem] bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shadow-inner mb-8">
+                                    <PenTool size={36} />
+                                </div>
+                                <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter mb-4">Finalisation.</h3>
+                                <p className="text-secondary/60 text-xs leading-relaxed font-medium uppercase tracking-widest italic opacity-80">
+                                    Veuillez apposer votre signature ci-dessous pour valider les protocoles opératoires et lancer la séquence d'exécution.
+                                </p>
+                            </div>
+
+                            <div className="space-y-8">
+                                <div className="bg-secondary/5 rounded-[2rem] border border-border/50 relative group overflow-hidden hover:border-primary/30 transition-all shadow-inner">
+                                    {!signed ? (
+                                        <SignatureCanvas
+                                            ref={sigCanvas}
+                                            canvasProps={{
+                                                className: "w-full h-56 cursor-crosshair bg-transparent",
+                                            }}
+                                            onBegin={() => setSigned(false)}
+                                        />
+                                    ) : (
+                                        <div className="h-56 flex flex-col items-center justify-center text-emerald-600 bg-emerald-500/5">
+                                            <Check className="w-16 h-16 mb-4 animate-bounce" />
+                                            <p className="font-black uppercase tracking-[0.4em] text-[10px] italic">SIGNATURE_VALIDÉE</p>
+                                        </div>
+                                    )}
+
+                                    {!signed && (
+                                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-secondary/10 font-black uppercase text-5xl -rotate-12 select-none tracking-widest italic">SIGNER_ICI</span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="space-y-6">
-                                    <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 relative group overflow-hidden hover:border-blue-300 transition-colors">
-                                        {!signed ? (
-                                            <SignatureCanvas
-                                                ref={sigCanvas}
-                                                canvasProps={{
-                                                    className: "w-full h-48 cursor-crosshair bg-transparent",
-                                                }}
-                                                onBegin={() => setSigned(false)}
-                                            />
+                                <div className="flex gap-6">
+                                    <button
+                                        onClick={clear}
+                                        disabled={signed}
+                                        className="flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-secondary/30 hover:bg-secondary/5 hover:text-primary disabled:opacity-30 transition-all italic"
+                                    >
+                                        EFFACER_BUFFER
+                                    </button>
+                                    <button
+                                        onClick={save}
+                                        disabled={!sigCanvas.current || (sigCanvas.current.isEmpty() && !signed)}
+                                        className="flex-[2] py-5 rounded-2xl bg-primary hover:scale-[1.02] active:scale-[0.98] text-background text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 disabled:grayscale disabled:opacity-50 transition-all flex items-center justify-center gap-3 italic"
+                                    >
+                                        {signed ? (
+                                            <>VALIDE_OK <Check size={14} /></>
                                         ) : (
-                                            <div className="h-48 flex flex-col items-center justify-center text-emerald-500 bg-emerald-50">
-                                                <Check className="w-12 h-12 mb-2 animate-bounce" />
-                                                <p className="font-bold uppercase tracking-widest text-xs">Signé</p>
-                                            </div>
+                                            <>CONFIRMER_SIGN <ChevronDown size={14} className="-rotate-90" /></>
                                         )}
-
-                                        {!signed && (
-                                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="text-slate-200 font-black uppercase text-4xl -rotate-12 select-none">Signer Ici</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <button
-                                            onClick={clear}
-                                            disabled={signed}
-                                            className="flex-1 py-4 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 transition-all"
-                                        >
-                                            Effacer
-                                        </button>
-                                        <button
-                                            onClick={save}
-                                            disabled={!sigCanvas.current || (sigCanvas.current.isEmpty() && !signed)}
-                                            className="flex-[2] py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 disabled:grayscale disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            {signed ? (
-                                                <>Validé <Check size={14} /></>
-                                            ) : (
-                                                <>Confirmer <ChevronDown size={14} className="-rotate-90" /></>
-                                            )}
-                                        </button>
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="p-6 bg-slate-50 border-t border-slate-100">
-                                <div className="flex items-center gap-3 opacity-50">
-                                    <Shield size={16} className="text-slate-400" />
-                                    <p className="text-[10px] text-slate-500 leading-tight">
-                                        Crypté & Sécurisé par AUTOMATIC Inc.<br />
-                                        Conforme Loi Numérique 2024.
+                            <div className="p-8 bg-secondary/5 border-t border-border/50 transition-colors group-hover:bg-secondary/10">
+                                <div className="flex items-center gap-4">
+                                    <Shield size={20} className="text-primary/20" />
+                                    <p className="text-[9px] text-secondary/40 leading-relaxed font-black uppercase tracking-[0.2em] italic">
+                                        CRYPTAGE//AES_256_ACTIVE//CONFORME_L2024<br />
+                                        ORIGINE: AUTOMATIC_ABIDJAN_MAIN_NODE
                                     </p>
                                 </div>
                             </div>

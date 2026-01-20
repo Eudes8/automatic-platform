@@ -13,14 +13,21 @@ export async function sendAdminMessage(projectId: string, text: string) {
     }
 
     try {
+        // Find if there's a conversation for this project to ensure support widget also gets the message
+        const conversation = await prisma.conversation.findFirst({
+            where: { projectId: projectId }
+        });
+
         await prisma.message.create({
             data: {
                 text,
                 senderId: admin.id,
-                projectId: projectId
+                projectId: projectId,
+                conversationId: conversation?.id // Link to conversation if exists
             }
         });
         revalidatePath(`/admin/chat`);
+        revalidatePath(`/dashboard/projects/${projectId}`);
         return { success: true };
     } catch (error) {
         console.error("Sending message failed:", error);

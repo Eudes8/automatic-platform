@@ -8,44 +8,45 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const user = await getCurrentUser();
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden relative selection:bg-blue-100 selection:text-blue-900">
-      {/* Global Ambient Glow - Subtle Light Mode */}
-      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-100 rounded-full blur-[150px] pointer-events-none opacity-60" />
-      <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-50 rounded-full blur-[150px] pointer-events-none opacity-60" />
+    <div className="flex h-screen bg-background text-primary overflow-hidden relative selection:bg-primary/10 selection:text-primary">
+      {/* Global Ambient Glow - Unified Premium Light */}
+      <div className="fixed top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
 
       <Sidebar user={user} />
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col relative z-10">
-        <header className="h-20 border-b border-slate-200 flex items-center justify-between px-8 bg-white/80 backdrop-blur-xl z-20 sticky top-0 shadow-sm">
+        <header className="h-24 border-b border-border/50 flex items-center justify-between px-10 bg-background/80 backdrop-blur-3xl z-20 sticky top-0">
           <div className="flex flex-col">
-            <h1 className="text-sm font-black uppercase tracking-widest text-slate-800">Tableau de Bord</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Console v2.1 • {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <h1 className="text-xl font-heading font-black uppercase tracking-tighter italic">CONSOLE_MAIN_UNIT.</h1>
+            <p className="text-[10px] text-secondary/40 font-black uppercase tracking-[0.3em] mt-1">
+              SYSTEM_BOOT_LOG // {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')}
+            </p>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-emerald-200 shadow-lg" />
-              Système Opérationnel
+          <div className="flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] italic">NODE_OPÉRATIONNEL_V2.1</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full shadow-sm">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-              <span className="text-[10px] font-black text-blue-600 uppercase tracking-tight">Equipe Connectée</span>
+
+            <div className="flex items-center gap-3 px-6 py-2.5 bg-primary/5 border border-primary/10 rounded-full shadow-inner group hover:bg-primary/10 transition-all cursor-crosshair">
+              <div className="w-1.5 h-1.5 bg-accent rounded-full animate-ping" />
+              <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] italic">EQUIPE_DISPONIBLE</span>
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 lg:p-12 custom-scrollbar">
-          <div className="max-w-7xl mx-auto space-y-12">
+        <div className="flex-1 overflow-y-auto p-10 lg:p-16 custom-scrollbar scroll-smooth">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
 
-          {/* Bottom spacer for scroll */}
-          <div className="h-20" />
+          <div className="h-32" />
         </div>
       </main>
 
-      {/* Chat Widget for Clients */}
       {user && user.role === 'CLIENT' && <ChatWidget currentUser={user} />}
     </div>
   );

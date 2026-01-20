@@ -9,6 +9,7 @@ interface DeliverablesProps {
     projectName?: string;
     projectAssets?: any[];
     contracts?: any[];
+    invoices?: any[];
     clientName?: string;
     budget?: string;
     description?: string;
@@ -19,6 +20,7 @@ export default function Deliverables({
     projectName = "Projet",
     projectAssets = [],
     contracts = [],
+    invoices = [],
     clientName = "Client",
     budget = "0€",
     description
@@ -53,10 +55,17 @@ export default function Deliverables({
     const allDeliverables = [
         ...contracts.filter(c => c.status === "SIGNED").map(c => ({
             id: c.id,
-            name: "Contrat de Prestation (Signé)",
+            name: "CONTRAT_SIGNÉ.pdf",
             icon: ShieldCheck,
             type: "contract",
             source: c
+        })),
+        ...invoices.filter(inv => inv.pdfUrl).map(inv => ({
+            id: inv.id,
+            name: `FACTURE_${inv.id.slice(-6).toUpperCase()}.pdf`,
+            icon: FileText,
+            type: "invoice",
+            href: inv.pdfUrl
         })),
         ...projectAssets.map(a => ({
             id: a.id,
@@ -68,19 +77,19 @@ export default function Deliverables({
     ];
 
     return (
-        <div className="p-10 bg-slate-900 border border-white/5 rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="p-10 bg-card/30 border border-border/50 rounded-[3rem] shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-            <h4 className="text-white font-black uppercase text-xs tracking-[0.2em] mb-10 italic flex items-center justify-between">
-                Livrables Actifs
-                {allDeliverables.length > 0 && <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />}
+            <h4 className="text-secondary/40 font-black uppercase text-[10px] tracking-[0.4em] mb-12 italic flex items-center justify-between">
+                // Livrables_Actifs
+                {allDeliverables.length > 0 && <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
             </h4>
 
             {allDeliverables.length === 0 ? (
-                <div className="py-12 px-6 border-2 border-dashed border-white/5 rounded-3xl text-center">
-                    <p className="text-slate-600 font-bold uppercase text-[10px] tracking-widest italic leading-relaxed">
-                        Aucun livrable disponible pour le moment.<br />
-                        Les ressources apparaîtront ici dès le début de la phase DEV.
+                <div className="py-16 px-6 border-2 border-dashed border-border/50 rounded-[2.5rem] text-center bg-background/20">
+                    <p className="text-secondary/30 font-black uppercase text-[10px] tracking-[0.4em] italic leading-relaxed">
+                        Aucun livrable disponible.<br />
+                        Accès restreint en phase d'initiation.
                     </p>
                 </div>
             ) : (
@@ -88,37 +97,39 @@ export default function Deliverables({
                     {allDeliverables.map((item: any) => (
                         <div
                             key={item.id}
-                            className="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-blue-500/20 hover:bg-blue-500/5 transition-all cursor-pointer"
+                            className="group flex items-center justify-between p-6 rounded-[2rem] bg-background/50 border border-border/50 hover:border-primary/30 transition-all cursor-pointer shadow-sm hover:shadow-xl"
                             onClick={() => item.type === "contract" ? handleContractDownload(item.source) : window.open(item.href, '_blank')}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${item.type === "contract" ? "bg-green-500/10 text-green-500" : "bg-slate-800 text-slate-500 group-hover:text-blue-400 group-hover:bg-blue-400/10"
+                            <div className="flex items-center gap-6">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${item.type === "contract" ? "bg-emerald-500/5 text-emerald-600 border border-emerald-500/10" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-background"
                                     }`}>
                                     <item.icon className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <span className={`text-sm font-bold transition-colors ${item.type === "contract" ? "text-green-500" : "text-slate-300 group-hover:text-white"}`}>
+                                    <span className={`text-sm font-black uppercase italic tracking-tight transition-colors ${item.type === "contract" ? "text-emerald-600" : "text-primary"}`}>
                                         {item.name}
                                     </span>
                                     {item.type === "contract" && (
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-medium mt-1">
-                                            Signature certifiée
+                                        <p className="text-[9px] text-secondary/30 uppercase tracking-[0.2em] font-black mt-1 italic">
+                                            Signature_Hex_Validée
                                         </p>
                                     )}
                                 </div>
                             </div>
                             {downloadingContract === item.id ? (
-                                <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                                <Loader2 className="w-5 h-5 text-primary animate-spin" />
                             ) : (
-                                <Download className="w-4 h-4 text-slate-700 group-hover:text-slate-400 transition-colors" />
+                                <div className="w-10 h-10 rounded-xl bg-secondary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all">
+                                    <Download className="w-4 h-4" />
+                                </div>
                             )}
                         </div>
                     ))}
                 </div>
             )}
 
-            <button className="w-full mt-10 py-5 border-2 border-dashed border-slate-800 rounded-2xl text-slate-600 font-bold text-xs uppercase tracking-[0.3em] hover:border-blue-500/30 hover:text-blue-500/50 transition-all">
-                + Demander un Asset
+            <button className="w-full mt-10 py-5 bg-secondary/5 border border-border/50 rounded-[1.5rem] text-secondary/40 font-black text-[9px] uppercase tracking-[0.4em] hover:bg-primary/5 hover:text-primary transition-all italic">
+                + REQUÊTE_ASSET_ADDITIONNEL
             </button>
         </div>
     );

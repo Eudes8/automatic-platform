@@ -19,7 +19,6 @@ export async function getAdminNotifications() {
 }
 
 export async function createAdminNotification(title: string, message: string, link?: string) {
-    await requireAdmin();
     try {
         // Get all admin users
         const admins = await prisma.user.findMany({
