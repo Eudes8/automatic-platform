@@ -2,6 +2,7 @@ import { getAllInvoices } from "@/lib/actions/invoices";
 import { FileText, Download, Eye, DollarSign, Calendar, User, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import InvoiceCRUDModal from "@/components/admin/invoices/InvoiceCRUDModal";
+import { cn } from "@/lib/utils";
 export const dynamic = 'force-dynamic';
 export default async function AdminInvoicesPage() {
     const invoices = await getAllInvoices();
