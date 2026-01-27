@@ -64,7 +64,7 @@ export default async function AdminInvoicesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                            {invoices.map((invoice) => (
+                            {invoices.map((invoice: any) => (
                                 <tr key={invoice.id} className="hover:bg-primary/[0.02] transition-colors group/row">
                                     <td className="p-8">
                                         <div className="flex items-center gap-6">
@@ -140,8 +140,4 @@ export default async function AdminInvoicesPage() {
             </div>
         </div>
     );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }
