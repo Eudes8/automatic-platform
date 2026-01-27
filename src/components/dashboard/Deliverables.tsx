@@ -5,12 +5,14 @@ import { generateProjectContract, generateProjectBrief, downloadBlob } from "@/l
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+import { Asset, Contract, Invoice } from "@prisma/client";
+
 interface DeliverablesProps {
     projectId: string;
     projectName?: string;
-    projectAssets?: any[];
-    contracts?: any[];
-    invoices?: any[];
+    projectAssets?: Asset[];
+    contracts?: Contract[];
+    invoices?: (Invoice & { project?: { title: string } | null })[];
     clientName?: string;
     budget?: string;
     description?: string;
@@ -32,10 +34,10 @@ export default function Deliverables({
 }: DeliverablesProps) {
     const [downloading, setDownloading] = useState<string | null>(null);
 
-    const handleContractDownload = async (contract: any) => {
+    const handleContractDownload = async (contract: Contract) => {
         setDownloading(contract.id);
         try {
-            const pdfBytes = await generateProjectContract(projectName, clientName, budget, contract.signatureBase64, projectId, description);
+            const pdfBytes = await generateProjectContract(projectName, clientName, budget, contract.signatureBase64 || "", projectId, description);
             const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
             downloadBlob(blob, `CONTRAT_${projectName.replace(/\s+/g, "_")}.pdf`);
         } catch (error) {
@@ -66,13 +68,13 @@ export default function Deliverables({
                 ...contracts.filter(c => c.status === "SIGNED").map(c => ({
                     id: c.id,
                     name: "Convention Signée",
-                    type: "contract",
+                    type: "contract" as const,
                     source: c
                 })),
                 ...invoices.map(inv => ({
                     id: inv.id,
                     name: `Facture ${inv.id.slice(-6).toUpperCase()}`,
-                    type: "invoice",
+                    type: "invoice" as const,
                     href: inv.pdfUrl,
                     status: inv.status
                 }))
@@ -82,17 +84,27 @@ export default function Deliverables({
             title: "TECHNIQUE",
             icon: Code,
             items: [
-                { id: "brief", name: "Cahier des Charges", type: "brief" },
+                { id: "brief", name: "Cahier des Charges", type: "brief" as const },
                 ...projectAssets.map(a => ({
                     id: a.id,
                     name: a.name,
-                    type: "asset",
+                    type: "asset" as const,
                     href: a.url,
                     assetType: a.type
                 }))
             ]
         }
     ];
+
+    interface DeliverableItem {
+        id: string;
+        name: string;
+        type: "contract" | "invoice" | "brief" | "asset";
+        href?: string | null;
+        source?: any;
+        status?: string;
+        assetType?: string;
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
@@ -130,7 +142,7 @@ export default function Deliverables({
                             {cat.items.length === 0 ? (
                                 <p className="text-[9px] text-secondary/20 font-bold uppercase tracking-widest italic px-2">Aucun élément synchronisé</p>
                             ) : (
-                                cat.items.map((item: any) => (
+                                cat.items.map((item: DeliverableItem) => (
                                     <div
                                         key={item.id}
                                         onClick={() => {

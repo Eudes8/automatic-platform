@@ -5,14 +5,10 @@ import { updateProfile } from "@/lib/actions/profile";
 import { User, Building, Phone, Globe, Save, Loader2, Shield } from "lucide-react";
 import { toast } from "sonner";
 
+import { User as UserType } from "@prisma/client";
+
 interface ProfileFormProps {
-    user: {
-        name: string | null;
-        email: string;
-        phone: string | null;
-        companyName: string | null;
-        industry: string | null;
-    };
+    user: Partial<UserType> & { email: string };
 }
 
 export default function ProfileForm({ user }: ProfileFormProps) {

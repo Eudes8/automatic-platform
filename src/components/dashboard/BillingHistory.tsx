@@ -4,12 +4,14 @@ import { CreditCard, Download, FileText, CheckCircle2, Clock, AlertCircle } from
 import { toast } from "sonner";
 import { downloadBlob } from "@/lib/utils/pdf";
 
+import { Invoice } from "@prisma/client";
+
 interface BillingHistoryProps {
-    invoices: any[];
+    invoices: (Invoice & { project?: { title: string } | null })[];
 }
 
 export default function BillingHistory({ invoices }: BillingHistoryProps) {
-    const handleDownload = async (url: string, id: string) => {
+    const handleDownload = async (url: string | null, id: string) => {
         if (!url) {
             toast.error("Facture indisponible");
             return;

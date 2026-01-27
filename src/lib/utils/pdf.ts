@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 
 export async function generateProjectContract(
     projectName: string,
@@ -66,7 +66,8 @@ export async function generateProjectContract(
         return false;
     };
 
-    const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, size: number, font: any, color = rgb(0, 0, 0), align: 'left' | 'justify' = 'left') => {
+    const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, size: number, font: PDFFont, color = rgb(0, 0, 0),
+        align: 'left' | 'justify' = 'left') => {
         const paragraphs = text.split('\n');
         let localY = y;
 

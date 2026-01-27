@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import { ProjectStatus } from "@prisma/client";
 import { MoreHorizontal, Calendar, MessageSquare, Paperclip, Zap } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
+import Link from "next/link";
+import { ProjectWithClient } from "../Kanban";
 
 interface KanbanCardProps {
-    project: any;
+    project: ProjectWithClient;
     onDragStart: (e: React.DragEvent, projectId: string) => void;
 }
 
@@ -19,6 +21,7 @@ export function KanbanCard({ project, onDragStart }: KanbanCardProps) {
             className="group bg-white border border-border/50 hover:border-primary/50 rounded-[1.8rem] p-6 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-grab active:cursor-grabbing relative overflow-hidden"
             whileHover={{ y: -4, scale: 1.02 }}
         >
+            <Link href={`/admin/projects/${project.id}`} className="absolute inset-0 z-0" />
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/2 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none" />
 
             <div className="flex justify-between items-start mb-6 relative z-10">

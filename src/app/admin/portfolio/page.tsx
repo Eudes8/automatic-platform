@@ -2,6 +2,8 @@ import { getPortfolioItemsAdmin } from "@/lib/actions/adminPortfolio";
 import PortfolioCRUDModal from "@/components/admin/portfolio/PortfolioCRUDModal";
 import Image from "next/image";
 import { ExternalLink, Github, Terminal, Grid2X2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PortfolioProject } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +29,7 @@ export default async function AdminPortfolio() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {projects.map((project) => (
+                {projects.map((project: PortfolioProject) => (
                     <div key={project.id} className="group bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[3rem] p-10 flex flex-col sm:flex-row gap-10 items-start hover:border-primary/50 transition-all duration-700 shadow-xl hover:shadow-2xl relative overflow-hidden group/item">
                         {/* Background identifier */}
                         <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none uppercase font-black text-6xl italic group-hover/item:opacity-[0.05] transition-opacity duration-700">
@@ -116,8 +118,4 @@ export default async function AdminPortfolio() {
             </div>
         </div>
     );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }

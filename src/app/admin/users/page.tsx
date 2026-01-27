@@ -1,7 +1,12 @@
 import { getAllUsers } from "@/lib/actions/adminValues";
-import { User, Mail, Shield, Calendar, Search } from "lucide-react";
-
+import { User as UserIcon, Mail, Shield, Calendar, Search } from "lucide-react";
 import UserCRUDModal from "@/components/admin/users/UserCRUDModal";
+import Link from "next/link";
+import { User, Project } from "@prisma/client";
+
+type UserWithProjects = User & {
+    projects: Project[];
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -62,12 +67,12 @@ export default async function AdminUsersPage({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/20">
-                            {users.map((user: any) => (
+                            {users.map((user: UserWithProjects) => (
                                 <tr key={user.id} className="hover:bg-primary/[0.02] transition-all duration-500 group/row">
                                     <td className="p-10">
                                         <div className="flex items-center gap-6">
                                             <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary font-black uppercase italic text-xs shadow-inner group-hover/row:scale-110 transition-transform duration-500">
-                                                {user.name ? user.name[0].toUpperCase() : <User className="w-4 h-4" />}
+                                                {user.name ? user.name[0].toUpperCase() : <UserIcon className="w-4 h-4" />}
                                             </div>
                                             <div>
                                                 <p className="font-black text-primary text-sm uppercase italic tracking-tight">{user.name || "CLIENT NON IDENTIFIÉ"}</p>
@@ -94,7 +99,7 @@ export default async function AdminUsersPage({
                                             {user.projects && user.projects.length > 0 ? (
                                                 <>
                                                     <div className="flex -space-x-3">
-                                                        {user.projects.slice(0, 3).map((_: any, i: number) => (
+                                                        {user.projects.slice(0, 3).map((_: Project, i: number) => (
                                                             <div key={i} className="w-8 h-8 rounded-lg bg-primary border-2 border-white shadow-lg" />
                                                         ))}
                                                         {user.projects.length > 3 && (
@@ -133,18 +138,18 @@ export default async function AdminUsersPage({
                         </div>
                         <div className="flex gap-4">
                             {page > 1 && (
-                                <a
+                                <Link
                                     href={`/admin/users?page=${page - 1}`}
                                     className="px-6 py-3 bg-white border border-border/50 hover:border-primary/30 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all shadow-inner"
                                 >
                                     PRÉCÉDENT
-                                </a>
+                                </Link>
                             )}
                             <div className="flex gap-2">
                                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                     const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
                                     return (
-                                        <a
+                                        <Link
                                             key={pageNum}
                                             href={`/admin/users?page=${pageNum}`}
                                             className={`w-10 h-10 flex items-center justify-center rounded-xl text-[10px] font-black italic transition-all ${pageNum === page
@@ -153,17 +158,17 @@ export default async function AdminUsersPage({
                                                 }`}
                                         >
                                             {pageNum}
-                                        </a>
+                                        </Link>
                                     );
                                 })}
                             </div>
                             {page < totalPages && (
-                                <a
+                                <Link
                                     href={`/admin/users?page=${page + 1}`}
                                     className="px-6 py-3 bg-primary text-background rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all shadow-xl shadow-primary/20 hover:scale-[1.05]"
                                 >
                                     SUIVANT
-                                </a>
+                                </Link>
                             )}
                         </div>
                     </div>

@@ -7,14 +7,30 @@ import SmsSender from "@/components/admin/projects/SmsSender";
 import AdvancedUploader from "@/components/admin/projects/AdvancedUploader";
 import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
 
+import { Project, User as PrismaUser, Asset, Message, Contract, Requirement, RequirementComment } from "@prisma/client";
+
+type ProjectWithFullDetails = Project & {
+    client: PrismaUser | null;
+    assets: Asset[];
+    contracts: Contract[];
+    messages: Message[];
+    requirements: (Requirement & {
+        category: any;
+        comments: RequirementComment[];
+        statusHistory: any[];
+    })[];
+};
+
 export const dynamic = 'force-dynamic';
 
 export default async function AdminProjectDetails({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const adminUser = await getCurrentUser();
-    const project = await getProjectDetails(id);
+    const projectData = await getProjectDetails(id);
 
-    if (!project) return notFound();
+    if (!projectData || !adminUser) return notFound();
+
+    const project = projectData as unknown as ProjectWithFullDetails;
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -78,7 +94,7 @@ export default async function AdminProjectDetails({ params }: { params: Promise<
                         </h3>
                         <RequirementWorkspace
                             projectId={project.id}
-                            initialRequirements={(project as any).requirements || []}
+                            initialRequirements={project.requirements || []}
                             currentUser={adminUser}
                         />
                     </div>

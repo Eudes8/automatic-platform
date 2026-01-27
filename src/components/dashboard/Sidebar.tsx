@@ -41,8 +41,10 @@ const ADMIN_NAV_ITEMS = [
     { label: "MESSAGERIE INTERNE", icon: MessageSquare, href: "/admin/chat" },
 ];
 
+import { User } from "@prisma/client";
+
 interface SidebarProps {
-    user?: any;
+    user?: User | null;
 }
 
 export default function Sidebar({ user }: SidebarProps) {

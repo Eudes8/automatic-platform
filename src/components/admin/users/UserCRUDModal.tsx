@@ -4,15 +4,7 @@ import { useState } from "react";
 import { Plus, X, Loader2, Edit } from "lucide-react";
 import { createClientUser, updateUser } from "@/lib/actions/adminUserCRUD";
 
-interface User {
-    id: string;
-    name: string | null;
-    email: string;
-    role: string;
-    phone?: string | null;
-    companyName?: string | null;
-    industry?: string | null;
-}
+import { User } from "@prisma/client";
 
 interface UserCRUDModalProps {
     editingUser?: User;

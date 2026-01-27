@@ -9,15 +9,29 @@ import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
 import { Zap, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Requirement } from "@prisma/client";
+import { Requirement, Project, Asset, Contract, Invoice, User } from "@prisma/client";
+
+type ProjectWithDetails = Project & {
+    client: User | null;
+    assets: Asset[];
+    contracts: Contract[];
+    invoices: (Invoice & { project?: { title: string } | null })[];
+    requirements: (Requirement & {
+        comments: any[];
+        statusHistory: any[]
+    })[];
+};
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const user = await getCurrentUser();
+
+    if (!user) return notFound();
+
     const projects = await getClientProjects();
-    const project = projects.find(p => p.id.trim() === id.trim());
+    const project = (projects as ProjectWithDetails[]).find(p => p.id.trim() === id.trim());
 
     if (!project) {
         return notFound();
@@ -84,7 +98,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     <DeploymentTimeline progress={project.progress || 0} />
                     <RequirementWorkspace
                         projectId={project.id}
-                        initialRequirements={(project as any).requirements || []}
+                        initialRequirements={project.requirements || []}
                         currentUser={user}
                     />
                     <ChatSidebar projectId={project.id} />

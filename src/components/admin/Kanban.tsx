@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ProjectStatus } from "@prisma/client";
+import { Project, User, Asset, Message, ProjectStatus } from "@prisma/client";
 import { KanbanColumn } from "./kanban/KanbanColumn";
 import { updateProjectStatus } from "@/lib/actions/kanban";
 import { toast } from "sonner";
 import { LayoutGrid, ListFilter, Search, Zap, Plus, Filter } from "lucide-react";
+
+export type ProjectWithClient = Project & {
+    client: User | null;
+    assets: { id: string }[];
+    messages: { id: string }[];
+};
 
 /**
  * MODULE KANBAN INDUSTRIEL - COMMAND CENTER AUTOMATIC
@@ -21,7 +27,7 @@ const COLUMNS: { status: ProjectStatus; label: string }[] = [
     { status: "DONE", label: "Livré" },
 ];
 
-export default function Kanban({ initialProjects }: { initialProjects: any[] }) {
+export default function Kanban({ initialProjects }: { initialProjects: ProjectWithClient[] }) {
     const [projects, setProjects] = useState(initialProjects);
     const [searchTerm, setSearchTerm] = useState("");
 

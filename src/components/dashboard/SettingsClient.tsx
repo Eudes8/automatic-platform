@@ -8,9 +8,11 @@ import SecurityForm from "./SecurityForm";
 import NotificationPreferences from "./NotificationPreferences";
 import BillingHistory from "./BillingHistory";
 
+import { User as UserType, Invoice } from "@prisma/client";
+
 interface SettingsClientProps {
-    user: any;
-    invoices: any[];
+    user: UserType;
+    invoices: (Invoice & { project?: { title: string } | null })[];
 }
 
 export default function SettingsClient({ user, invoices }: SettingsClientProps) {

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, MessageSquare, User, Clock, Shield } from "lucide-react";
 import { Ticket, TicketStatus, TicketPriority } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 interface TicketListProps {
     tickets: (Ticket & {
@@ -227,8 +228,4 @@ export function TicketList({ tickets, currentPage, totalPages, total }: TicketLi
             )}
         </div>
     );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }

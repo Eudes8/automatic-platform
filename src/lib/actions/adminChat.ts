@@ -3,12 +3,14 @@
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/utils/adminAuth";
 
+import { Message, User } from "@prisma/client";
+
 export type ChatChannel = {
     id: string;
     type: 'PROJECT' | 'SUPPORT';
     title: string;
-    client: any;
-    messages: any[];
+    client: User | null;
+    messages: (Message & { sender?: User })[];
     updatedAt: string;
     status: string;
     originalId: string;
@@ -43,7 +45,7 @@ export async function getAllChatChannels(): Promise<ChatChannel[]> {
 
     // Map projects to channels
     const projectChannels: ChatChannel[] = projects
-        .map((p: any) => ({
+        .map((p) => ({
             id: p.id,
             type: 'PROJECT' as const,
             title: p.title,
@@ -55,8 +57,8 @@ export async function getAllChatChannels(): Promise<ChatChannel[]> {
         }));
 
     // Map conversations to channels
-    const conversationChannels: ChatChannel[] = conversations.map((c: any) => {
-        const client = c.users.find((u: any) => u.role === 'CLIENT') || c.users[0];
+    const conversationChannels: ChatChannel[] = conversations.map((c) => {
+        const client = c.users.find((u) => u.role === 'CLIENT') || c.users[0] || null;
         return {
             id: c.id,
             type: 'SUPPORT' as const,
@@ -69,7 +71,7 @@ export async function getAllChatChannels(): Promise<ChatChannel[]> {
         };
     });
 
-    const all: ChatChannel[] = [...projectChannels, ...conversationChannels].sort((a: any, b: any) =>
+    const all: ChatChannel[] = [...projectChannels, ...conversationChannels].sort((a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
 

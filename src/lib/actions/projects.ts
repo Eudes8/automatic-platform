@@ -40,6 +40,9 @@ export async function getClientProjects() {
                     include: {
                         comments: {
                             orderBy: { createdAt: 'asc' }
+                        },
+                        statusHistory: {
+                            orderBy: { createdAt: 'desc' }
                         }
                     },
                     orderBy: { createdAt: 'desc' }

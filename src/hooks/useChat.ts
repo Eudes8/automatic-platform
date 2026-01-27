@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getOrCreateConversation, sendMessage as sendMessageAction } from '@/lib/actions/chat';
 
-interface Message {
+export interface Message {
     id: string;
     text: string;
     senderId: string;

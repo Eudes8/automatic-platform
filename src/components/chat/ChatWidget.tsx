@@ -1,6 +1,6 @@
 "use client";
 
-import { useChat } from "@/hooks/useChat";
+import { useChat, Message } from "@/hooks/useChat";
 import { useState, useEffect, useRef } from "react";
 import { MessageSquare, X, Send, Paperclip, RefreshCw, Check, CheckCheck, AlertCircle, Wifi, WifiOff, Search, File } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
 
+import { User } from "@prisma/client";
+
 interface ChatWidgetProps {
-    currentUser: { id: string; name?: string | null };
+    currentUser: User;
 }
 
 export default function ChatWidget({ currentUser }: ChatWidgetProps) {
@@ -64,7 +66,7 @@ export default function ChatWidget({ currentUser }: ChatWidgetProps) {
     };
 
     // Get read receipt icon
-    const getReadReceipt = (msg: any) => {
+    const getReadReceipt = (msg: Message) => {
         if (msg.status === 'sending') return null;
         if (msg.status === 'read') return <CheckCheck size={14} className="text-blue-400" />;
         if (msg.status === 'delivered') return <CheckCheck size={14} className="text-slate-400" />;

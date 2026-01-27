@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, CheckCircle2, Circle, Clock, Rocket, ShieldCheck, Code2, Database } from "lucide-react";
+import { LucideIcon, Zap, CheckCircle2, Circle, Clock, Rocket, ShieldCheck, Code2, Database } from "lucide-react";
 
 interface Step {
     id: string;
     label: string;
     description: string;
-    icon: any;
+    icon: LucideIcon;
     status: 'completed' | 'current' | 'upcoming';
 }
 
@@ -74,10 +74,10 @@ export default function DeploymentTimeline({ progress }: { progress: number }) {
                     >
                         {/* Dot */}
                         <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-500 ${step.status === 'completed'
-                                ? "bg-primary border-primary text-background shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                                : step.status === 'current'
-                                    ? "bg-primary/10 border-primary text-primary animate-pulse"
-                                    : "bg-card border-border text-secondary/40"
+                            ? "bg-primary border-primary text-background shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                            : step.status === 'current'
+                                ? "bg-primary/10 border-primary text-primary animate-pulse"
+                                : "bg-card border-border text-secondary/40"
                             }`}>
                             {step.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
 

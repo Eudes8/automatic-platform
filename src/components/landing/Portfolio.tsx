@@ -4,19 +4,20 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Github } from "lucide-react";
 import Image from "next/image";
+import { PortfolioProject } from "@prisma/client";
 import { getPortfolioProjects } from "@/lib/actions/portfolio";
 
 export default function Portfolio() {
-    const [projects, setProjects] = useState<any[]>([]);
+    const [projects, setProjects] = useState<PortfolioProject[]>([]);
     useEffect(() => {
         const load = async () => {
             const data = await getPortfolioProjects();
-            setProjects(data);
+            setProjects(data as PortfolioProject[]);
         };
         load();
     }, []);
 
-    const displayProjects = projects.length > 0 ? projects : [
+    const displayProjects = (projects.length > 0 ? projects : [
         {
             title: "EcoSphere Core",
             category: "SaaS Platform",
@@ -38,7 +39,7 @@ export default function Portfolio() {
             description: "Dashboard analytique haute performance capable de traiter des millions de data points.",
             tech: ["Vite", "D3.js", "Serverless"],
         },
-    ];
+    ] as any[]);
 
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 

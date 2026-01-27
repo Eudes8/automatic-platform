@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 import { Requirement } from "@prisma/client";
 
 export async function generateApprovedRequirementsPDF(
@@ -24,7 +24,7 @@ export async function generateApprovedRequirementsPDF(
     let currentY = height - margin;
 
     // Helper for wrapping text
-    const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, size: number, font: any, color = rgb(0, 0, 0)) => {
+    const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, size: number, font: PDFFont, color = rgb(0, 0, 0)) => {
         const paragraphs = text.split('\n');
         let localY = y;
 

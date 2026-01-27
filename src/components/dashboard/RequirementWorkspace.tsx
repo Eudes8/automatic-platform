@@ -28,8 +28,6 @@ import {
 import { cn } from "@/lib/utils";
 
 // Define local types to avoid importing from @prisma/client in client component
-type RequirementStatus = 'SUGGESTED' | 'APPROVED' | 'REJECTED' | 'IN_PROGRESS' | 'DONE';
-type RequirementCategory = 'FUNCTIONAL' | 'TECHNICAL' | 'DESIGN' | 'MARKETING' | 'SECURITY' | 'OTHER';
 import { toast } from "sonner";
 import { estimateBudget } from "@/lib/utils/budgetEstimator";
 import { generateApprovedRequirementsPDF } from "@/lib/utils/pdf-requirements";
@@ -37,11 +35,36 @@ import { downloadBlob } from "@/lib/utils/pdf";
 import { REQUIREMENT_TEMPLATES } from "@/lib/requirementTemplates";
 import { RequirementAttachmentUploader } from "./RequirementAttachmentUploader";
 import { useRequirementsRealtime } from "@/hooks/useRequirementsRealtime";
+import { Requirement, RequirementComment, User as UserType } from "@prisma/client";
+type RequirementStatus = 'SUGGESTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+type RequirementCategory = 'FUNCTIONAL' | 'TECHNICAL' | 'DESIGN' | 'SECURITY' | 'PERFORMANCE' | 'OTHER';
+
+interface RequirementStatusHistoryLocal {
+    id: string;
+    requirementId: string;
+    from: RequirementStatus | null;
+    to: RequirementStatus;
+    changedBy: string;
+    createdAt: Date | string;
+}
+
+interface RequirementWithDetails extends Omit<Requirement, 'status' | 'category'> {
+    status: RequirementStatus;
+    category: RequirementCategory;
+    comments: RequirementComment[];
+    statusHistory: RequirementStatusHistoryLocal[];
+}
+
+interface RequirementTemplate {
+    title: string;
+    description: string;
+    category: RequirementCategory;
+}
 
 interface RequirementWorkspaceProps {
     projectId: string;
-    initialRequirements: any[];
-    currentUser: any;
+    initialRequirements: RequirementWithDetails[];
+    currentUser: UserType;
 }
 
 export default function RequirementWorkspace({
@@ -96,7 +119,7 @@ export default function RequirementWorkspace({
         if (!newTitle || !newDesc) return;
         setIsPending(true);
         try {
-            await createRequirement(projectId, newTitle, newDesc, newCategory);
+            await createRequirement(projectId, newTitle, newDesc, newCategory as any);
             // On attend que le hook realtime fasse le refresh ou on le fait manuellement
             await refreshRequirements();
             setIsAdding(false);
@@ -111,7 +134,7 @@ export default function RequirementWorkspace({
         }
     };
 
-    const applyTemplate = (tpl: any) => {
+    const applyTemplate = (tpl: RequirementTemplate) => {
         setNewTitle(tpl.title);
         setNewDesc(tpl.description);
         setNewCategory(tpl.category);
@@ -152,7 +175,7 @@ export default function RequirementWorkspace({
 
     const handleStatusUpdate = async (reqId: string, status: RequirementStatus) => {
         try {
-            await updateRequirementStatus(reqId, status);
+            await updateRequirementStatus(reqId, status as any);
             await refreshRequirements();
             toast.success(`Statut mis à jour : ${status}`);
         } catch (error) {
@@ -233,7 +256,7 @@ export default function RequirementWorkspace({
                         className="h-10 px-4 bg-white border border-border/50 rounded-xl text-[10px] uppercase font-bold text-secondary/70 focus:outline-none focus:border-primary/30"
                     >
                         <option value="ALL">Toutes Catégories</option>
-                        {Object.keys(RequirementCategory).map(c => <option key={c} value={c}>{c}</option>)}
+                        {['FUNCTIONAL', 'TECHNICAL', 'DESIGN', 'SECURITY', 'PERFORMANCE', 'OTHER'].map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <select
                         value={statusFilter}
@@ -241,7 +264,7 @@ export default function RequirementWorkspace({
                         className="h-10 px-4 bg-white border border-border/50 rounded-xl text-[10px] uppercase font-bold text-secondary/70 focus:outline-none focus:border-primary/30"
                     >
                         <option value="ALL">Tous Statuts</option>
-                        {Object.keys(RequirementStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                        {['SUGGESTED', 'IN_REVIEW', 'APPROVED', 'REJECTED'].map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
                 <div className="relative w-full md:w-64">
@@ -287,7 +310,7 @@ export default function RequirementWorkspace({
                                     onChange={(e) => setNewCategory(e.target.value as RequirementCategory)}
                                     className="w-full h-16 bg-background border border-border/50 rounded-2xl px-6 text-xs font-bold focus:border-primary/50 outline-none transition-all text-secondary/70 appearance-none uppercase"
                                 >
-                                    {Object.keys(RequirementCategory).map(c => (
+                                    {['FUNCTIONAL', 'TECHNICAL', 'DESIGN', 'SECURITY', 'PERFORMANCE', 'OTHER'].map(c => (
                                         <option key={c} value={c}>{c}</option>
                                     ))}
                                 </select>
@@ -395,7 +418,7 @@ export default function RequirementWorkspace({
                                         <div className="space-y-6">
                                             <p className="text-[9px] font-black text-secondary/20 uppercase tracking-[0.4em] italic mb-6">// HISTORIQUE_STATUTS</p>
                                             <div className="space-y-4 pl-4 border-l-2 border-dashed border-border/30">
-                                                {req.statusHistory?.map((h: any) => (
+                                                {req.statusHistory?.map((h: RequirementStatusHistoryLocal) => (
                                                     <div key={h.id} className="relative">
                                                         <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-white border-2 border-secondary/20" />
                                                         <p className="text-[9px] font-bold text-secondary/60">

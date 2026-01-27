@@ -3,13 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Send, X, AlertOctagon, Terminal } from "lucide-react";
-import { Project } from "@prisma/client";
+import { Project, Ticket } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
 interface CreateTicketFormProps {
     projects: Project[];
-    onCreateTicket: (formData: FormData) => Promise<{ success: boolean; ticket?: any }>;
+    onCreateTicket: (formData: FormData) => Promise<{ success: boolean; ticket?: Ticket }>;
 }
 
 export function CreateTicketForm({ projects, onCreateTicket }: CreateTicketFormProps) {

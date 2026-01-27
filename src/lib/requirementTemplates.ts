@@ -1,4 +1,6 @@
-export const REQUIREMENT_TEMPLATES = [
+import { RequirementCategory } from "@prisma/client";
+
+export const REQUIREMENT_TEMPLATES: { title: string; description: string; category: RequirementCategory }[] = [
     {
         title: "Système de Paiement Mobile",
         description: "Intégration d'une passerelle de paiement mobile (Orange Money, MTN, Moov) avec gestion des callbacks, historique des transactions et notifications par SMS/Email à la réussite.",

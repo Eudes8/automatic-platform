@@ -9,35 +9,27 @@ import { supabase } from "@/lib/supabase";
 import { getAllChatChannels } from "@/lib/actions/adminChat";
 import { cn } from "@/lib/utils";
 
-interface Message {
-    id: string;
-    text: string;
-    createdAt: string;
-    senderId: string;
-    attachment?: string;
+import { ChatChannel } from "@/lib/actions/adminChat";
+import { Message as PrismaMessage } from "@prisma/client";
+
+interface Message extends Omit<PrismaMessage, 'createdAt'> {
+    createdAt: string | Date;
     sender?: {
         role: string;
-        name: string;
+        name: string | null;
     };
 }
 
-interface ChatChannel {
-    id: string;
-    type: 'PROJECT' | 'SUPPORT';
-    title: string;
-    client: any;
+interface LocalChatChannel extends Omit<ChatChannel, 'messages'> {
     messages: Message[];
-    updatedAt: string;
-    status: string;
-    originalId?: string;
 }
 
 interface ChatInterfaceProps {
-    projects: ChatChannel[];
+    projects: LocalChatChannel[];
 }
 
 export default function AdminChatInterface({ projects: initialChannels }: ChatInterfaceProps) {
-    const [channels, setChannels] = useState<ChatChannel[]>(initialChannels);
+    const [channels, setChannels] = useState<LocalChatChannel[]>(initialChannels);
     const [selectedChannelId, setSelectedChannelId] = useState<string | null>(initialChannels[0]?.id || null);
     const [message, setMessage] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -53,7 +45,7 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
         setIsRefreshing(true);
         try {
             const updated = await getAllChatChannels();
-            setChannels(updated as any);
+            setChannels(updated as unknown as LocalChatChannel[]);
         } catch (error) {
             console.error("AdminChat: Failed to refresh channels:", error);
         } finally {
@@ -92,7 +84,7 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                 if (ch.id === payload.new.projectId || ch.id === payload.new.conversationId) {
                                     return {
                                         ...ch,
-                                        messages: [...ch.messages, payload.new as any]
+                                        messages: [...ch.messages, payload.new as Message]
                                     };
                                 }
                                 return ch;
@@ -116,7 +108,7 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                     return {
                                         ...ch,
                                         messages: [...ch.messages, formattedMessage],
-                                        updatedAt: formattedMessage.createdAt
+                                        updatedAt: new Date(formattedMessage.createdAt).toISOString()
                                     };
                                 }
                                 return ch;
@@ -165,8 +157,11 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
             text: currentFile ? (currentMsg || `📎 ${currentFile.name}`) : currentMsg,
             createdAt: new Date().toISOString(),
             senderId: 'admin', // Placeholder
-            attachment: currentFile ? URL.createObjectURL(currentFile) : undefined,
-            sender: { role: 'ADMIN', name: 'Admin' }
+            attachment: currentFile ? URL.createObjectURL(currentFile) : null,
+            sender: { role: 'ADMIN', name: 'Admin' },
+            conversationId: selectedChannel.type === 'SUPPORT' ? selectedChannel.id : null,
+            projectId: selectedChannel.type === 'PROJECT' ? selectedChannel.id : null,
+            read: true
         };
 
         setChannels(prev => prev.map(ch => {
@@ -442,7 +437,7 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
-                                            handleSend(e as any);
+                                            handleSend(e as unknown as React.FormEvent);
                                         }
                                     }}
                                 />

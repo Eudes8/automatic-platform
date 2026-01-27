@@ -115,8 +115,10 @@ export async function createAdminNotification(title: string, message: string, li
         for (const admin of admins) {
             await createNotification(admin.id, title, message, link);
         }
+        return { success: true };
     } catch (error) {
         console.error("Failed to create admin notifications:", error);
+        return { success: false };
     }
 }
 

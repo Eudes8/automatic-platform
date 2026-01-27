@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Clock, Rocket, ShieldCheck, Zap } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
+import { Project } from "@prisma/client";
 
 const PHASES = [
     { id: "ONBOARDING", label: "CADRAGE" },
@@ -14,7 +15,7 @@ const PHASES = [
     { id: "DONE", label: "TERMINÉ" },
 ];
 
-export default function ProjectStats({ project }: { project: any }) {
+export default function ProjectStats({ project }: { project: Project }) {
     const progress = project.progress || 0;
     const currentStatus = project.status || "ONBOARDING";
 

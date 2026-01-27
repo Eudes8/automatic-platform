@@ -28,9 +28,10 @@ export default function SecurityForm({ email }: { email: string }) {
                 description: "Vérifiez votre boîte de réception pour changer votre mot de passe.",
                 className: "glass-premium rounded-2xl border-premium p-4 font-bold text-xs uppercase tracking-widest",
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Une erreur est survenue.";
             toast.error("Erreur", {
-                description: error.message || "Une erreur est survenue.",
+                description: message,
             });
         } finally {
             setIsPending(false);

@@ -1,6 +1,11 @@
 import { getClientInvoices } from "@/lib/actions/invoices";
 import { Receipt, FileText, Download, Calendar, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { Invoice, Project } from "@prisma/client";
+
+type InvoiceWithProject = Invoice & {
+    project: Project | null;
+};
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +35,13 @@ export default async function ClientInvoicesPage() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {invoices.map((invoice) => (
+                {invoices.map((invoice: InvoiceWithProject) => (
                     <div key={invoice.id} className="group bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[3rem] p-10 hover:border-primary/50 transition-all duration-700 shadow-xl hover:shadow-2xl relative overflow-hidden flex flex-col h-full">
                         {/* Status Badge */}
                         <div className="absolute top-8 right-8">
                             <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border italic shadow-sm ${invoice.status === "PAID" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                    invoice.status === "OVERDUE" ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse" :
-                                        "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                                invoice.status === "OVERDUE" ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse" :
+                                    "bg-slate-500/10 text-slate-500 border-slate-500/20"
                                 }`}>
                                 {invoice.status === "PAID" ? "SYNC_ACCOMPLIE" :
                                     invoice.status === "OVERDUE" ? "RETARD_DÉTECTÉ" : "TRAITEMENT_EN_COURS"}

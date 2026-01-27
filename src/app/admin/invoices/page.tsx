@@ -1,8 +1,14 @@
 import { getAllInvoices } from "@/lib/actions/invoices";
-import { FileText, Download, Eye, DollarSign, Calendar, User, ChevronRight } from "lucide-react";
+import { FileText, Download, Eye, DollarSign, Calendar, User as UserIcon, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import InvoiceCRUDModal from "@/components/admin/invoices/InvoiceCRUDModal";
 import { cn } from "@/lib/utils";
+import { Invoice, User, Project } from "@prisma/client";
+
+type InvoiceWithDetails = Invoice & {
+    client: User;
+    project: Project | null;
+};
 export const dynamic = 'force-dynamic';
 export default async function AdminInvoicesPage() {
     const invoices = await getAllInvoices();
@@ -65,7 +71,7 @@ export default async function AdminInvoicesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                            {invoices.map((invoice: any) => (
+                            {invoices.map((invoice: InvoiceWithDetails) => (
                                 <tr key={invoice.id} className="hover:bg-primary/[0.02] transition-colors group/row">
                                     <td className="p-8">
                                         <div className="flex items-center gap-6">
@@ -81,7 +87,7 @@ export default async function AdminInvoicesPage() {
                                     <td className="p-8">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-xl bg-orange-500/5 text-orange-500 border border-orange-500/10 flex items-center justify-center font-black text-[10px] italic shadow-inner">
-                                                {invoice.client?.name?.[0]?.toUpperCase() || <User size={14} />}
+                                                {invoice.client?.name?.[0]?.toUpperCase() || <UserIcon size={14} />}
                                             </div>
                                             <div>
                                                 <p className="text-primary font-black text-xs uppercase italic tracking-widest">{invoice.client?.name || "CLI_ANONYME"}</p>

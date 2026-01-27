@@ -15,27 +15,28 @@ import Link from "next/link";
 import { getAllChatChannels } from "@/lib/actions/adminChat";
 import { getUserNotifications } from "@/lib/actions/notifications";
 import { Bell, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
 type RecentMessage = {
     id: string;
     text: string;
-    createdAt: string;
-    sender?: { role: string };
+    createdAt: string | Date;
+    sender?: { role: string | null };
     project?: { title: string };
 };
 
 export default async function AdminDashboard() {
     const stats = await getAdminStats();
     const activeProjects = await getAllChatChannels(); // Get recent activity
-    const recentMessages = activeProjects.flatMap((p: any) =>
-        p.messages.map((m: any) => ({
+    const recentMessages = activeProjects.flatMap((p) =>
+        p.messages.map((m) => ({
             ...m,
-            createdAt: m.createdAt.toISOString(),
+            createdAt: m.createdAt.toISOString ? m.createdAt.toISOString() : m.createdAt,
             project: { title: p.title }
         }))
-    ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+    ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
     const notifications = await getUserNotifications();
 
@@ -245,6 +246,3 @@ export default async function AdminDashboard() {
     );
 }
 
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
-}

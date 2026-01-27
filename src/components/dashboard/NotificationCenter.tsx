@@ -6,14 +6,7 @@ import { getUserNotifications, markAsRead, markAllAsRead, deleteNotification, ge
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface Notification {
-    id: string;
-    title: string;
-    message: string;
-    link?: string | null;
-    read: boolean;
-    createdAt: Date;
-}
+import { Notification } from "@prisma/client";
 
 export default function NotificationCenter() {
     const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +33,7 @@ export default function NotificationCenter() {
     const loadNotifications = async () => {
         setLoading(true);
         const data = await getUserNotifications();
-        setNotifications(data as any);
+        setNotifications(data);
         setLoading(false);
     };
 

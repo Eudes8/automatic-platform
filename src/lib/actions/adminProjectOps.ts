@@ -80,6 +80,9 @@ export async function getProjectDetails(projectId: string) {
                 include: {
                     comments: {
                         orderBy: { createdAt: 'asc' }
+                    },
+                    statusHistory: {
+                        orderBy: { createdAt: 'desc' }
                     }
                 },
                 orderBy: { createdAt: 'desc' }

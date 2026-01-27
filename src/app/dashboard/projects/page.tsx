@@ -5,14 +5,15 @@ import Link from "next/link";
 import { Lock, FileSignature, ChevronRight, Terminal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Project } from "@prisma/client";
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = useState<any[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getClientProjects().then(data => {
-            setProjects(data);
+            setProjects(data as Project[]);
             setLoading(false);
         });
     }, []);

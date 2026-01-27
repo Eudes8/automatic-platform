@@ -5,8 +5,10 @@ import { Plus, X, Loader2, Image as ImageIcon, Link as LinkIcon, Github, Star, T
 import { createPortfolioProject, updatePortfolioProject, deletePortfolioProject } from "@/lib/actions/portfolio";
 import { toast } from "sonner";
 
+import { PortfolioProject } from "@prisma/client";
+
 interface PortfolioCRUDModalProps {
-    project?: any;
+    project?: PortfolioProject;
     mode: "CREATE" | "EDIT";
 }
 
@@ -22,7 +24,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
         try {
             const res = mode === "CREATE"
                 ? await createPortfolioProject(formData)
-                : await updatePortfolioProject(project.id, formData);
+                : project?.id ? await updatePortfolioProject(project.id, formData) : { success: false, error: "Missing project ID" };
 
             if (res.success) {
                 toast.success(mode === "CREATE" ? "PROJET_ARCHIVÉ: Succès" : "PROJET_MIS_À_JOUR: Succès");
@@ -39,6 +41,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
 
     const handleDelete = async () => {
         if (!confirm("CONFIRMER_SUPPRESSION: Êtes-vous sûr de vouloir purger ce projet des archives ?")) return;
+        if (!project?.id) return;
         setLoading(true);
         try {
             const res = await deletePortfolioProject(project.id);
@@ -131,7 +134,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                                     <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Live_Link</label>
                                     <div className="relative">
                                         <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20" />
-                                        <input name="url" defaultValue={project?.url} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="https://app.client.com" />
+                                        <input name="url" defaultValue={project?.url || ""} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="https://app.client.com" />
                                     </div>
                                 </div>
 
@@ -139,7 +142,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                                     <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Code_Repository</label>
                                     <div className="relative">
                                         <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20" />
-                                        <input name="github" defaultValue={project?.github} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="github.com/automatic/..." />
+                                        <input name="github" defaultValue={project?.github || ""} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="github.com/automatic/..." />
                                     </div>
                                 </div>
                             </div>

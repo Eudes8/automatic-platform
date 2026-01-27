@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import { ProjectStatus } from "@prisma/client";
 import { KanbanCard } from "./KanbanCard";
 import { Circle, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ProjectWithClient } from "../Kanban";
 
 interface KanbanColumnProps {
     status: ProjectStatus;
     label: string;
-    projects: any[];
+    projects: ProjectWithClient[];
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent, status: ProjectStatus) => void;
     onDragStart: (e: React.DragEvent, projectId: string) => void;
@@ -50,8 +52,4 @@ export function KanbanColumn({ status, label, projects, onDragOver, onDrop, onDr
             </div>
         </div>
     );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }
