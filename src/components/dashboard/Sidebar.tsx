@@ -19,25 +19,26 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Logo } from "../shared/Logo";
+import NotificationCenter from "./NotificationCenter";
 
 const CLIENT_NAV_ITEMS = [
-    { label: "VUE_D'ENSEMBLE", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "MAINFRAME_PROJET", icon: FolderLock, href: "/dashboard/projects" },
-    { label: "CANAL_COMMUNICATION", icon: MessageSquare, href: "/dashboard/chat" },
-    { label: "PROTOCOLES_LÉGAUX", icon: FileText, href: "/dashboard/contracts" },
-    { label: "FACTURATION_SYSTEM", icon: Receipt, href: "/dashboard/invoices" },
-    { label: "UNITÉ_SUPPORT", icon: HelpCircle, href: "/dashboard/tickets" },
-    { label: "PARAMÈTRES_SYSTÈME", icon: Settings, href: "/dashboard/settings" },
+    { label: "TABLEAU DE BORD", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "MES PROJETS", icon: FolderLock, href: "/dashboard/projects" },
+    { label: "MESSAGERIE", icon: MessageSquare, href: "/dashboard/chat" },
+    { label: "DOCUMENTS PROJETS", icon: FileText, href: "/dashboard/contracts" },
+    { label: "FACTURES & PAIEMENTS", icon: Receipt, href: "/dashboard/invoices" },
+    { label: "SUPPORT TECHNIQUE", icon: HelpCircle, href: "/dashboard/tickets" },
+    { label: "PARAMÈTRES PROFIL", icon: Settings, href: "/dashboard/settings" },
 ];
 
 const ADMIN_NAV_ITEMS = [
-    { label: "COMMAND_CENTER", icon: LayoutDashboard, href: "/admin" },
-    { label: "CRM_MAINFRAME", icon: Users, href: "/admin/users" },
-    { label: "OPS_ENGINE", icon: FolderLock, href: "/admin/projects" },
-    { label: "TICKET_STATION", icon: HelpCircle, href: "/admin/tickets" },
-    { label: "FINANCIAL_SYSTEM", icon: Receipt, href: "/admin/invoices" },
-    { label: "ARCHIVES_NEXUS", icon: Briefcase, href: "/admin/portfolio" },
-    { label: "CENTRAL_COMMS", icon: MessageSquare, href: "/admin/chat" },
+    { label: "SYSTÈME CENTRAL", icon: LayoutDashboard, href: "/admin" },
+    { label: "BASE CLIENTS", icon: Users, href: "/admin/users" },
+    { label: "PROJETS ACTIFS", icon: FolderLock, href: "/admin/projects" },
+    { label: "ASSISTANCE TICKETS", icon: HelpCircle, href: "/admin/tickets" },
+    { label: "FACTURES & REVENUS", icon: Receipt, href: "/admin/invoices" },
+    { label: "VITRINE PROJETS", icon: Briefcase, href: "/admin/portfolio" },
+    { label: "MESSAGERIE INTERNE", icon: MessageSquare, href: "/admin/chat" },
 ];
 
 interface SidebarProps {
@@ -69,11 +70,12 @@ export default function Sidebar({ user }: SidebarProps) {
                 <Link href="/" className="flex items-center gap-4 group">
                     <Logo />
                 </Link>
+                <NotificationCenter />
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar relative z-10">
-                <p className="px-4 text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] mb-6 mt-2 italic">// Core_Navigation</p>
+                <p className="px-4 text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] mb-6 mt-2 italic">// MENU PRINCIPAL</p>
                 {navItems.map((item) => {
                     const projectMatch = pathname.match(/\/dashboard\/projects\/([^\/]+)/);
                     const projectId = projectMatch ? projectMatch[1] : null;
@@ -134,8 +136,8 @@ export default function Sidebar({ user }: SidebarProps) {
                             <Zap className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[10px] font-black uppercase tracking-widest italic">Signal_Urgence</p>
-                            <p className="text-[8px] font-black opacity-60 uppercase tracking-widest leading-none mt-0.5">Priorité_Alpha : On</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest italic">URGENCE SUPPORT</p>
+                            <p className="text-[8px] font-black opacity-60 uppercase tracking-widest leading-none mt-0.5">RÉTROACTION IMMÉDIATE</p>
                         </div>
                         <ChevronRight className="w-4 h-4 opacity-40 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -152,7 +154,7 @@ export default function Sidebar({ user }: SidebarProps) {
                     <button
                         onClick={handleLogout}
                         className="p-3 hover:bg-red-500/10 rounded-xl text-secondary/20 hover:text-red-500 transition-all border border-transparent hover:border-red-500/20"
-                        title="Purger la session"
+                        title="Déconnexion"
                     >
                         <LogOut className="w-4 h-4" />
                     </button>

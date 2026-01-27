@@ -2,7 +2,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let response = NextResponse.next({
         request: {
             headers: request.headers,
@@ -69,14 +69,14 @@ export async function middleware(request: NextRequest) {
         });
     }
 
-    console.log(`[Middleware] Request to ${path}`);
+    console.log(`[Proxy] Request to ${path}`);
 
     // 2. Check Auth Session
     const { data: { user } } = await supabase.auth.getUser()
     const role = user?.app_metadata?.role;
     const userEmail = user?.email;
 
-    console.log(`[Middleware] Auth User: ${userEmail || 'NONE'} | Role: ${role || 'NONE'}`);
+    console.log(`[Proxy] Auth User: ${userEmail || 'NONE'} | Role: ${role || 'NONE'}`);
 
     // 3. Define Access Control Rules
     const isProtectedPath = path.startsWith('/dashboard') || path.startsWith('/admin');
@@ -85,14 +85,14 @@ export async function middleware(request: NextRequest) {
 
     // 4. Handle Unauthenticated Access
     if (isProtectedPath && !user) {
-        console.log(`[Middleware] Access Denied: Redirecting to login`);
+        console.log(`[Proxy] Access Denied: Redirecting to login`);
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // 5. Handle Admin Access Control (RBAC)
     if (isAdminPath) {
         if (role !== 'ADMIN') {
-            console.log(`[Middleware] Admin Access Denied for ${userEmail} (Role: ${role})`);
+            console.log(`[Proxy] Admin Access Denied for ${userEmail} (Role: ${role})`);
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     }

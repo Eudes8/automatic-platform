@@ -6,7 +6,8 @@ export async function generateProjectContract(
     budget: string,
     signatureDataUrl: string,
     projectId: string = "UNKNOWN",
-    description?: string
+    description?: string,
+    currency: string = "XOF"
 ) {
     const pdfDoc = await PDFDocument.create();
 
@@ -211,7 +212,7 @@ export async function generateProjectContract(
         },
         {
             title: "ARTICLE 4 : RÉMUNÉRATION",
-            content: `a) Imputation budgétaire\nLa rémunération des prestations est imputée au budget du Client pour l'année en cours.\n\nb) Conditions de paiement\nÀ titre de rémunération des services réalisés dans le cadre de la présente convention, l'Autorité contractante s'engage à payer au Prestataire la somme globale de ${budget} (TTC).\nLe paiement sera effectué selon l'échéancier suivant : 40% à la commande, 40% à la recette provisoire, et 20% à la livraison finale.\nLe coût global de la présente convention est ferme et non révisable pendant toute sa durée.`
+            content: `a) Imputation budgétaire\nLa rémunération des prestations est imputée au budget du Client pour l'année en cours.\n\nb) Conditions de paiement\nÀ titre de rémunération des services réalisés dans le cadre de la présente convention, l'Autorité contractante s'engage à payer au Prestataire la somme globale de ${budget} ${currency}.\n\nMENTION IMPORTANTE : Le montant indiqué ci-dessus est une estimation basée sur les besoins initiaux. Ce montant est susceptible d'être réajusté (à la hausse comme à la baisse) d'un commun accord entre les parties, suite aux négociations détaillées et aux échanges approfondis sur le Cahier des Charges technique définitif.\n\nLe paiement sera effectué selon l'échéancier suivant : 40% à la commande (après validation finale du Cahier des Charges), 40% à la recette provisoire, et 20% à la livraison finale.`
         },
         {
             title: "ARTICLE 5 : DROITS DIVERS",
@@ -276,7 +277,13 @@ export async function generateProjectContract(
         try {
             // Extract base64 from data URL
             const base64Data = signatureDataUrl.replace(/^data:image\/\w+;base64,/, "");
-            const imageBytes = Buffer.from(base64Data, 'base64');
+            const binaryString = window.atob(base64Data);
+            const len = binaryString.length;
+            const imageBytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                imageBytes[i] = binaryString.charCodeAt(i);
+            }
+
             const signatureImage = await pdfDoc.embedPng(imageBytes);
             const sigDims = signatureImage.scale(0.3);
             page.drawImage(signatureImage, {
@@ -382,3 +389,95 @@ async function getLogoPngBytes(): Promise<Uint8Array | null> {
     });
 }
 
+
+export async function generateProjectBrief(
+    projectName: string,
+    clientName: string,
+    techStack: string[],
+    timeline: string,
+    description: string,
+    projectId: string
+) {
+    const pdfDoc = await PDFDocument.create();
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+
+    const primaryColor = rgb(0.05, 0.05, 0.15);
+    const accentColor = rgb(0.2, 0.4, 0.9);
+
+    let page = pdfDoc.addPage([595.28, 841.89]);
+    const { width, height } = page.getSize();
+    const margin = 50;
+    let currentY = height - margin;
+
+    // Header
+    page.drawRectangle({
+        x: 0,
+        y: height - 120,
+        width: width,
+        height: 120,
+        color: primaryColor,
+    });
+
+    page.drawText("CAHIER DES CHARGES TECHNIQUES", {
+        x: margin,
+        y: height - 70,
+        size: 20,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+    });
+
+    page.drawText(`PROJET: ${projectName.toUpperCase()}`, {
+        x: margin,
+        y: height - 95,
+        size: 10,
+        font: fontRegular,
+        color: accentColor,
+    });
+
+    currentY = height - 160;
+
+    // Sections
+    const sections = [
+        { title: "1. PRÉSENTATION DU PROJET", content: description || "Aucune description fournie." },
+        { title: "2. SPÉCIFICATIONS TECHNIQUES (TECH STACK)", content: techStack.length > 0 ? techStack.join(", ") : "Standard Web Stack (Next.js, React, Tailwind)" },
+        { title: "3. DÉLAIS ET LIVRAISON", content: `Régime d'exécution : ${timeline || "Standard"}\nLivraison estimée selon jalons définis.` },
+        { title: "4. ARCHITECTURE ET SÉCURITÉ", content: "Architecture Serverless haute performance. Sécurité des données via cryptage SSL 256 bits et protocoles de protection Supabase." },
+    ];
+
+    for (const section of sections) {
+        page.drawText(section.title, { x: margin, y: currentY, size: 12, font: fontBold, color: primaryColor });
+        currentY -= 20;
+
+        const text = section.content;
+        const words = text.split(' ');
+        let line = '';
+        const maxWidth = width - (margin * 2);
+
+        for (const word of words) {
+            const testLine = line + (line ? ' ' : '') + word;
+            if (fontRegular.widthOfTextAtSize(testLine, 10) > maxWidth) {
+                page.drawText(line, { x: margin, y: currentY, size: 10, font: fontRegular });
+                currentY -= 15;
+                line = word;
+            } else {
+                line = testLine;
+            }
+        }
+        page.drawText(line, { x: margin, y: currentY, size: 10, font: fontRegular });
+        currentY -= 40;
+    }
+
+    // Footer
+    page.drawText(`Document généré par AUTOMATIC CI - ${new Date().toLocaleDateString()} - ID: ${projectId}`, {
+        x: margin,
+        y: 40,
+        size: 8,
+        font: fontItalic,
+        color: rgb(0.5, 0.5, 0.5),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+}

@@ -8,18 +8,25 @@ import { logAdminAction } from "@/lib/utils/audit";
 export async function getAdminStats() {
     await requireAdmin();
     const totalProjects = await prisma.project.count();
-    const totalUsers = await prisma.user.count();
+    const totalUsers = await prisma.user.count({ where: { role: 'CLIENT' } });
 
     const projects = await prisma.project.findMany({
         select: { budget: true }
     });
 
-    // Calculate total revenue from project budgets
-    const totalRevenue = projects.reduce((acc, p) => acc + (p.budget || 0), 0);
+    const invoices = await prisma.invoice.findMany({
+        where: { status: "PAID" },
+        select: { amount: true }
+    });
+
+    // Real revenue from paid invoices
+    const totalRevenue = invoices.reduce((acc, inv) => acc + (inv.amount || 0), 0);
+    // Potential revenue from all project budgets
+    const potentialRevenue = projects.reduce((acc, p) => acc + (p.budget || 0), 0);
 
     // Count messages from clients in the last 24 hours
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(yesterday.getHours() - 24);
 
     const newMessages = await prisma.message.count({
         where: {
@@ -40,6 +47,7 @@ export async function getAdminStats() {
         totalProjects,
         totalUsers,
         totalRevenue,
+        potentialRevenue,
         newMessages,
         signedContracts
     };
@@ -71,6 +79,6 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
         where: { id: projectId },
         data: { status },
     });
-    await logAdminAction("UPDATE_PROJECT_STATUS", `Project ${projectId} status changed to ${status}`);
+    await logAdminAction("UPDATE_PROJECT_STATUS", `Statut du projet mis à jour vers ${status}`, "PROJECT", projectId);
     return result;
 }

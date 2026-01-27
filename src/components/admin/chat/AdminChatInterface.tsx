@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, User, Building, MessageSquare, Mail, RefreshCw } from "lucide-react";
+import { Paperclip, Send, User, Building, MessageSquare, Mail, RefreshCw, X, File, Loader2 } from "lucide-react";
+import { uploadFileAction } from "@/lib/actions/storage";
 import { sendAdminMessage } from "@/lib/actions/adminMessage";
 import { sendMessage } from "@/lib/actions/chat";
 import { supabase } from "@/lib/supabase";
 import { getAllChatChannels } from "@/lib/actions/adminChat";
+import { cn } from "@/lib/utils";
 
 interface Message {
     id: string;
     text: string;
     createdAt: string;
     senderId: string;
+    attachment?: string;
     sender?: {
         role: string;
         name: string;
@@ -39,7 +42,10 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
     const [message, setMessage] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
@@ -145,18 +151,21 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!message.trim() || !selectedChannel) return;
+        if ((!message.trim() && !selectedFile) || !selectedChannel) return;
 
         const currentMsg = message;
+        const currentFile = selectedFile;
         setMessage("");
+        setSelectedFile(null);
 
         // Optimistic UI for Admin
         const tempId = `temp-${Date.now()}`;
         const optimisticMsg: Message = {
             id: tempId,
-            text: currentMsg,
+            text: currentFile ? (currentMsg || `📎 ${currentFile.name}`) : currentMsg,
             createdAt: new Date().toISOString(),
             senderId: 'admin', // Placeholder
+            attachment: currentFile ? URL.createObjectURL(currentFile) : undefined,
             sender: { role: 'ADMIN', name: 'Admin' }
         };
 
@@ -168,17 +177,29 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
         }));
 
         try {
+            let attachmentUrl: string | undefined = undefined;
+
+            if (currentFile) {
+                setIsUploading(true);
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                formData.append('bucket', 'project-assets');
+                const result = await uploadFileAction(formData);
+                attachmentUrl = result.url;
+                setIsUploading(false);
+            }
+
             if (selectedChannel.type === 'PROJECT') {
-                await sendAdminMessage(selectedChannel.id, currentMsg);
+                await sendAdminMessage(selectedChannel.id, currentMsg || (currentFile ? `📎 ${currentFile.name}` : ""), attachmentUrl);
             } else {
-                await sendMessage(selectedChannel.id, currentMsg);
+                await sendMessage(selectedChannel.id, currentMsg || (currentFile ? `📎 ${currentFile.name}` : ""), attachmentUrl);
             }
 
             // Realtime will replace the optimistic UI
             setTimeout(() => {
                 setChannels(prev => prev.map(ch => {
                     if (ch.id === selectedChannel.id) {
-                        const hasReal = ch.messages.some(m => !m.id.startsWith('temp-') && m.text === currentMsg);
+                        const hasReal = ch.messages.some(m => !m.id.startsWith('temp-') && (m.text === currentMsg || (attachmentUrl && m.attachment === attachmentUrl)));
                         return hasReal ? { ...ch, messages: ch.messages.filter(m => m.id !== tempId) } : ch;
                     }
                     return ch;
@@ -187,6 +208,8 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
         } catch (error) {
             console.error("Failed to send admin message:", error);
             setMessage(currentMsg);
+            setSelectedFile(currentFile);
+            setIsUploading(false);
             setChannels(prev => prev.map(ch => {
                 if (ch.id === selectedChannel.id) {
                     return { ...ch, messages: ch.messages.filter(m => m.id !== tempId) };
@@ -353,6 +376,26 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                                             : "bg-white border border-border/50 text-primary rounded-tl-none hover:border-primary/50 shadow-sm"
                                                     )}>
                                                         <p className="whitespace-pre-wrap tracking-tight">{msg.text}</p>
+
+                                                        {msg.attachment && (
+                                                            <div className={cn(
+                                                                "mt-4 p-4 rounded-[1.2rem] border shadow-inner transition-all hover:border-current/30",
+                                                                isMe ? "bg-black/10 border-white/10" : "bg-secondary/5 border-border/50"
+                                                            )}>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className={cn(
+                                                                        "w-10 h-10 rounded-lg flex items-center justify-center",
+                                                                        isMe ? "bg-white/10" : "bg-primary/5"
+                                                                    )}>
+                                                                        <File size={18} />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="font-black text-[9px] uppercase tracking-wider truncate italic">PIÈCE_JOINTE</p>
+                                                                        <a href={msg.attachment} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black uppercase tracking-[0.1em] opacity-40 hover:opacity-100 italic transition-opacity">OUVRIR_DATA</a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className={cn(
                                                             "absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden",
                                                             isMe ? "bg-white" : "bg-primary"
@@ -372,12 +415,29 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                         </div>
 
                         <div className="p-10 border-t border-border/30 bg-white/50 backdrop-blur-xl relative z-20">
-                            <form onSubmit={handleSend} className="relative group/form">
+                            {selectedFile && (
+                                <div className="mb-6 flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-[1.5rem] shadow-inner animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="flex items-center gap-4 overflow-hidden">
+                                        <File className="text-primary/40" size={18} />
+                                        <p className="text-[10px] font-black text-primary/80 uppercase tracking-widest truncate italic">{selectedFile.name}</p>
+                                    </div>
+                                    <button onClick={() => setSelectedFile(null)} className="p-2 hover:bg-primary/5 rounded-lg text-primary/40 transition-colors"><X size={16} /></button>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSend} className="relative group/form flex items-end gap-4 p-4 bg-background border border-border/50 rounded-[2rem] shadow-inner focus-within:border-primary/40 focus-within:ring-[15px] focus-within:ring-primary/5 transition-all duration-500">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-4 hover:bg-secondary/5 rounded-2xl text-secondary/40 hover:text-primary transition-all duration-300 active:scale-90"
+                                >
+                                    {isUploading ? <Loader2 size={24} className="animate-spin" /> : <Paperclip size={24} />}
+                                </button>
                                 <textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder={selectedChannel.type === 'SUPPORT' ? "XFER_REPLY_SUPPORT..." : "XFER_REPLY_PROJECT..."}
-                                    className="w-full bg-background border border-border/50 rounded-[2rem] py-8 pl-10 pr-20 text-[13px] font-black uppercase italic tracking-tight text-primary placeholder:text-secondary/10 focus:border-primary/50 focus:ring-[15px] focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner min-h-[100px] max-h-[200px]"
+                                    className="flex-1 bg-transparent border-none outline-none text-[13px] font-black uppercase italic tracking-tight text-primary placeholder:text-secondary/10 min-h-[44px] max-h-[200px] py-3"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -388,11 +448,17 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!message.trim()}
-                                    className="absolute right-6 top-8 p-6 bg-primary text-background rounded-[1.5rem] hover:scale-110 active:scale-90 transition-all duration-500 shadow-2xl shadow-primary/20 disabled:grayscale disabled:opacity-20 disabled:scale-100 group/send"
+                                    disabled={(!message.trim() && !selectedFile) || isUploading}
+                                    className="p-6 bg-primary text-background rounded-[1.5rem] hover:scale-110 active:scale-90 transition-all duration-500 shadow-2xl shadow-primary/20 disabled:grayscale disabled:opacity-20 disabled:scale-100 group/send"
                                 >
                                     <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />
                                 </button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => e.target.files?.[0] && setSelectedFile(e.target.files[0])}
+                                />
                             </form>
                             <div className="mt-4 flex items-center gap-4 px-6 text-[8px] font-black text-secondary/20 uppercase tracking-[0.4em] italic">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -419,6 +485,4 @@ export default function AdminChatInterface({ projects: initialChannels }: ChatIn
     );
 }
 
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
-}
+

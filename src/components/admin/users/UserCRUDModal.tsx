@@ -9,6 +9,9 @@ interface User {
     name: string | null;
     email: string;
     role: string;
+    phone?: string | null;
+    companyName?: string | null;
+    industry?: string | null;
 }
 
 interface UserCRUDModalProps {
@@ -44,12 +47,12 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="px-10 py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all duration-500 flex items-center gap-4 italic group"
+                className="px-8 py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all duration-500 flex items-center gap-4 italic group"
             >
                 <div className="p-2 bg-background/20 rounded-lg group-hover:rotate-90 transition-transform duration-500">
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
                 </div>
-                INITIALISER_NOUVEAU_CLIENT
+                INITIALISER_CLIENT
             </button>
         );
     }
@@ -63,7 +66,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                 <div className="w-8 h-8 rounded-lg bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-inner group-hover:scale-110">
                     <Edit className="w-3.5 h-3.5" />
                 </div>
-                // MODIFIER_NODE
+                // MODIFIER_PROFIL
             </button>
         );
     }
@@ -72,10 +75,8 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-500">
             <div className="absolute inset-0 bg-background/60 backdrop-blur-xl" onClick={handleClose} />
 
-            <div className="w-full max-w-xl bg-white border border-border/50 rounded-[3rem] p-12 relative shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-700 overflow-hidden group">
-                {/* Visual accents */}
+            <div className="w-full max-w-2xl bg-white border border-border/50 rounded-[3rem] p-12 relative shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-700 overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/2 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/2 rounded-full blur-[80px] -ml-32 -mb-32 pointer-events-none" />
 
                 <button
                     onClick={() => setIsOpen(false)}
@@ -87,62 +88,90 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                 <div className="mb-12 relative z-10">
                     <div className="flex items-center gap-4 mb-6">
                         <span className="w-12 h-px bg-primary/20" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">CONFIGURATION_PROFIL_CLI</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">SYNC_USER_PROFIL_V3</span>
                     </div>
                     <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">
                         {isEditing ? "EDITION_NODE." : "REJOINDRE_MAINFRAME."}
                     </h3>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                    <div className="space-y-3">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">IDENTITÉ_DESIGNATION</label>
-                        <div className="relative group/input">
+                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">DÉSIGNATION_NOM</label>
                             <input
                                 name="name"
                                 required
                                 defaultValue={editingUser?.name || ""}
-                                className="w-full bg-background border border-border/50 rounded-[2rem] p-6 text-sm text-primary focus:outline-none focus:border-primary/50 focus:ring-8 focus:ring-primary/5 transition-all duration-500 font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
-                                placeholder="ENTIFIER_NOM..."
+                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
+                                placeholder="NOM COMPLET"
                             />
                         </div>
-                    </div>
 
-                    <div className="space-y-3">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">FLUX_XFER_IDENTITY (EMAIL)</label>
-                        <div className="relative group/input">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">FLUX_XFER_IDENTITY</label>
                             <input
                                 name="email"
                                 type="email"
                                 required
                                 defaultValue={editingUser?.email || ""}
-                                className="w-full bg-background border border-border/50 rounded-[2rem] p-6 text-sm text-primary focus:outline-none focus:border-primary/50 focus:ring-8 focus:ring-primary/5 transition-all duration-500 font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
-                                placeholder="NODE@XFER.COM"
+                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
+                                placeholder="CLIENT@XFER.COM"
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">CANAL_VOIX (CONTACT)</label>
+                            <input
+                                name="phone"
+                                defaultValue={editingUser?.phone || ""}
+                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
+                                placeholder="+225 00 00 00 00"
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">ENTITÉ_DESIGNATION</label>
+                            <input
+                                name="companyName"
+                                defaultValue={editingUser?.companyName || ""}
+                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
+                                placeholder="NOM DE L'ENTREPRISE"
                             />
                         </div>
                     </div>
 
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">SECTEUR_ACTIVITÉ_LOG</label>
+                        <input
+                            name="industry"
+                            defaultValue={editingUser?.industry || ""}
+                            className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
+                            placeholder="EX: TECH, FINANCES, BTP..."
+                        />
+                    </div>
+
                     {isEditing && (
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">NIVEAU_D_ACCES</label>
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">HIÉRARCHIE_SYSTÈME</label>
                             <div className="relative">
                                 <select
                                     name="role"
                                     defaultValue={editingUser?.role || "CLIENT"}
-                                    className="w-full bg-background border border-border/50 rounded-[2rem] p-6 text-sm text-primary focus:outline-none focus:border-primary/50 transition-all duration-500 font-black uppercase italic tracking-widest appearance-none shadow-inner"
+                                    className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 outline-none transition-all appearance-none shadow-inner"
                                 >
                                     <option value="CLIENT">NODES_CLIENT</option>
                                     <option value="STAFF">UNITE_OPÉRATIONNELLE</option>
                                     <option value="ADMIN">MAINFRAME_ROOT</option>
                                 </select>
-                                <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
                                     <Plus className="w-4 h-4 rotate-45" />
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="pt-6">
+                    <div className="pt-8">
                         <button
                             disabled={loading}
                             className="w-full py-6 bg-primary text-background rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 hover:scale-[1.03] active:scale-95 transition-all duration-500 flex items-center justify-center gap-4 italic group"
@@ -154,7 +183,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                                     <div className="w-6 h-6 rounded-lg bg-background/20 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 border border-white/10">
                                         <Plus className="w-4 h-4" />
                                     </div>
-                                    {isEditing ? "METTRE_A_JOUR_LOGS" : "DÉPLOYER_COMPTE_CLI"}
+                                    {isEditing ? "METTRE_A_JOUR_LOGS" : "DÉPLOYER_NODE_CLI"}
                                 </>
                             )}
                         </button>

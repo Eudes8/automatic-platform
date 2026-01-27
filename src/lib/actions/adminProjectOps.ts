@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { uploadFileToStorage } from "@/lib/storage";
 import { requireAdmin } from "@/lib/utils/adminAuth";
+import { notifyNewAsset } from "./notifications";
 
 export async function createProjectAsset(formData: FormData) {
     await requireAdmin();
@@ -39,6 +40,10 @@ export async function createProjectAsset(formData: FormData) {
                 url: finalUrl
             }
         });
+
+        // Notify client about new asset
+        await notifyNewAsset(projectId, name);
+
         revalidatePath(`/dashboard/projects/${projectId}`);
         revalidatePath(`/admin/projects/${projectId}`);
         return { success: true, asset };
@@ -70,6 +75,14 @@ export async function getProjectDetails(projectId: string) {
             messages: {
                 orderBy: { createdAt: 'desc' },
                 take: 5
+            },
+            requirements: {
+                include: {
+                    comments: {
+                        orderBy: { createdAt: 'asc' }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
             }
         }
     });

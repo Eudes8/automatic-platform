@@ -5,7 +5,7 @@ import { getCurrentUser } from "./users";
 import { revalidatePath } from "next/cache";
 import { createAdminNotification } from "./notifications";
 
-export async function sendAdminMessage(projectId: string, text: string) {
+export async function sendAdminMessage(projectId: string, text: string, attachment?: string) {
     const admin = await getCurrentUser();
 
     if (!admin || admin.role !== "ADMIN") {
@@ -23,6 +23,7 @@ export async function sendAdminMessage(projectId: string, text: string) {
                 text,
                 senderId: admin.id,
                 projectId: projectId,
+                attachment,
                 conversationId: conversation?.id // Link to conversation if exists
             }
         });

@@ -37,7 +37,7 @@ export async function getProjectMessages(projectId: string) {
     }
 }
 
-export async function sendChatMessage(projectId: string, text: string) {
+export async function sendChatMessage(projectId: string, text: string, attachment?: string) {
     try {
         const user = await getCurrentUser();
         if (!user) throw new Error("Unauthorized");
@@ -47,6 +47,7 @@ export async function sendChatMessage(projectId: string, text: string) {
                 projectId,
                 senderId: user.id,
                 text,
+                attachment,
             },
             include: {
                 sender: true,

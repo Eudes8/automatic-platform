@@ -1,8 +1,9 @@
 "use client";
 
-import { FileText, Download, Code, Globe, ShieldCheck, Loader2 } from "lucide-react";
-import { generateProjectContract, downloadBlob } from "@/lib/utils/pdf";
+import { FileText, Download, Code, Globe, ShieldCheck, Loader2, Files, Briefcase, ChevronRight, CheckCircle2 } from "lucide-react";
+import { generateProjectContract, generateProjectBrief, downloadBlob } from "@/lib/utils/pdf";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface DeliverablesProps {
     projectId: string;
@@ -13,6 +14,8 @@ interface DeliverablesProps {
     clientName?: string;
     budget?: string;
     description?: string;
+    techStack?: string[];
+    timeline?: string;
 }
 
 export default function Deliverables({
@@ -23,114 +26,152 @@ export default function Deliverables({
     invoices = [],
     clientName = "Client",
     budget = "0€",
-    description
+    description,
+    techStack = [],
+    timeline = "Standard"
 }: DeliverablesProps) {
-    const [downloadingContract, setDownloadingContract] = useState<string | null>(null);
+    const [downloading, setDownloading] = useState<string | null>(null);
 
     const handleContractDownload = async (contract: any) => {
-        if (!contract.signatureBase64) return;
-        setDownloadingContract(contract.id);
-
+        setDownloading(contract.id);
         try {
-            // Regenerate the PDF client-side using the stored signature
-            const pdfBytes = await generateProjectContract(
-                projectName,
-                clientName,
-                budget,
-                contract.signatureBase64,
-                projectId,
-                description
-            );
-
-            const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
-            const filename = `Contrat_${projectName.replace(/\s+/g, "_")}_${contract.id.slice(-4)}.pdf`;
-            downloadBlob(blob, filename);
+            const pdfBytes = await generateProjectContract(projectName, clientName, budget, contract.signatureBase64, projectId, description);
+            const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+            downloadBlob(blob, `CONTRAT_${projectName.replace(/\s+/g, "_")}.pdf`);
         } catch (error) {
-            console.error("Failed to download contract", error);
+            console.error("Download error", error);
         } finally {
-            setDownloadingContract(null);
+            setDownloading(null);
         }
     };
 
-    const allDeliverables = [
-        ...contracts.filter(c => c.status === "SIGNED").map(c => ({
-            id: c.id,
-            name: "CONTRAT_SIGNÉ.pdf",
+    const handleBriefDownload = async () => {
+        setDownloading("brief");
+        try {
+            const pdfBytes = await generateProjectBrief(projectName, clientName, techStack, timeline || "Standard", description || "", projectId);
+            const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+            downloadBlob(blob, `CAHIER_DES_CHARGES_${projectName.replace(/\s+/g, "_")}.pdf`);
+        } catch (error) {
+            console.error("Brief error", error);
+        } finally {
+            setDownloading(null);
+        }
+    };
+
+    const categories = [
+        {
+            title: "LÉGAL & ADMIN",
             icon: ShieldCheck,
-            type: "contract",
-            source: c
-        })),
-        ...invoices.filter(inv => inv.pdfUrl).map(inv => ({
-            id: inv.id,
-            name: `FACTURE_${inv.id.slice(-6).toUpperCase()}.pdf`,
-            icon: FileText,
-            type: "invoice",
-            href: inv.pdfUrl
-        })),
-        ...projectAssets.map(a => ({
-            id: a.id,
-            name: a.name,
-            icon: a.type === "code" ? Code : a.type === "pdf" ? FileText : Globe,
-            type: "file",
-            href: a.url
-        }))
+            items: [
+                ...contracts.filter(c => c.status === "SIGNED").map(c => ({
+                    id: c.id,
+                    name: "Convention Signée",
+                    type: "contract",
+                    source: c
+                })),
+                ...invoices.map(inv => ({
+                    id: inv.id,
+                    name: `Facture ${inv.id.slice(-6).toUpperCase()}`,
+                    type: "invoice",
+                    href: inv.pdfUrl,
+                    status: inv.status
+                }))
+            ]
+        },
+        {
+            title: "TECHNIQUE",
+            icon: Code,
+            items: [
+                { id: "brief", name: "Cahier des Charges", type: "brief" },
+                ...projectAssets.map(a => ({
+                    id: a.id,
+                    name: a.name,
+                    type: "asset",
+                    href: a.url,
+                    assetType: a.type
+                }))
+            ]
+        }
     ];
 
     return (
-        <div className="p-10 bg-card/30 border border-border/50 rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="space-y-8 animate-in fade-in duration-700">
+            {/* 4x4 Quick Actions */}
+            <div className="grid grid-cols-1 gap-4">
+                <button
+                    onClick={handleBriefDownload}
+                    disabled={downloading === "brief"}
+                    className="group relative flex items-center justify-between p-8 bg-primary text-background rounded-[2.5rem] overflow-hidden transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-primary/20"
+                >
+                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <div className="flex items-center gap-5 relative z-10">
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                            {downloading === "brief" ? <Loader2 className="animate-spin w-5 h-5 text-background" /> : <Briefcase size={22} />}
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[11px] font-black uppercase tracking-[0.3em] font-heading h-4 italic overflow-hidden">CAHIER_DES_CHARGES</p>
+                            <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Générer le document technique</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="relative z-10 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </button>
+            </div>
 
-            <h4 className="text-secondary/40 font-black uppercase text-[10px] tracking-[0.4em] mb-12 italic flex items-center justify-between">
-                // Livrables_Actifs
-                {allDeliverables.length > 0 && <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
-            </h4>
+            {/* Structured Deliverables */}
+            <div className="space-y-6">
+                {categories.map((cat, i) => (
+                    <div key={i} className="p-8 bg-card/30 border border-border/50 rounded-[3rem] space-y-6">
+                        <h5 className="flex items-center gap-3 text-[10px] font-black text-secondary/30 uppercase tracking-[0.4em] italic px-2">
+                            <cat.icon size={14} className="text-primary" />
+                            // {cat.title}
+                        </h5>
 
-            {allDeliverables.length === 0 ? (
-                <div className="py-16 px-6 border-2 border-dashed border-border/50 rounded-[2.5rem] text-center bg-background/20">
-                    <p className="text-secondary/30 font-black uppercase text-[10px] tracking-[0.4em] italic leading-relaxed">
-                        Aucun livrable disponible.<br />
-                        Accès restreint en phase d'initiation.
-                    </p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {allDeliverables.map((item: any) => (
-                        <div
-                            key={item.id}
-                            className="group flex items-center justify-between p-6 rounded-[2rem] bg-background/50 border border-border/50 hover:border-primary/30 transition-all cursor-pointer shadow-sm hover:shadow-xl"
-                            onClick={() => item.type === "contract" ? handleContractDownload(item.source) : window.open(item.href, '_blank')}
-                        >
-                            <div className="flex items-center gap-6">
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${item.type === "contract" ? "bg-emerald-500/5 text-emerald-600 border border-emerald-500/10" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-background"
-                                    }`}>
-                                    <item.icon className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <span className={`text-sm font-black uppercase italic tracking-tight transition-colors ${item.type === "contract" ? "text-emerald-600" : "text-primary"}`}>
-                                        {item.name}
-                                    </span>
-                                    {item.type === "contract" && (
-                                        <p className="text-[9px] text-secondary/30 uppercase tracking-[0.2em] font-black mt-1 italic">
-                                            Signature_Hex_Validée
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            {downloadingContract === item.id ? (
-                                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        <div className="space-y-3">
+                            {cat.items.length === 0 ? (
+                                <p className="text-[9px] text-secondary/20 font-bold uppercase tracking-widest italic px-2">Aucun élément synchronisé</p>
                             ) : (
-                                <div className="w-10 h-10 rounded-xl bg-secondary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all">
-                                    <Download className="w-4 h-4" />
-                                </div>
+                                cat.items.map((item: any) => (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => {
+                                            if (item.type === "contract") handleContractDownload(item.source);
+                                            else if (item.type === "brief") handleBriefDownload();
+                                            else if (item.href) window.open(item.href, '_blank');
+                                        }}
+                                        className="group flex items-center justify-between p-5 bg-background/50 border border-border/50 rounded-[2rem] hover:border-primary/40 transition-all cursor-pointer shadow-sm hover:shadow-xl"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                                                item.type === "contract" ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/5 text-primary"
+                                            )}>
+                                                {item.type === "contract" ? <CheckCircle2 size={18} /> :
+                                                    item.type === "brief" ? <Files size={18} /> :
+                                                        item.assetType === "code" ? <Code size={18} /> :
+                                                            item.assetType === "web" ? <Globe size={18} /> : <FileText size={18} />}
+                                            </div>
+                                            <span className="text-[11px] font-black text-primary uppercase italic tracking-tight">{item.name}</span>
+                                        </div>
+                                        <div className="w-8 h-8 rounded-lg bg-secondary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all">
+                                            {downloading === item.id ? <Loader2 className="animate-spin w-3 h-3" /> : <Download size={12} />}
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                ))}
+            </div>
 
-            <button className="w-full mt-10 py-5 bg-secondary/5 border border-border/50 rounded-[1.5rem] text-secondary/40 font-black text-[9px] uppercase tracking-[0.4em] hover:bg-primary/5 hover:text-primary transition-all italic">
-                + REQUÊTE_ASSET_ADDITIONNEL
-            </button>
+            <div className="p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-[2.5rem]">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest italic">Nexus_Sync: Optima</p>
+                </div>
+                <p className="text-[9px] text-secondary/40 font-bold leading-loose italic">
+                    Toutes les pièces sont certifiées par AUTOMATIC CI. Le stockage est crypté bout-en-bout via protocole AES-256.
+                </p>
+            </div>
         </div>
     );
 }

@@ -48,7 +48,7 @@ export async function getOrCreateConversation(projectId?: string) {
     });
 }
 
-export async function sendMessage(conversationId: string, content: string) {
+export async function sendMessage(conversationId: string, content: string, attachment?: string) {
     const user = await getCurrentUser();
     if (!user) throw new Error("Unauthorized");
 
@@ -64,6 +64,7 @@ export async function sendMessage(conversationId: string, content: string) {
             projectId: conversation?.projectId, // Pass the project ID so project-based listeners react
             senderId: user.id,
             text: content,
+            attachment,
             read: false,
         },
         include: { sender: true }

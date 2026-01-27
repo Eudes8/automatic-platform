@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getProjectMessages, sendChatMessage } from "@/lib/actions/messages";
+import { uploadFileAction } from "@/lib/actions/storage";
 import { format, isSameDay, isYesterday, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -201,12 +202,12 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
             })
             .subscribe();
 
-        // 1s Polling Fallback as requested
+        // Polling Fallback - Increased interval to avoid UI jumps and excessive queries
         const pollingInterval = setInterval(() => {
             if (isSubscribed) {
                 refreshMessages();
             }
-        }, 1000);
+        }, 30000);
 
         return () => {
             isSubscribed = false;
@@ -217,13 +218,16 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
         };
     }, [projectId]);
 
-    // Smart scroll
+    // Smart scroll - Use internal container scroll to avoid page jumping
     useEffect(() => {
         if (scrollRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-            const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+            const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
             if (isNearBottom || messages.length < 5) {
-                bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+                scrollRef.current.scrollTo({
+                    top: scrollHeight,
+                    behavior: messages.length <= 5 ? "auto" : "smooth"
+                });
             }
         }
     }, [messages, typingUsers]);
@@ -273,11 +277,11 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
         const optimisticMessage: Message = {
             id: optimisticId,
             sender: "client",
-            text: currentFile ? `📎 ${currentFile.name}` : currentInput,
+            text: currentFile ? (currentInput || `📎 ${currentFile.name}`) : currentInput,
             time: new Date().toISOString(),
             attachment: currentFile ? {
                 name: currentFile.name,
-                url: "",
+                url: URL.createObjectURL(currentFile),
                 type: currentFile.type,
                 size: currentFile.size
             } : undefined,
@@ -291,25 +295,23 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
 
         try {
+            let attachmentUrl: string | undefined = undefined;
+
             if (currentFile) {
                 const formData = new FormData();
                 formData.append('file', currentFile);
-                formData.append('projectId', projectId);
-                const res = await fetch('/api/files/upload', { method: 'POST', body: formData });
-                if (res.ok) {
-                    const { asset } = await res.json();
-                    await sendChatMessage(projectId, currentInput || `📎 ${currentFile.name}`);
-                } else {
-                    throw new Error("Upload failed");
-                }
-            } else {
-                await sendChatMessage(projectId, currentInput);
+                formData.append('bucket', 'project-assets');
+
+                const result = await uploadFileAction(formData);
+                attachmentUrl = result.url;
             }
+
+            await sendChatMessage(projectId, currentInput || (currentFile ? `📎 ${currentFile.name}` : ""), attachmentUrl);
 
             // Cleanup optimistic message after some time to allow realtime to take over
             setTimeout(() => {
                 setMessages(prev => {
-                    const hasReal = prev.some(m => !m.id.startsWith('temp-') && m.text.includes(currentInput.slice(0, 10)));
+                    const hasReal = prev.some(m => !m.id.startsWith('temp-') && (m.text.includes(currentInput.slice(0, 10)) || (attachmentUrl && m.attachment?.url === attachmentUrl)));
                     return hasReal ? prev.filter(m => m.id !== optimisticId) : prev;
                 });
             }, 4000);
@@ -333,9 +335,9 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-background rounded-full shadow-inner" />
                     </div>
                     <div>
-                        <h4 className="font-heading font-black text-primary tracking-tighter text-lg uppercase italic">UNITÉ_SUPPORT.ALPHA</h4>
+                        <h4 className="font-heading font-black text-primary tracking-tighter text-lg uppercase italic">ASSISTANCE_TECHNIQUE</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.3em] italic">NODE_ACTIVE // CH-256V</span>
+                            <span className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.3em] italic">AGENT_EN_LIGNE // CANAL_SÉCURISÉ</span>
                         </div>
                     </div>
                 </div>
@@ -414,7 +416,7 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                                                     "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.1em] italic shadow-inner border border-border/50",
                                                     isClient ? "bg-primary text-background" : "bg-white text-primary"
                                                 )}>
-                                                    {isClient ? "U_S" : "A_I"}
+                                                    {isClient ? "VOUS" : "SUPPORT"}
                                                 </div>
                                             </div>
 
@@ -434,7 +436,7 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                                                             "text-xs mb-3 p-3 rounded-xl border-l-4 shadow-inner",
                                                             isClient ? "bg-black/10 border-white/20" : "bg-card/30 border-primary/20"
                                                         )}>
-                                                            <p className="text-[8px] font-black uppercase tracking-widest italic opacity-50 mb-1">XFER_REPLY:</p>
+                                                            <p className="text-[8px] font-black uppercase tracking-widest italic opacity-50 mb-1">RÉPONSE_MESSAGE:</p>
                                                             <p className="line-clamp-2 italic opacity-80 text-xs">{msg.replyTo}</p>
                                                         </div>
                                                     )}
@@ -502,7 +504,7 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.2s]" />
                             <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.4s]" />
                         </div>
-                        <p className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic">UNITÉ_SUPPORT EN TRAIN D'ÉCRIRE...</p>
+                        <p className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic">UN AGENT VOUS RÉPOND...</p>
                     </div>
                 </div>
             )}

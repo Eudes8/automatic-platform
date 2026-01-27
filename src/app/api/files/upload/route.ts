@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         // Upload to Supabase Storage
         const fileName = `${Date.now()}-${file.name}`;
         const { data, error } = await supabase.storage
-            .from("project-files")
+            .from("project-assets")
             .upload(`${projectId}/${fileName}`, file);
 
         if (error) {

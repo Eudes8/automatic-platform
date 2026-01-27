@@ -26,10 +26,11 @@ async function TicketDetailPageContent({ id }: { id: string }) {
     );
 }
 
-export default function TicketDetailPage({ params }: { params: { id: string } }) {
+export default async function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     return (
         <Suspense fallback={<Skeleton className="h-96" />}>
-            <TicketDetailPageContent id={params.id} />
+            <TicketDetailPageContent id={id} />
         </Suspense>
     );
 }

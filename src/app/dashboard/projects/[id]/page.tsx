@@ -1,19 +1,23 @@
 import { getClientProjects } from "@/lib/actions/projects";
+import { getCurrentUser } from "@/lib/actions/users";
 import ProjectStats from "@/components/dashboard/ProjectStats";
 import ChatSidebar from "@/components/dashboard/ChatSidebar";
 import Deliverables from "@/components/dashboard/Deliverables";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
 import DeploymentTimeline from "@/components/dashboard/DeploymentTimeline";
+import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
 import { Zap, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Requirement } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const user = await getCurrentUser();
     const projects = await getClientProjects();
-    const project = projects.find(p => p.id === id);
+    const project = projects.find(p => p.id.trim() === id.trim());
 
     if (!project) {
         return notFound();
@@ -44,29 +48,29 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         <div className="w-8 h-8 rounded-xl bg-secondary/5 border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all duration-500 group-hover:scale-110">
                             <ChevronLeft size={14} />
                         </div>
-                        // PROTOCOL_LIST_RETURN
+                        // RETOUR_LISTE
                     </Link>
                     <div>
                         <div className="flex items-center gap-4 mb-6">
-                            <span className="text-accent font-black uppercase text-[10px] tracking-[0.5em] inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 italic shadow-inner animate-pulse">// SESSION_ACTIVE.OPÉRATIONNELLE</span>
-                            <span className="text-secondary/20 font-black text-[10px] uppercase tracking-[0.3em] italic">/ NODE_REF_{project.id.slice(0, 8).toUpperCase()}</span>
+                            <span className="text-accent font-black uppercase text-[10px] tracking-[0.5em] inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 italic shadow-inner animate-pulse">// SESSION_CLIENT_ACTIVE</span>
+                            <span className="text-secondary/20 font-black text-[10px] uppercase tracking-[0.3em] italic">/ PROJET_ID_{project.id.slice(0, 8).toUpperCase()}</span>
                         </div>
                         <h1 className="text-5xl md:text-8xl font-heading font-black text-primary tracking-tighter uppercase italic leading-[0.85] mb-4">
                             {project.title.split(' - ')[0]} <br />
                             <span className="text-secondary/20 tracking-[-0.05em]">{project.title.split(' - ')[1] || "PILOTAGE."}</span>
                         </h1>
                         <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.4em] ml-1 italic leading-relaxed max-w-xl">
-                            // Unité de déploiement active. <br />
-                            Surveillance des protocoles et livrables en cours.
+                            // Interface de gestion de projet. <br />
+                            Suivi des étapes et des livrables de votre mission.
                         </p>
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-4">
                     <button className="px-8 py-5 border border-border/50 bg-background/50 hover:bg-white text-primary font-black uppercase text-[10px] tracking-[0.3em] rounded-[1.5rem] transition-all duration-500 hover:shadow-2xl hover:scale-105 active:scale-95 italic">
-                        EXPORT_REPORT
+                        TÉLÉCHARGER_RAPPORT
                     </button>
                     <button className="px-8 py-5 bg-primary text-background font-black uppercase text-[10px] tracking-[0.3em] rounded-[1.5rem] transition-all duration-500 hover:shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 italic">
-                        UPDATE_STATUS_LOG
+                        ACTUALISER_STATUT
                     </button>
                 </div>
             </div>
@@ -78,6 +82,11 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 {/* Real-time Collaboration */}
                 <div className="lg:col-span-8 flex flex-col gap-10">
                     <DeploymentTimeline progress={project.progress || 0} />
+                    <RequirementWorkspace
+                        projectId={project.id}
+                        initialRequirements={(project as any).requirements || []}
+                        currentUser={user}
+                    />
                     <ChatSidebar projectId={project.id} />
                 </div>
 
@@ -92,6 +101,8 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                         clientName={project.client?.name || "Client"}
                         budget={project.budget ? `${project.budget}€` : "Non spécifié"}
                         description={project.description || undefined}
+                        techStack={project.techStack}
+                        timeline={project.timeline || undefined}
                     />
                 </div>
             </div>

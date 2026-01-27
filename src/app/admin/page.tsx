@@ -13,7 +13,7 @@ import {
 import { getAdminStats } from "@/lib/actions/admin";
 import Link from "next/link";
 import { getAllChatChannels } from "@/lib/actions/adminChat";
-import { getAdminNotifications } from "@/lib/actions/notifications";
+import { getUserNotifications } from "@/lib/actions/notifications";
 import { Bell, Check } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -37,29 +37,29 @@ export default async function AdminDashboard() {
         }))
     ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
-    const notifications = await getAdminNotifications();
+    const notifications = await getUserNotifications();
 
     return (
         <div className="min-h-screen bg-background p-10 lg:p-14 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            {/* Admin Header - Industrial/Cyber Look Updated */}
+            {/* Admin Header */}
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-16 pb-12 border-b border-border/50">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-4 h-4 rounded-full bg-accent animate-ping shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
-                        <span className="text-[10px] font-black text-accent uppercase tracking-[0.5em] italic">SYSTÈME_ACTIF // NÉVRALGIE_MÉTIER</span>
+                        <div className="w-3 h-3 rounded-full bg-accent animate-pulse shadow-[0_0_10px_rgba(79,70,229,0.3)]" />
+                        <span className="text-[10px] font-black text-accent uppercase tracking-[0.4em] italic">SOLUTIONS ACTIVES // PILOTAGE STRATÉGIQUE</span>
                     </div>
                     <h1 className="text-6xl md:text-8xl font-heading font-black text-primary uppercase tracking-tighter italic leading-[0.8]">
-                        MAINFRAME <br /><span className="text-secondary/20 tracking-normal">NEXUS_CONTROLE.</span>
+                        ADMIN <br /><span className="text-secondary/20 tracking-normal">DASHBOARD.</span>
                     </h1>
                 </div>
                 <div className="flex gap-10 text-[9px] font-black uppercase tracking-[0.4em] text-secondary/40 italic">
                     <div className="flex flex-col items-end">
-                        <span className="opacity-50 mb-1">HORODATAGE_SERVEUR</span>
-                        <span className="text-primary font-mono">{new Date().toLocaleTimeString('fr-FR')}_UTC</span>
+                        <span className="opacity-50 mb-1">HEURE SYSTÈME</span>
+                        <span className="text-primary font-mono">{new Date().toLocaleTimeString('fr-FR')}_GMT</span>
                     </div>
                     <div className="flex flex-col items-end border-l border-border/50 pl-10">
-                        <span className="opacity-50 mb-1">LATENCE_RÉSEAU</span>
-                        <span className="text-emerald-600 font-mono">0.12ms // SCAN_OK</span>
+                        <span className="opacity-50 mb-1">ÉTAT CONNEXION</span>
+                        <span className="text-emerald-600 font-mono">OPÉRATIONNEL // SYNC_OK</span>
                     </div>
                 </div>
             </header>
@@ -74,11 +74,11 @@ export default async function AdminDashboard() {
                             <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background transition-colors duration-500">
                                 <BarChart3 size={20} />
                             </div>
-                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary/60 transition-colors">REV_TOTAL_ANNUEL</span>
+                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary/60 transition-colors">CHIFFRE D'AFFAIRES</span>
                         </div>
-                        <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{stats.totalRevenue}€</p>
+                        <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{new Intl.NumberFormat('fr-FR').format(stats.totalRevenue)} FCFA</p>
                         <div className="mt-4 flex items-center gap-2">
-                            <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest italic">+12.4%_XFER</span>
+                            <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest italic">+12.4% CROISSANCE</span>
                         </div>
                     </div>
 
@@ -87,7 +87,7 @@ export default async function AdminDashboard() {
                             <div className="w-12 h-12 rounded-2xl bg-secondary/5 flex items-center justify-center text-secondary group-hover:bg-primary group-hover:text-background transition-colors duration-500">
                                 <Users size={20} />
                             </div>
-                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary/60 transition-colors">CLIENTS_NODE_SYNC</span>
+                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-primary/60 transition-colors">BASE CLIENTS</span>
                         </div>
                         <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{stats.totalUsers}</p>
                         <div className="mt-4 flex items-center gap-2 text-secondary/20">
@@ -101,12 +101,12 @@ export default async function AdminDashboard() {
                             <div className="w-12 h-12 rounded-2xl bg-accent/5 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-background transition-colors duration-500">
                                 <Zap size={20} />
                             </div>
-                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-accent/60 transition-colors">PROJETS_DEPLOYES</span>
+                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-accent/60 transition-colors">PROJETS ACTIFS</span>
                         </div>
                         <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{stats.totalProjects}</p>
                         <div className="mt-4 flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                            <span className="text-[8px] font-black text-accent uppercase tracking-widest italic">THREADS_ACTIFS</span>
+                            <span className="text-[8px] font-black text-accent uppercase tracking-widest italic">PROJETS EN PRODUCTION</span>
                         </div>
                     </div>
 
@@ -115,12 +115,12 @@ export default async function AdminDashboard() {
                             <div className="w-12 h-12 rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-background transition-colors duration-500">
                                 <MessageSquare size={20} />
                             </div>
-                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-emerald-600/60 transition-colors">COMMS_24H_LOG</span>
+                            <span className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic group-hover:text-emerald-600/60 transition-colors">MESSAGES RÉCENTS</span>
                         </div>
                         <p className="text-4xl font-black text-primary tracking-tighter italic uppercase">{stats.newMessages}</p>
                         <div className="mt-4 flex items-center gap-2 text-secondary/20">
                             <div className="h-px flex-1 bg-border/50" />
-                            <span className="text-[8px] font-black uppercase tracking-widest italic">XFER_OK</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest italic">SYNC OK</span>
                         </div>
                     </div>
                 </div>
@@ -135,11 +135,11 @@ export default async function AdminDashboard() {
                                 <Activity size={20} />
                             </div>
                             <h3 className="text-primary font-heading font-black uppercase text-base tracking-tighter italic">
-                                FLUX_ACTIVITE_TEMPS_REEL.
+                                ACTIVITÉ RÉCENTE DE LA PLATEFORME.
                             </h3>
                         </div>
                         <Link href="/admin/chat" className="group flex items-center gap-3 text-[10px] text-secondary/40 hover:text-primary uppercase tracking-[0.4em] font-black transition-all italic">
-                            VOIR_TOUTES_OPS <ArrowUpRight className="w-3 h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            VOIR TOUTE L'ACTIVITÉ <ArrowUpRight className="w-3 h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </Link>
                     </div>
 
@@ -147,7 +147,7 @@ export default async function AdminDashboard() {
                         {recentMessages.length > 0 ? recentMessages.map((msg: RecentMessage) => (
                             <div key={msg.id} className="flex items-center gap-8 p-6 rounded-[1.8rem] bg-white/50 border border-transparent hover:border-border hover:bg-white hover:shadow-2xl hover:scale-[1.01] transition-all duration-500 group/item">
                                 <span className="text-[10px] font-black text-secondary/20 w-20 group-hover/item:text-primary transition-colors italic tracking-widest">
-                                    {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}_LOG
+                                    {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                                 <div className="w-12 h-12 bg-background border border-border/50 rounded-xl flex items-center justify-center text-[9px] font-black text-secondary group-hover/item:bg-primary group-hover/item:text-background transition-all duration-500 shadow-inner">
                                     {msg.sender?.role === "ADMIN" ? "SYS" : "CLI"}
@@ -155,7 +155,7 @@ export default async function AdminDashboard() {
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-bold text-primary truncate leading-tight italic uppercase tracking-tight">{msg.text}</p>
                                     <p className="text-[8px] font-black text-secondary/30 uppercase tracking-[0.3em] mt-1 italic">
-                                        NODE: {msg.project?.title?.split(' - ')[0] || "UNIT_EXTERNAL"}
+                                        PROJET: {msg.project?.title?.split(' - ')[0] || "SUPPORT GÉNÉRAL"}
                                     </p>
                                 </div>
                                 <div className="hidden md:flex items-center gap-3">
@@ -166,7 +166,7 @@ export default async function AdminDashboard() {
                         )) : (
                             <div className="flex flex-col items-center justify-center h-64 text-secondary/20 bg-background/30 rounded-[2rem] border border-dashed border-border/50">
                                 <AlertCircle size={48} className="mb-6 opacity-20" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.5em] italic">// AUCUNE_DONNEE_CAPTEE</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.5em] italic">// AUCUNE ACTIVITÉ DÉTECTÉE</span>
                             </div>
                         )}
                     </div>
@@ -178,7 +178,7 @@ export default async function AdminDashboard() {
                     <div className="p-8 bg-card/30 border border-border/50 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
                         <div className="flex justify-between items-center mb-8 relative z-10">
                             <h4 className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] italic flex items-center gap-3">
-                                <Bell size={14} className="group-hover:animate-bounce" /> NOTIF_FEED ({notifications.filter(n => !n.read).length})
+                                <Bell size={14} className="group-hover:animate-bounce" /> NOTIFICATIONS ({notifications.filter(n => !n.read).length})
                             </h4>
                         </div>
                         <div className="space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar relative z-10">
@@ -195,14 +195,14 @@ export default async function AdminDashboard() {
                                         </span>
                                         {!notification.read && (
                                             <button className="text-[8px] text-primary hover:text-accent uppercase font-black tracking-widest transition-all italic underline underline-offset-4 decoration-primary/20">
-                                                MARQUER_OK
+                                                MARQUER COMME LU
                                             </button>
                                         )}
                                     </div>
                                 </div>
                             )) : (
                                 <div className="text-center py-10 opacity-20">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.3em] italic">// SILENCE_SYSTEME</p>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.3em] italic">// AUCUNE NOTIFICATION</p>
                                 </div>
                             )}
                         </div>
@@ -210,32 +210,32 @@ export default async function AdminDashboard() {
 
                     <div className="p-8 bg-background border border-border/50 rounded-[2.5rem] shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-1 h-full bg-accent animate-pulse" />
-                        <h4 className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] mb-8 italic">DONNÉES_DYNAMIQUE_UX</h4>
+                        <h4 className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] mb-8 italic">ÉTAT DES SERVICES</h4>
                         <div className="space-y-6">
                             <div className="flex justify-between items-center group cursor-help">
-                                <span className="flex items-center gap-3 text-secondary/60 text-[10px] font-black uppercase tracking-widest italic group-hover:text-primary transition-colors"><Server size={12} /> DATABASE</span>
-                                <span className="text-emerald-600 font-black uppercase text-[9px] tracking-widest italic animate-pulse">ALIVE_01</span>
+                                <span className="flex items-center gap-3 text-secondary/60 text-[10px] font-black uppercase tracking-widest italic group-hover:text-primary transition-colors"><Server size={12} /> BASE DE DONNÉES</span>
+                                <span className="text-emerald-600 font-black uppercase text-[9px] tracking-widest italic animate-pulse">EN LIGNE</span>
                             </div>
                             <div className="flex justify-between items-center group cursor-help">
                                 <span className="flex items-center gap-3 text-secondary/60 text-[10px] font-black uppercase tracking-widest italic group-hover:text-primary transition-colors"><FileText size={12} /> CONTRATS</span>
                                 <span className="text-primary font-black uppercase text-[9px] tracking-widest italic">{stats.signedContracts}_SIG</span>
                             </div>
                             <div className="flex justify-between items-center group cursor-help">
-                                <span className="flex items-center gap-3 text-secondary/60 text-[10px] font-black uppercase tracking-widest italic group-hover:text-primary transition-colors"><Globe size={12} /> GATEWAY</span>
-                                <span className="text-accent font-black uppercase text-[9px] tracking-widest italic">XFER_READY</span>
+                                <span className="flex items-center gap-3 text-secondary/60 text-[10px] font-black uppercase tracking-widest italic group-hover:text-primary transition-colors"><Globe size={12} /> PASSERELLE API</span>
+                                <span className="text-accent font-black uppercase text-[9px] tracking-widest italic">PRÊTE</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="p-10 rounded-[2.5rem] bg-primary text-background shadow-2xl shadow-primary/20 relative overflow-hidden group">
                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 opacity-40 italic">ACTIONS_CRITIQUES</h4>
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 opacity-40 italic">ACTIONS SYSTÈME</h4>
                         <div className="space-y-4 relative z-10">
                             <button className="w-full py-4 bg-background/10 hover:bg-background/20 text-background text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.2rem] transition-all duration-500 border border-white/10 hover:shadow-2xl italic">
-                                DÉPLOYER_STAGING
+                                DÉPLOYER STAGING
                             </button>
                             <button className="w-full py-4 bg-background/5 hover:bg-background/10 text-background text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.2rem] transition-all duration-500 border border-white/5 italic">
-                                PURGER_CACHE_X
+                                ACTUALISER CACHE
                             </button>
                         </div>
                     </div>

@@ -16,7 +16,7 @@ async function TicketsPageContent({ searchParams }: { searchParams: { page?: str
                 <div>
                     <div className="flex items-center gap-3 mb-4">
                         <span className="w-10 h-px bg-primary/30" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">UNITÉ_SUPPORT // ALPHA_MAIN_NODE</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">GESTIONNAIRE DES TICKETS</span>
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         TICKETS <span className="text-secondary/20">Support.</span>
@@ -38,10 +38,11 @@ async function TicketsPageContent({ searchParams }: { searchParams: { page?: str
     );
 }
 
-export default function TicketsPage({ searchParams }: { searchParams: { page?: string } }) {
+export default async function TicketsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+    const resolvedParams = await searchParams;
     return (
         <Suspense fallback={<Skeleton className="h-96" />}>
-            <TicketsPageContent searchParams={searchParams} />
+            <TicketsPageContent searchParams={resolvedParams} />
         </Suspense>
     );
 }

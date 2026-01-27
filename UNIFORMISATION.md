@@ -380,5 +380,5 @@ Chaque module sera audité selon 7 critères :
 
 ---
 
-*Dernière mise à jour : 20 Janvier 2026 (Uniformisation Profil, Settings & Uploads)*
-*Version : 2.2 - Uniformisation Avancée*
+*Dernière mise à jour : 20 Janvier 2026 (Fix UX Chat, Terminology, Admin Layout & Bucket Consolidation)*
+*Version : 2.3 - Raffinement Premium Business & Sécurité Storage*

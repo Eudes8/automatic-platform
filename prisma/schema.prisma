@@ -38,20 +38,25 @@ enum InvoiceStatus {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  role      UserRole  @default(CLIENT)
-  projects  Project[]
-  messages  Message[]
-  conversations Conversation[] @relation("ConversationUsers")
-  invoices  Invoice[]
-  notifications Notification[]
-  adminActions AuditLog[] @relation("AdminActions")
-  clientTickets Ticket[] @relation("ClientTickets")
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String?
+  role            UserRole  @default(CLIENT)
+  phone           String?
+  companyName     String?
+  industry        String?
+  avatarUrl       String?
+  projects        Project[]
+  messages        Message[]
+  conversations   Conversation[] @relation("ConversationUsers")
+  invoices        Invoice[]
+  notifications   Notification[]
+  adminActions    AuditLog[] @relation("AdminActions")
+  clientTickets   Ticket[] @relation("ClientTickets")
   assignedTickets Ticket[] @relation("AssignedTickets")
   ticketResponses TicketResponse[]
-  createdAt DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 
   @@index([email])
 }
@@ -60,6 +65,9 @@ model Project {
   id              String        @id @default(cuid())
   title           String
   description     String?
+  category        String?       // Web App, Mobile, SaaS, AI, etc.
+  techStack       String[]      // Ex: ["Next.js", "Tailwind", "Supabase"]
+  timeline        String?       // Standard, Fast-Track, Emergency
   budget          Float?
   status          ProjectStatus @default(ONBOARDING)
   progress        Int           @default(0)
@@ -72,12 +80,71 @@ model Project {
   assets          Asset[]
   invoices        Invoice[]
   tickets         Ticket[]
+  requirements    Requirement[] // Nouveau: Cahier des charges collaboratif
   conversations   Conversation[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@index([clientId])
   @@index([status])
+  @@index([category])
+}
+
+enum RequirementStatus {
+  SUGGESTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum RequirementCategory {
+  FUNCTIONAL
+  TECHNICAL
+  DESIGN
+  SECURITY
+  PERFORMANCE
+  OTHER
+}
+
+model Requirement {
+  id          String            @id @default(cuid())
+  projectId   String
+  project     Project           @relation(fields: [projectId], references: [id])
+  title       String
+  description String            @db.Text
+  status      RequirementStatus @default(SUGGESTED)
+  category    RequirementCategory @default(OTHER)
+  statusHistory RequirementStatusHistory[]
+  createdBy   String            // ID de l'utilisateur qui a proposé
+  comments    RequirementComment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([projectId])
+}
+
+model RequirementComment {
+  id             String      @id @default(cuid())
+  requirementId  String
+  requirement    Requirement @relation(fields: [requirementId], references: [id])
+  authorId       String
+  text           String      @db.Text
+  attachments    String[]
+  createdAt      DateTime    @default(now())
+
+  @@index([requirementId])
+}
+
+model RequirementStatusHistory {
+  id            String            @id @default(cuid())
+  requirementId String
+  requirement   Requirement       @relation(fields: [requirementId], references: [id])
+  from          RequirementStatus?
+  to            RequirementStatus
+  changedBy     String
+  createdAt     DateTime          @default(now())
+  
+  @@index([requirementId])
 }
 
 model Contract {
@@ -138,17 +205,18 @@ model Asset {
 }
 
 model Invoice {
-  id        String        @id @default(cuid())
-  projectId String?
-  project   Project?      @relation(fields: [projectId], references: [id])
-  clientId  String
-  client    User          @relation(fields: [clientId], references: [id])
-  amount    Float
-  status    InvoiceStatus @default(DRAFT)
-  dueDate   DateTime
-  pdfUrl    String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  projectId   String?
+  project     Project?      @relation(fields: [projectId], references: [id])
+  clientId    String
+  client      User          @relation(fields: [clientId], references: [id])
+  amount      Float
+  description String?       @db.Text
+  status      InvoiceStatus @default(DRAFT)
+  dueDate     DateTime
+  pdfUrl      String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([clientId])
   @@index([projectId])
@@ -173,10 +241,15 @@ model AuditLog {
   adminId   String
   admin     User     @relation("AdminActions", fields: [adminId], references: [id])
   action    String
-  details   String?
+  entity    String?  // Quelle entité a été touchée (Project, User, etc.)
+  entityId  String?
+  details   String?  @db.Text
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
 
   @@index([adminId])
+  @@index([entity, entityId])
 }
 
 enum TicketStatus {

@@ -106,6 +106,16 @@ export default function InvoiceCRUDModal() {
                         </div>
                     </div>
 
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] italic ml-2">OBJET_DE_LA_FACTURE</label>
+                        <textarea
+                            name="description"
+                            rows={3}
+                            className="w-full bg-background border border-border/50 rounded-[1.5rem] p-6 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10 resize-none"
+                            placeholder="DÉTAILS DES SERVICES RENDUS..."
+                        />
+                    </div>
+
                     <div className="pt-6">
                         <button
                             disabled={loading}

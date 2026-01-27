@@ -35,7 +35,15 @@ export async function getClientProjects() {
                 client: true,
                 assets: true,
                 contracts: true,
-                invoices: true
+                invoices: true,
+                requirements: {
+                    include: {
+                        comments: {
+                            orderBy: { createdAt: 'asc' }
+                        }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                }
             },
             orderBy: {
                 createdAt: 'desc'

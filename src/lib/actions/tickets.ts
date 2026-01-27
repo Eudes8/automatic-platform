@@ -77,14 +77,23 @@ export async function createTicket(formData: FormData) {
     return { success: true, ticket };
 }
 
+import { logAdminAction } from "@/lib/utils/audit";
+
 export async function updateTicketStatus(ticketId: string, status: TicketStatus) {
-    await requireAdmin();
+    const admin = await requireAdmin();
 
     const ticket = await prisma.ticket.update({
         where: { id: ticketId },
         data: { status },
         include: { client: true }
     });
+
+    await logAdminAction(
+        "UPDATE_TICKET_STATUS",
+        `Statut du ticket "${ticket.title}" changé en ${status}`,
+        "TICKET",
+        ticketId
+    );
 
     // Notify client
     await prisma.notification.create({
@@ -100,13 +109,20 @@ export async function updateTicketStatus(ticketId: string, status: TicketStatus)
 }
 
 export async function assignTicket(ticketId: string, assignedToId: string) {
-    await requireAdmin();
+    const admin = await requireAdmin();
 
     const ticket = await prisma.ticket.update({
         where: { id: ticketId },
         data: { assignedToId },
         include: { client: true, assignedTo: true }
     });
+
+    await logAdminAction(
+        "ASSIGN_TICKET",
+        `Ticket "${ticket.title}" assigné à ${ticket.assignedTo?.name || assignedToId}`,
+        "TICKET",
+        ticketId
+    );
 
     // Notify assigned admin
     if (assignedToId) {

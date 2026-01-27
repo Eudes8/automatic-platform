@@ -38,7 +38,7 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
                 <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-inner">
                     <UploadCloud className="w-6 h-6" />
                 </div>
-                + DÉPLOYER_NOUVEL_ASSET
+                + AJOUTER UN LIVRABLE
             </button>
         );
     }
@@ -56,16 +56,16 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
             </button>
 
             <div className="mb-8">
-                <p className="text-[9px] text-primary/40 font-black uppercase tracking-[0.5em] italic mb-2">IO_TERMINAL // ASSET_DEPLOY</p>
-                <h4 className="text-xl font-black text-primary italic uppercase tracking-tighter">CONFIG_LIVRABLE.</h4>
+                <p className="text-[9px] text-primary/40 font-black uppercase tracking-[0.5em] italic mb-2">GESTIONNAIRE DES DOCUMENTS // AJOUT</p>
+                <h4 className="text-xl font-black text-primary italic uppercase tracking-tighter">PARAMÈTRES LIVRABLE.</h4>
             </div>
 
             <form onSubmit={handleUpload} className="space-y-8">
                 <div className="space-y-3">
-                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">NOM_LOGIQUE_UNITÉ</label>
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">NOM DU DOCUMENT</label>
                     <input
                         className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
-                        placeholder="IDENTITÉ_FILE..."
+                        placeholder="TITRE DU FICHIER..."
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
@@ -73,7 +73,7 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">XFER_SOURCE (MAX_10MB)</label>
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">SOURCE DU FICHIER (MAX 10MB)</label>
                     <div className="relative group">
                         <input
                             type="file"
@@ -87,18 +87,18 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
                         />
                         <div className="w-full bg-background border border-border/50 border-dashed group-hover:border-primary group-hover:bg-primary/5 rounded-[1.5rem] p-8 text-[10px] font-black uppercase italic tracking-widest text-secondary/40 flex flex-col items-center justify-center gap-4 transition-all duration-500">
                             <UploadCloud className="w-8 h-8 opacity-20 group-hover:opacity-100 transition-opacity" />
-                            <span>CLIQUEZ_POUR_INITIALISER_XFER</span>
+                            <span>CLIQUEZ POUR PARCOURIR</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">PROTOCOLE_TYPE</label>
+                    <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">TYPE DE LIVRABLE</label>
                     <div className="grid grid-cols-3 gap-4">
                         {[
-                            { id: 'pdf', label: 'PDF_DOC', icon: FileText },
-                            { id: 'code', label: 'CORE_XFER', icon: Code },
-                            { id: 'link', label: 'WEB_LINK', icon: Globe },
+                            { id: 'pdf', label: 'PDF', icon: FileText },
+                            { id: 'code', label: 'CODE', icon: Code },
+                            { id: 'link', label: 'LIEN', icon: Globe },
                         ].map(t => (
                             <div
                                 key={t.id}
@@ -117,7 +117,7 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
 
                 {type === 'link' && (
                     <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
-                        <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">EXTERNAL_NODE_URL</label>
+                        <label className="text-[9px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic leading-relaxed">ADRESSE URL EXTERNE</label>
                         <input
                             className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 outline-none transition-all duration-500 shadow-inner"
                             placeholder="HTTPS://..."
@@ -133,7 +133,7 @@ export default function AssetUploader({ projectId }: { projectId: string }) {
                 >
                     <div className="relative z-10 flex items-center gap-4">
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud size={18} />}
-                        {loading ? "TRANSFERT_EN_COURS..." : "PUBLIER_DANS_MAINFRAME"}
+                        {loading ? "ENVOI EN COURS..." : "PUBLIER LE LIVRABLE"}
                     </div>
                     {/* Scanline Effect inside button on hover */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover/submit:opacity-10 transition-opacity">

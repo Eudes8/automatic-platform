@@ -9,18 +9,22 @@ export async function createClientUser(formData: FormData) {
     const admin = await requireAdmin();
     const email = formData.get("email") as string;
     const name = formData.get("name") as string;
-    // In a real app we'd create auth user too, but here we just create database user record
-    // Assumes user will "claim" account via magic link or admin triggers auth creation elsewhere
+    const phone = formData.get("phone") as string;
+    const companyName = formData.get("companyName") as string;
+    const industry = formData.get("industry") as string;
 
     try {
-        await prisma.user.create({
+        const user = await prisma.user.create({
             data: {
                 email,
                 name,
+                phone,
+                companyName,
+                industry,
                 role: "CLIENT"
             }
         });
-        await logAdminAction("CREATE_USER", `Created user ${email} (${name})`);
+        await logAdminAction("CREATE_USER", `Created user ${email} (${name})`, "USER", user.id);
         revalidatePath("/admin/users");
         return { success: true };
     } catch (error) {
@@ -36,7 +40,7 @@ export async function deleteUser(userId: string) {
         await prisma.user.delete({
             where: { id: userId }
         });
-        await logAdminAction("DELETE_USER", `Deleted user ${user?.email || userId}`);
+        await logAdminAction("DELETE_USER", `Deleted user ${user?.email || userId}`, "USER", userId);
         revalidatePath("/admin/users");
         return { success: true };
     } catch (error) {
@@ -49,14 +53,24 @@ export async function updateUser(userId: string, formData: FormData) {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const role = formData.get("role") as string;
+    const phone = formData.get("phone") as string;
+    const companyName = formData.get("companyName") as string;
+    const industry = formData.get("industry") as string;
 
     try {
         const oldUser = await prisma.user.findUnique({ where: { id: userId } });
         await prisma.user.update({
             where: { id: userId },
-            data: { name, email, role: role as any }
+            data: {
+                name,
+                email,
+                role: role as any,
+                phone,
+                companyName,
+                industry
+            }
         });
-        await logAdminAction("UPDATE_USER", `Updated user ${oldUser?.email} to ${email} (${role})`);
+        await logAdminAction("UPDATE_USER", `Updated user ${oldUser?.email} to ${email} (${role})`, "USER", userId);
         revalidatePath("/admin/users");
         return { success: true };
     } catch (error) {

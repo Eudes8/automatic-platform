@@ -51,6 +51,27 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 🚀 Déploiement
+### Déploiement via GitHub & Vercel (Recommandé)
+
+1. **Créer un dépôt GitHub** : Créez un nouveau dépôt et poussez votre code :
+   ```bash
+   git remote add origin [URL_GITHUB]
+   git branch -M main
+   git add .
+   git commit -m "Initial commit: Ready for deployment"
+   git push -u origin main
+   ```
+
+2. **Connecter à Vercel** :
+   - Allez sur [Vercel](https://vercel.com) et cliquez sur **Add New > Project**.
+   - Importez votre dépôt GitHub `automatic-platform`.
+   - Configurez les **Environment Variables** sur Vercel à partir de votre fichier `.env`.
+   - Cliquez sur **Deploy**.
+
+3. **CI/CD Automatisé** :
+   Chaque `push` sur la branche `main` déclenchera automatiquement un build et un déploiement sur Vercel. Le fichier `.github/workflows/main.yml` configuré valide également le build sur GitHub.
+
 ## 📂 Documentation Future
 
 Pour plus de détails sur l'architecture technique, les flux de données et la structure des composants, veuillez consulter :

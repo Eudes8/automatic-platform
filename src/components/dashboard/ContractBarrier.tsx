@@ -31,7 +31,7 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                 <div className="relative z-10">
                     <div className="flex items-center justify-center gap-3 mb-8">
                         <Terminal className="w-5 h-5 text-accent animate-pulse" />
-                        <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">SÉCURITÉ_PROTOCOLE_V1</span>
+                        <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">ACCÈS SÉCURISÉ // DOCUMENTS LÉGAUX</span>
                     </div>
 
                     <div className="w-24 h-24 bg-primary/5 border border-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
@@ -39,12 +39,12 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                     </div>
 
                     <h2 className="text-4xl md:text-5xl font-black text-primary italic uppercase tracking-tighter mb-6 leading-tight">
-                        Validation <br /><span className="text-secondary/20">Obligatoire.</span>
+                        Signature <br /><span className="text-secondary/20">Requise.</span>
                     </h2>
 
                     <p className="text-secondary/60 text-lg mb-12 leading-relaxed font-medium italic">
-                        Pour activer votre siège virtuel et lancer le projet <span className="text-primary font-black not-italic">"{projectName}"</span>,
-                        vous devez signer électroniquement le contrat d'engagement.
+                        Afin d'accéder à votre espace de travail et lancer le projet <span className="text-primary font-black not-italic">"{projectName}"</span>,
+                        la signature du contrat de prestation est nécessaire.
                     </p>
 
                     <div className="bg-secondary/5 border border-secondary/5 rounded-3xl p-8 mb-12 text-left flex items-start gap-6">
@@ -52,9 +52,9 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                             <FileCheck className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h4 className="text-primary font-black text-[11px] uppercase tracking-widest mb-1 italic">Protection Bilatérale</h4>
+                            <h4 className="text-primary font-black text-[11px] uppercase tracking-widest mb-1 italic">Sécurisation du Partenariat</h4>
                             <p className="text-secondary/40 text-[11px] leading-relaxed font-bold uppercase tracking-wider">
-                                Ce contrat garantit vos délais, votre budget {budget ? `(${budget})` : ""} et la propriété intellectuelle de votre application dès la première ligne de code.
+                                Ce document définit les jalons de production, votre budget {budget ? `(${budget})` : ""} et garantit la protection de vos actifs intellectuels.
                             </p>
                         </div>
                     </div>
@@ -64,10 +64,10 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                             onClick={() => setIsSignerOpen(true)}
                             className="w-full py-6 bg-primary text-background font-black rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 uppercase tracking-[0.3em] group text-xs italic"
                         >
-                            Signer le contrat <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            Consulter et signer le contrat <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
                         <p className="text-[9px] text-secondary/20 font-black uppercase tracking-[0.4em] italic">
-                            // Transfert_Sécurisé_Actif // Chiffrement_AES_256
+                            // CONNEXION SÉCURISÉE // CERTIFICATION SSL ACTIVE
                         </p>
                     </div>
                 </div>

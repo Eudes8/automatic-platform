@@ -8,9 +8,10 @@ export const dynamic = 'force-dynamic';
 export default async function AdminUsersPage({
     searchParams
 }: {
-    searchParams: { page?: string }
+    searchParams: Promise<{ page?: string }>
 }) {
-    const page = parseInt(searchParams.page || "1");
+    const resolvedParams = await searchParams;
+    const page = parseInt(resolvedParams.page || "1");
     const { users, total, totalPages } = await getAllUsers(page);
 
     return (
@@ -19,7 +20,7 @@ export default async function AdminUsersPage({
                 <div>
                     <div className="flex items-center gap-3 mb-4">
                         <span className="w-10 h-px bg-primary/30" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">MONITORING_CLIENTS // DB_XFER</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">GESTION CLIENTÈLE // FICHIER CENTRAL</span>
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         CRM <span className="text-secondary/20">Clients.</span>
@@ -36,14 +37,14 @@ export default async function AdminUsersPage({
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary/20 group-focus-within:text-primary transition-colors duration-500" />
                         <input
                             type="text"
-                            placeholder="XFER_FIND: Rechercher un identifiant client..."
+                            placeholder="Rechercher un client ou une entreprise..."
                             className="w-full bg-background border border-border/50 rounded-[1.5rem] py-5 pl-16 pr-6 text-xs text-primary focus:outline-none focus:border-primary/50 focus:ring-8 focus:ring-primary/5 transition-all duration-500 font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
                         />
                     </div>
                     <div className="flex items-center gap-4 px-6 border-l border-border/50 hidden md:flex">
                         <div className="flex flex-col items-end">
-                            <span className="text-[8px] font-black text-secondary/20 uppercase tracking-widest italic">TOTAL_RECORDS</span>
-                            <span className="text-sm font-black text-primary italic">{total} NODES</span>
+                            <span className="text-[8px] font-black text-secondary/20 uppercase tracking-widest italic">TOTAL_DOSSIERS</span>
+                            <span className="text-sm font-black text-primary italic">{total} CLIENTS</span>
                         </div>
                     </div>
                 </div>
@@ -52,15 +53,16 @@ export default async function AdminUsersPage({
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-secondary/5 text-secondary/40 text-[9px] font-black uppercase tracking-[0.2em] italic">
-                                <th className="p-10">UNIT_IDENTITY</th>
-                                <th className="p-10">ACCESS_LEVEL</th>
-                                <th className="p-10">DEPLOYED_NODES</th>
-                                <th className="p-10">TIMESTAMP_ENTRY</th>
-                                <th className="p-10 text-right">OPERATIONS</th>
+                                <th className="p-10">IDENTITÉ CLIENT</th>
+                                <th className="p-10">ENTREPRISE / SECTEUR</th>
+                                <th className="p-10">NIVEAU D'ACCÈS</th>
+                                <th className="p-10">PROJETS</th>
+                                <th className="p-10">INSCRIPTION</th>
+                                <th className="p-10 text-right">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/20">
-                            {users.map((user) => (
+                            {users.map((user: any) => (
                                 <tr key={user.id} className="hover:bg-primary/[0.02] transition-all duration-500 group/row">
                                     <td className="p-10">
                                         <div className="flex items-center gap-6">
@@ -68,12 +70,16 @@ export default async function AdminUsersPage({
                                                 {user.name ? user.name[0].toUpperCase() : <User className="w-4 h-4" />}
                                             </div>
                                             <div>
-                                                <p className="font-black text-primary text-sm uppercase italic tracking-tight">{user.name || "UNIDENTIFIED_ENTITY"}</p>
+                                                <p className="font-black text-primary text-sm uppercase italic tracking-tight">{user.name || "CLIENT NON IDENTIFIÉ"}</p>
                                                 <div className="flex items-center gap-2 text-secondary/40 text-[10px] font-bold uppercase tracking-widest mt-1">
                                                     <Mail className="w-3 h-3 opacity-30" /> {user.email}
                                                 </div>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="p-10">
+                                        <p className="font-black text-secondary text-[11px] uppercase italic tracking-tight">{user.companyName || "INDÉPENDANT"}</p>
+                                        <p className="text-[9px] font-bold text-secondary/40 uppercase tracking-widest mt-1">{user.industry || "N/A"}</p>
                                     </td>
                                     <td className="p-10">
                                         <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border italic ${user.role === "ADMIN"
@@ -85,10 +91,10 @@ export default async function AdminUsersPage({
                                     </td>
                                     <td className="p-10">
                                         <div className="flex items-center gap-3">
-                                            {user.projects.length > 0 ? (
+                                            {user.projects && user.projects.length > 0 ? (
                                                 <>
                                                     <div className="flex -space-x-3">
-                                                        {user.projects.slice(0, 3).map((_, i) => (
+                                                        {user.projects.slice(0, 3).map((_: any, i: number) => (
                                                             <div key={i} className="w-8 h-8 rounded-lg bg-primary border-2 border-white shadow-lg" />
                                                         ))}
                                                         {user.projects.length > 3 && (
@@ -97,10 +103,10 @@ export default async function AdminUsersPage({
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <span className="text-secondary/20 font-black text-[9px] uppercase tracking-widest italic">{user.projects.length} UNITS</span>
+                                                    <span className="text-secondary/20 font-black text-[9px] uppercase tracking-widest italic">{user.projects.length} UNITÉS</span>
                                                 </>
                                             ) : (
-                                                <span className="text-secondary/10 font-black text-[9px] uppercase tracking-widest italic opacity-50">// ZERO_ACTIVE</span>
+                                                <span className="text-secondary/10 font-black text-[9px] uppercase tracking-widest italic opacity-50">// AUCUN PROJET</span>
                                             )}
                                         </div>
                                     </td>
@@ -142,8 +148,8 @@ export default async function AdminUsersPage({
                                             key={pageNum}
                                             href={`/admin/users?page=${pageNum}`}
                                             className={`w-10 h-10 flex items-center justify-center rounded-xl text-[10px] font-black italic transition-all ${pageNum === page
-                                                    ? "bg-primary text-background shadow-xl shadow-primary/20 scale-110"
-                                                    : "bg-white border border-border/50 text-secondary/40 hover:text-primary"
+                                                ? "bg-primary text-background shadow-xl shadow-primary/20 scale-110"
+                                                : "bg-white border border-border/50 text-secondary/40 hover:text-primary"
                                                 }`}
                                         >
                                             {pageNum}

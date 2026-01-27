@@ -3,9 +3,16 @@ import { createClient } from "@supabase/supabase-js";
 
 // Use Service Role Key for backend storage operations to bypass RLS if needed, or normal client if RLS is set up.
 // Generally for Admin upload, Service Role is safer/easier.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseServiceKey) {
+    console.error("❌ [Storage] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing! Uploads will fail.");
+}
+
 const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!,
+    supabaseUrl,
+    supabaseServiceKey!, // On force l'usage de la clé service
     {
         auth: {
             autoRefreshToken: false,

@@ -39,22 +39,34 @@ export default function ContractSigner({
     const articles = getContractArticles(projectName, description, budget, clientName);
     const currentDate = new Date().toLocaleDateString("fr-FR", { year: 'numeric', month: 'long', day: 'numeric' });
 
+    const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
+
     const clear = () => {
         sigCanvas.current?.clear();
         setSigned(false);
+        setIsCanvasEmpty(true);
     };
 
     const save = async () => {
         if (sigCanvas.current?.isEmpty()) return;
         const signatureData = sigCanvas.current?.getTrimmedCanvas().toDataURL("image/png");
         if (signatureData) {
-            const pdfBytes = await generateProjectContract(projectName, clientName, budget, signatureData, projectId, description);
-            const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
-            downloadBlob(blob, `Contrat_AUTOMATIC_${projectName.replace(/\s+/g, "_")}.pdf`);
+            try {
+                setIsProcessing(true);
+                const pdfBytes = await generateProjectContract(projectName, clientName, budget, signatureData, projectId, description);
+                const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
+                downloadBlob(blob, `Contrat_AUTOMATIC_${projectName.replace(/\s+/g, "_")}.pdf`);
 
-            onSign(signatureData);
-            setSigned(true);
-            setTimeout(onClose, 1500);
+                await onSign(signatureData);
+                setSigned(true);
+                setTimeout(onClose, 2000);
+            } catch (error) {
+                console.error("Erreur lors de la signature:", error);
+                alert("Une erreur est survenue lors de la génération du contrat.");
+            } finally {
+                setIsProcessing(false);
+            }
         }
     };
 
@@ -129,7 +141,7 @@ export default function ContractSigner({
                         </div>
 
                         {/* RIGHT: Action Panel */}
-                        <div className="w-full md:w-[400px] bg-white flex flex-col relative z-20 shadow-xl shrink-0 border-l border-slate-100">
+                        <div className="w-full md:w-[400px] bg-white flex flex-col relative z-20 shadow-xl shrink-0 border-l border-slate-100 p-10">
                             {/* Close Button */}
                             <button onClick={onClose} className="absolute top-6 right-6 p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-900 transition-colors">
                                 <X size={20} />
@@ -139,9 +151,9 @@ export default function ContractSigner({
                                 <div className="w-20 h-20 rounded-[1.5rem] bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shadow-inner mb-8">
                                     <PenTool size={36} />
                                 </div>
-                                <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter mb-4">Finalisation.</h3>
+                                <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter mb-4">Signature.</h3>
                                 <p className="text-secondary/60 text-xs leading-relaxed font-medium uppercase tracking-widest italic opacity-80">
-                                    Veuillez apposer votre signature ci-dessous pour valider les protocoles opératoires et lancer la séquence d'exécution.
+                                    Veuillez apposer votre signature ci-dessous pour valider votre engagement et lancer la production.
                                 </p>
                             </div>
 
@@ -153,18 +165,26 @@ export default function ContractSigner({
                                             canvasProps={{
                                                 className: "w-full h-56 cursor-crosshair bg-transparent",
                                             }}
-                                            onBegin={() => setSigned(false)}
+                                            onBegin={() => {
+                                                setSigned(false);
+                                                setIsCanvasEmpty(false);
+                                            }}
+                                            onEnd={() => {
+                                                setIsCanvasEmpty(sigCanvas.current?.isEmpty() ?? true);
+                                            }}
                                         />
                                     ) : (
-                                        <div className="h-56 flex flex-col items-center justify-center text-emerald-600 bg-emerald-500/5">
-                                            <Check className="w-16 h-16 mb-4 animate-bounce" />
-                                            <p className="font-black uppercase tracking-[0.4em] text-[10px] italic">SIGNATURE_VALIDÉE</p>
+                                        <div className="h-56 flex flex-col items-center justify-center text-emerald-600 bg-emerald-500/5 animate-in fade-in zoom-in duration-500">
+                                            <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+                                                <Check className="w-8 h-8 animate-bounce" />
+                                            </div>
+                                            <p className="font-black uppercase tracking-[0.4em] text-[10px] italic">CONTRAT SIGNÉ AVEC SUCCÈS</p>
                                         </div>
                                     )}
 
                                     {!signed && (
                                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-secondary/10 font-black uppercase text-5xl -rotate-12 select-none tracking-widest italic">SIGNER_ICI</span>
+                                            <span className="text-secondary/10 font-black uppercase text-4xl -rotate-12 select-none tracking-widest italic">SIGNER ICI</span>
                                         </div>
                                     )}
                                 </div>
@@ -172,20 +192,22 @@ export default function ContractSigner({
                                 <div className="flex gap-6">
                                     <button
                                         onClick={clear}
-                                        disabled={signed}
+                                        disabled={signed || isProcessing}
                                         className="flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-secondary/30 hover:bg-secondary/5 hover:text-primary disabled:opacity-30 transition-all italic"
                                     >
-                                        EFFACER_BUFFER
+                                        EFFACER
                                     </button>
                                     <button
                                         onClick={save}
-                                        disabled={!sigCanvas.current || (sigCanvas.current.isEmpty() && !signed)}
+                                        disabled={isCanvasEmpty || isProcessing}
                                         className="flex-[2] py-5 rounded-2xl bg-primary hover:scale-[1.02] active:scale-[0.98] text-background text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 disabled:grayscale disabled:opacity-50 transition-all flex items-center justify-center gap-3 italic"
                                     >
-                                        {signed ? (
-                                            <>VALIDE_OK <Check size={14} /></>
+                                        {isProcessing ? (
+                                            <>TRAITEMENT... <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
+                                        ) : signed ? (
+                                            <>VOTRE COPIE EST PRÊTE <Download size={14} /></>
                                         ) : (
-                                            <>CONFIRMER_SIGN <ChevronDown size={14} className="-rotate-90" /></>
+                                            <>CONFIRMER LA SIGNATURE <ChevronDown size={14} className="-rotate-90" /></>
                                         )}
                                     </button>
                                 </div>
@@ -195,8 +217,8 @@ export default function ContractSigner({
                                 <div className="flex items-center gap-4">
                                     <Shield size={20} className="text-primary/20" />
                                     <p className="text-[9px] text-secondary/40 leading-relaxed font-black uppercase tracking-[0.2em] italic">
-                                        CRYPTAGE//AES_256_ACTIVE//CONFORME_L2024<br />
-                                        ORIGINE: AUTOMATIC_ABIDJAN_MAIN_NODE
+                                        SÉCURISATION DES DONNÉES PAR CHIFFREMENT AVANCÉ<br />
+                                        ORIGINE : AUTOMATIC ABIDJAN HUB
                                     </p>
                                 </div>
                             </div>

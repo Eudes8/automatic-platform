@@ -1,14 +1,17 @@
 import { getProjectDetails } from "@/lib/actions/adminProjectOps";
+import { getCurrentUser } from "@/lib/actions/users";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Calendar, User, CreditCard, Clock, FileText, Globe, Code } from "lucide-react";
+import { ChevronLeft, Calendar, User, CreditCard, Clock, FileText, Globe, Code, Briefcase } from "lucide-react";
 import Link from "next/link";
 import SmsSender from "@/components/admin/projects/SmsSender";
-import AssetUploader from "@/components/admin/projects/AssetUploader";
+import AdvancedUploader from "@/components/admin/projects/AdvancedUploader";
+import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminProjectDetails({ params }: { params: { id: string } }) {
+export default async function AdminProjectDetails({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const adminUser = await getCurrentUser();
     const project = await getProjectDetails(id);
 
     if (!project) return notFound();
@@ -68,6 +71,18 @@ export default async function AdminProjectDetails({ params }: { params: { id: st
                         </div>
                     </div>
 
+                    {/* Requirements / Cahier des Charges */}
+                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
+                        <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-amber-500" /> Cahier des Charges Collaboratif
+                        </h3>
+                        <RequirementWorkspace
+                            projectId={project.id}
+                            initialRequirements={(project as any).requirements || []}
+                            currentUser={adminUser}
+                        />
+                    </div>
+
                     {/* Deliverables Management */}
                     <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
                         <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest flex items-center gap-2">
@@ -88,7 +103,7 @@ export default async function AdminProjectDetails({ params }: { params: { id: st
                                 ))
                             )}
                         </div>
-                        <AssetUploader projectId={project.id} />
+                        <AdvancedUploader projectId={project.id} />
                     </div>
                 </div>
 
