@@ -16,6 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://automatic.com'),
   title: {
     default: "AUTOMATIC | Boutique d'Ingénierie Digitale Premium",
     template: "%s | AUTOMATIC"
