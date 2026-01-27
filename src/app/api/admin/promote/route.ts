@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const email = "automaticbmje@gmail.com";
 
