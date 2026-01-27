@@ -25,8 +25,11 @@ import {
     updateRequirementStatus,
     getProjectRequirements
 } from "@/lib/actions/requirements";
-import { RequirementStatus, RequirementCategory } from "@prisma/client";
 import { cn } from "@/lib/utils";
+
+// Define local types to avoid importing from @prisma/client in client component
+type RequirementStatus = 'SUGGESTED' | 'APPROVED' | 'REJECTED' | 'IN_PROGRESS' | 'DONE';
+type RequirementCategory = 'FUNCTIONAL' | 'TECHNICAL' | 'DESIGN' | 'MARKETING' | 'SECURITY' | 'OTHER';
 import { toast } from "sonner";
 import { estimateBudget } from "@/lib/utils/budgetEstimator";
 import { generateApprovedRequirementsPDF } from "@/lib/utils/pdf-requirements";
