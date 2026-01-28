@@ -55,7 +55,7 @@ export default function ContractSigner({
             try {
                 setIsProcessing(true);
                 const pdfBytes = await generateProjectContract(projectName, clientName, budget, signatureData, projectId, description);
-                const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
+                const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
                 downloadBlob(blob, `Contrat_AUTOMATIC_${projectName.replace(/\s+/g, "_")}.pdf`);
 
                 await onSign(signatureData);
