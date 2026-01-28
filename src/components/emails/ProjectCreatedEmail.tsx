@@ -42,7 +42,7 @@ export const ProjectCreatedEmail: React.FC<Readonly<ProjectEmailProps>> = ({
                 {estimate}€
             </p>
             <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>
-                Projet : {projectName}
+                Project : {projectName}
             </p>
         </div>
         <p style={{ color: '#94a3b8', fontSize: '14px' }}>

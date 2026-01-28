@@ -53,7 +53,7 @@ export async function createInvoice(formData: FormData) {
 
         await logAdminAction(
             "CREATE_INVOICE",
-            `Facture d'un montant de ${amount} CFA générée pour le projet "${project.title}"`,
+            `Invoice d'un montant de ${amount} CFA générée pour le projet "${project.title}"`,
             "INVOICE",
             invoice.id
         );

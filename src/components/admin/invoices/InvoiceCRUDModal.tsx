@@ -59,7 +59,7 @@ export default function InvoiceCRUDModal() {
                         <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.5em] italic">FINANCE_TERMINAL // V2.4</p>
                     </div>
                     <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-none">
-                        INITIALISER <span className="text-secondary/20">Facture.</span>
+                        INITIALISER <span className="text-secondary/20">Invoice.</span>
                     </h3>
                     <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.3em] mt-3 italic">
                         // GÉNÉRATION_D_IMAGE_DISK_FINANCIÈRE.

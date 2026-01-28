@@ -24,7 +24,7 @@ export default function InvoiceGenerator({ projectId }: { projectId: string }) {
                 onClick={() => setIsOpen(true)}
                 className="w-full py-4 border border-dashed border-slate-700 rounded-xl text-slate-500 font-bold uppercase text-xs tracking-widest hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2"
             >
-                <Plus className="w-4 h-4" /> Nouvelle Facture
+                <Plus className="w-4 h-4" /> Nouvelle Invoice
             </button>
         );
     }
@@ -35,7 +35,7 @@ export default function InvoiceGenerator({ projectId }: { projectId: string }) {
                 <X className="w-4 h-4" />
             </button>
             <h4 className="text-white font-bold mb-4 uppercase text-xs tracking-widest flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-500" /> Générer Facture
+                <FileText className="w-4 h-4 text-blue-500" /> Générer Invoice
             </h4>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

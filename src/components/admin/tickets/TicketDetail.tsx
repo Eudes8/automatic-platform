@@ -238,7 +238,7 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                             </div>
                             {ticket.project && (
                                 <div>
-                                    <span className="font-medium">Projet:</span> {ticket.project.title}
+                                    <span className="font-medium">Project:</span> {ticket.project.title}
                                 </div>
                             )}
                         </CardContent>

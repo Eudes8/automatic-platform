@@ -23,7 +23,7 @@ export default function ContractSigner({
     onSign,
     isOpen,
     onClose,
-    projectName = "Projet en cours",
+    projectName = "Project en cours",
     clientName = "Client",
     budget = "Non spécifié",
     projectId = "UNKNOWN",

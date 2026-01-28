@@ -26,7 +26,7 @@ export default function OnboardingSuccess() {
 
                 <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/40 mb-4 italic">Confirmation_Système</h2>
                 <h1 className="text-6xl md:text-7xl font-heading font-black text-primary uppercase tracking-tighter leading-tight mb-8 italic">
-                    Projet <span className="text-blue-500 leading-none">Amorcé.</span>
+                    Project <span className="text-blue-500 leading-none">Amorcé.</span>
                 </h1>
 
                 <p className="text-xl text-secondary font-medium mb-16 max-w-xl mx-auto leading-relaxed">

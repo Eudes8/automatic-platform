@@ -46,12 +46,12 @@ export async function createProject(formData: FormData) {
             action: "CREATE_PROJECT",
             entity: "PROJECT",
             entityId: project.id,
-            details: `Projet "${title}" créé pour ${client.name} (${clientEmail}). Catégorie: ${category}, Budget: ${budget} CFA.`
+            details: `Project "${title}" créé pour ${client.name} (${clientEmail}). Catégorie: ${category}, Budget: ${budget} CFA.`
         });
 
         await createAdminNotification(
-            "Nouveau Projet",
-            `Projet "${title}" créé pour ${client.name}`,
+            "Nouveau Project",
+            `Project "${title}" créé pour ${client.name}`,
             `/admin/projects/${project.id}`
         );
         revalidatePath("/admin/projects");

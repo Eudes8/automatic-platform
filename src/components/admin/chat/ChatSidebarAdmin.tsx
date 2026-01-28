@@ -265,7 +265,7 @@ export default function ChatSidebarAdmin({ projectId }: { projectId?: string }) 
                     <div>
                         <h4 className="font-heading font-bold text-white tracking-tight text-sm sm:text-base">Support Admin</h4>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Conversation Projet</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Conversation Project</p>
                         </div>
                     </div>
                 </div>

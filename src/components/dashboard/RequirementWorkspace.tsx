@@ -147,7 +147,7 @@ export default function RequirementWorkspace({
         try {
             toast.promise(
                 async () => {
-                    const pdfBytes = await generateApprovedRequirementsPDF("Projet", requirements, projectId);
+                    const pdfBytes = await generateApprovedRequirementsPDF("Project", requirements, projectId);
                     // Use any to bypass strict SharedArrayBuffer checks in certain environments
                     const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
                     downloadBlob(blob, `Cahier_Des_Charges_Valide_${projectId.slice(-4)}.pdf`);

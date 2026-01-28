@@ -215,7 +215,7 @@ export default function ProjectBuilder() {
                                                 <span className="w-10 h-[1px] bg-accent" />
                                                 <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">IDENT_NAMESPACE</span>
                                             </div>
-                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Nom du <span className="text-secondary/20">Projet.</span></h2>
+                                            <h2 className="text-6xl md:text-8xl font-black text-primary tracking-tighter mb-6 uppercase italic leading-none">Nom du <span className="text-secondary/20">Project.</span></h2>
                                             <p className="text-secondary/60 text-lg font-medium max-w-xl italic">Comment souhaitez-vous appeler votre mission ?</p>
                                         </div>
                                         <div className="space-y-6">
@@ -435,7 +435,7 @@ export default function ProjectBuilder() {
 
                         <div className="space-y-10">
                             <div className="space-y-2">
-                                <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] italic">// Projet</p>
+                                <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] italic">// Project</p>
                                 <p className="text-2xl font-black text-primary uppercase italic tracking-tighter truncate">{formData.projectTitle || "NON DÉFINI"}</p>
                             </div>
 

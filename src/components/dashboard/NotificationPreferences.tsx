@@ -39,7 +39,7 @@ export default function NotificationPreferences({ initialPrefs }: NotificationPr
     }
 
     const channels = [
-        { key: "projectReports", label: "Rapports de Projet", desc: "Suivi hebdomadaire et jalons franchis.", icon: Mail, color: "text-blue-500" },
+        { key: "projectReports", label: "Rapports de Project", desc: "Suivi hebdomadaire et jalons franchis.", icon: Mail, color: "text-blue-500" },
         { key: "techSupport", label: "Assistance Technique", desc: "Réponses à vos tickets et discussions.", icon: Shield, color: "text-primary" },
         { key: "systemAlerts", label: "Alertes Système", desc: "Statut des serveurs et mises à jour critiques.", icon: Tablet, color: "text-amber-500" },
         { key: "marketing", label: "News & Releases", desc: "Nouvelles fonctionnalités et offres exclusives.", icon: Info, color: "text-emerald-500" },

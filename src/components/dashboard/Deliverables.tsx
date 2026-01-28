@@ -22,7 +22,7 @@ interface DeliverablesProps {
 
 export default function Deliverables({
     projectId,
-    projectName = "Projet",
+    projectName = "Project",
     projectAssets = [],
     contracts = [],
     invoices = [],
@@ -73,7 +73,7 @@ export default function Deliverables({
                 })),
                 ...invoices.map(inv => ({
                     id: inv.id,
-                    name: `Facture ${inv.id.slice(-6).toUpperCase()}`,
+                    name: `Invoice ${inv.id.slice(-6).toUpperCase()}`,
                     type: "invoice" as const,
                     href: inv.pdfUrl,
                     status: inv.status

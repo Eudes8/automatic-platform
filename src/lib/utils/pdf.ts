@@ -237,7 +237,7 @@ export async function generateProjectContract(
         },
         {
             title: "ARTICLE 10 : ANNEXES",
-            content: `La présente convention inclut les annexes ci-après, qui en font partie intégrante :\n- Annexe n°1 : Le détail technique du projet "${projectName}" (tel que défini dans la plateforme).\n- Annexe n°2 : La proposition financière / Facture pro-forma.`
+            content: `La présente convention inclut les annexes ci-après, qui en font partie intégrante :\n- Annexe n°1 : Le détail technique du projet "${projectName}" (tel que défini dans la plateforme).\n- Annexe n°2 : La proposition financière / Invoice pro-forma.`
         }
     ];
 

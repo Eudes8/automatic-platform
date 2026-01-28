@@ -13,7 +13,7 @@ interface BillingHistoryProps {
 export default function BillingHistory({ invoices }: BillingHistoryProps) {
     const handleDownload = async (url: string | null, id: string) => {
         if (!url) {
-            toast.error("Facture indisponible");
+            toast.error("Invoice indisponible");
             return;
         }
 

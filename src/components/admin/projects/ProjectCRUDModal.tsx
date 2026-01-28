@@ -50,7 +50,7 @@ export default function ProjectCRUDModal() {
                         <span className="w-12 h-px bg-primary/20" />
                         <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">DEPLOY_CONFIG_NODE_V4</span>
                     </div>
-                    <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">Nouveau Projet.</h3>
+                    <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">Nouveau Project.</h3>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">

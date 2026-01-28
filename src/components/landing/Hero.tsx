@@ -89,7 +89,7 @@ export default function Hero() {
               {/* Glint effect */}
               <div className="absolute inset-0 w-1/4 h-full bg-white/20 -skew-x-[45deg] animate-glint" />
 
-              Initialiser le Projet
+              Initialiser le Project
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
 
