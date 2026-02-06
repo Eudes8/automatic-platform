@@ -59,7 +59,7 @@ export default function RootLayout({
           <Toaster
             position="bottom-right"
             toastOptions={{
-              className: "glass-premium rounded-2xl border-premium p-4 font-bold text-xs uppercase tracking-widest",
+              className: "glass-premium rounded-2xl border-premium p-3 sm:p-4 font-bold text-[10px] sm:text-xs uppercase tracking-widest max-w-[90vw] sm:max-w-md",
             }}
           />
           {children}

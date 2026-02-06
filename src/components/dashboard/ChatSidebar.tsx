@@ -330,14 +330,14 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                 <div className="flex items-center gap-5">
                     <div className="relative">
                         <div className="w-12 h-12 rounded-[1.5rem] bg-primary text-background flex items-center justify-center shadow-2xl shadow-primary/20">
-                            <Zap size={20} className="animate-pulse" />
+                            <MessageSquare size={20} />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-background rounded-full shadow-inner" />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-background rounded-full" />
                     </div>
                     <div>
-                        <h4 className="font-heading font-black text-primary tracking-tighter text-lg uppercase italic">ASSISTANCE_TECHNIQUE</h4>
+                        <h4 className="font-bold text-primary tracking-tight text-lg">Support Client</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.3em] italic">AGENT_EN_LIGNE // CANAL_SÉCURISÉ</span>
+                            <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">En ligne</span>
                         </div>
                     </div>
                 </div>
@@ -359,10 +359,10 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/30 w-4 h-4" />
                             <input
                                 type="text"
-                                placeholder="XFER_FIND: Rechercher messages..."
+                                placeholder="Rechercher un message..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-background border border-border/50 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest outline-none focus:border-primary/30 transition-all italic shadow-inner"
+                                className="w-full pl-12 pr-4 py-4 bg-background border border-border/50 rounded-[1.2rem] text-sm font-medium outline-none focus:border-primary/30 transition-all shadow-inner"
                             />
                         </div>
                     </motion.div>
@@ -379,10 +379,10 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                     </div>
                 ) : filteredMessages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                        <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center mb-8 border border-primary/10 shadow-inner">
+                        <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center mb-8 border border-primary/10">
                             <MessageSquare size={32} className="text-secondary/20" />
                         </div>
-                        <p className="text-[10px] text-secondary/40 font-black uppercase tracking-[0.5em] italic">// AUCUN_HISTORIQUE_XFER</p>
+                        <p className="text-sm text-secondary/40 font-bold uppercase tracking-widest">Aucun message</p>
                     </div>
                 ) : (
                     <>
@@ -398,9 +398,9 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             return (
                                 <div key={msg.id} className="flex flex-col">
                                     {isFirstInDay && (
-                                        <div className="flex justify-center my-10">
-                                            <span className="text-[9px] bg-secondary/5 text-secondary/40 px-6 py-2 rounded-full font-black uppercase tracking-[0.3em] border border-border/50 italic">
-                                                {isToday(messageTime) ? "JOUR_ACTUEL" : isYesterday(messageTime) ? "VEILLE_LOG" : format(messageTime, "dd_MM_yyyy", { locale: fr })}
+                                        <div className="flex justify-center my-8">
+                                            <span className="text-[10px] bg-secondary/5 text-secondary/40 px-6 py-2 rounded-full font-bold uppercase tracking-widest border border-border/50">
+                                                {isToday(messageTime) ? "Aujourd'hui" : isYesterday(messageTime) ? "Hier" : format(messageTime, "dd MMMM yyyy", { locale: fr })}
                                             </span>
                                         </div>
                                     )}
@@ -413,16 +413,16 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                                         <div className={`flex gap-4 max-w-[85%] ${isClient ? "flex-row-reverse" : ""}`}>
                                             <div className={`w-10 h-10 flex-shrink-0 flex items-end ${!isLastInGroup ? 'invisible' : ''}`}>
                                                 <div className={cn(
-                                                    "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.1em] italic shadow-inner border border-border/50",
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-bold uppercase tracking-widest border border-border/50 shadow-sm",
                                                     isClient ? "bg-primary text-background" : "bg-white text-primary"
                                                 )}>
-                                                    {isClient ? "VOUS" : "SUPPORT"}
+                                                    {isClient ? "Moi" : "Staff"}
                                                 </div>
                                             </div>
 
                                             <div className={`flex flex-col gap-1.5 ${isClient ? "items-end" : "items-start"}`}>
                                                 {!isClient && isFirstInGroup && (
-                                                    <span className="text-[9px] text-secondary/30 font-black ml-1 uppercase tracking-[0.3em] italic">// AUTOMATIC_AGENT</span>
+                                                    <span className="text-[10px] text-secondary/30 font-bold ml-1 uppercase tracking-widest">Support Automatic</span>
                                                 )}
 
                                                 <div className={cn(
@@ -436,8 +436,8 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                                                             "text-xs mb-3 p-3 rounded-xl border-l-4 shadow-inner",
                                                             isClient ? "bg-black/10 border-white/20" : "bg-card/30 border-primary/20"
                                                         )}>
-                                                            <p className="text-[8px] font-black uppercase tracking-widest italic opacity-50 mb-1">RÉPONSE_MESSAGE:</p>
-                                                            <p className="line-clamp-2 italic opacity-80 text-xs">{msg.replyTo}</p>
+                                                            <p className="text-[8px] font-bold uppercase tracking-widest opacity-50 mb-1">En réponse à :</p>
+                                                            <p className="line-clamp-2 text-xs">{msg.replyTo}</p>
                                                         </div>
                                                     )}
 
@@ -456,8 +456,8 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                                                                     <File size={18} />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="font-black text-[10px] uppercase tracking-wider truncate italic">{msg.attachment.name}</p>
-                                                                    <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black uppercase tracking-[0.1em] opacity-40 hover:opacity-100 italic transition-opacity">DATA_FETCH_OK</a>
+                                                                    <p className="font-bold text-[10px] uppercase tracking-wider truncate">{msg.attachment.name}</p>
+                                                                    <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors">Ouvrir le fichier</a>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -504,7 +504,7 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.2s]" />
                             <span className="w-1.5 h-1.5 bg-primary/30 rounded-full animate-bounce [animation-delay:0.4s]" />
                         </div>
-                        <p className="text-[9px] text-secondary/40 font-black uppercase tracking-[0.3em] italic">UN AGENT VOUS RÉPOND...</p>
+                        <p className="text-[9px] text-secondary/40 font-bold uppercase tracking-widest">Quelqu'un vous répond...</p>
                     </div>
                 </div>
             )}
@@ -516,8 +516,8 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                         <div className="flex items-center gap-4 overflow-hidden">
                             <Reply className="text-primary/40 shrink-0" size={16} />
                             <div className="min-w-0">
-                                <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.3em] italic">RÉPONSE_AUX_LOGS</p>
-                                <p className="text-xs text-primary/80 truncate italic line-clamp-1">{replyingTo.text}</p>
+                                <p className="text-[9px] font-bold text-primary/40 uppercase tracking-widest">Répondre au message</p>
+                                <p className="text-xs text-primary/80 truncate line-clamp-1">{replyingTo.text}...</p>
                             </div>
                         </div>
                         <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-secondary/5 rounded-lg text-secondary/40 transition-colors"><X size={16} /></button>
@@ -543,8 +543,8 @@ export default function ChatSidebar({ projectId }: { projectId?: string }) {
                             <Paperclip size={20} />
                         </button>
                         <textarea
-                            placeholder="COMM_XFER: Encodez votre message..."
-                            className="bg-transparent border-none outline-none flex-1 text-sm text-primary placeholder:text-secondary/20 font-bold leading-relaxed resize-none min-h-[44px] max-h-48 py-3 italic"
+                            placeholder="Écrivez votre message ici..."
+                            className="bg-transparent border-none outline-none flex-1 text-sm text-primary placeholder:text-secondary/20 font-bold leading-relaxed resize-none min-h-[44px] max-h-48 py-3"
                             value={input}
                             onChange={(e) => {
                                 setInput(e.target.value);

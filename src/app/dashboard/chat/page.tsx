@@ -39,8 +39,8 @@ export default function ChatPage() {
                 <div className="w-24 h-24 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-center mb-8 shadow-inner">
                     <MessageSquare size={48} className="text-secondary/20" />
                 </div>
-                <h1 className="text-5xl font-heading font-black text-primary mb-6 italic uppercase tracking-tighter">Aucun canal_actif.</h1>
-                <p className="text-secondary/40 max-w-md font-black uppercase text-[10px] tracking-[0.4em] italic leading-relaxed">// Initialiser_Protocole_Projet pour ouvrir un canal de communication technique.</p>
+                <h1 className="text-5xl font-heading font-black text-primary mb-6 italic uppercase tracking-tighter">Aucune discussion.</h1>
+                <p className="text-secondary/40 max-w-md font-black uppercase text-[10px] tracking-[0.2em] italic leading-relaxed">Démarrez un projet pour ouvrir un canal de communication avec notre équipe.</p>
             </div>
         );
     }
@@ -63,8 +63,7 @@ export default function ChatPage() {
             <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
                 <div>
                     <div className="flex items-center gap-4 mb-6">
-                        <span className="text-accent font-black uppercase text-[10px] tracking-[0.5em] inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 animate-pulse italic shadow-inner">// Session_Sécurisée.Active</span>
-                        <span className="text-secondary/20 font-black text-[10px] uppercase tracking-[0.3em] italic">/ CHIFFREMENT_E2E_ACTIF</span>
+                        <span className="text-accent font-black uppercase text-[10px] tracking-[0.2em] inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 animate-pulse italic shadow-inner">Session sécurisée</span>
                     </div>
                     <h1 className="text-6xl md:text-8xl font-heading font-black text-primary tracking-tighter uppercase italic leading-[0.8]">
                         Salon de <br /><span className="text-secondary/20 tracking-[-0.05em]">Pilotage.</span>

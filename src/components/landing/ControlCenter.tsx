@@ -1,76 +1,65 @@
 "use client";
 
-import { PenTool, MessageSquare } from "lucide-react";
-
-const FEATURES = [
-    {
-        title: "Vault_Contracts",
-        desc: "Signature cryptographique et archivage légal de tous vos accords de service.",
-        icon: PenTool,
-        tag: "LEGAL_SAFE"
-    },
-    {
-        title: "Direct_Link",
-        desc: "Communication chiffrée de bout en bout avec vos ingénieurs dédiés.",
-        icon: MessageSquare,
-        tag: "ELITE_SUPPORT"
-    }
-];
+import { CheckCircle, MessageSquare, Clock } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function ControlCenter() {
     return (
-        <section className="py-40 bg-card/30 relative">
-            <div className="container mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-8">
-                    <div className="max-w-3xl">
-                        <div className="flex items-center gap-3 mb-6">
-                            <span className="w-10 h-[1px] bg-accent" />
-                            <h2 className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">Système_Nexus</h2>
+        <section className="py-20 bg-card/30">
+            <div className="container mx-auto px-4 sm:px-6">
+                <div className="flex flex-col md:flex-row items-center gap-12 sm:gap-16">
+                    <div className="w-full md:w-1/2">
+                        <div className="bg-background border border-border/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                            {/* Simple Mockup */}
+                            <div className="w-full bg-card rounded-2xl border border-border/50 aspect-video flex flex-col items-center justify-center p-8 text-center">
+                                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                                    <Clock className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-2">Projet en cours</h3>
+                                <p className="text-sm text-secondary/60">Lancement prévu dans 12 jours</p>
+                                <div className="w-full max-w-[200px] h-2 bg-secondary/10 rounded-full mt-6 overflow-hidden">
+                                    <div className="w-[70%] h-full bg-primary rounded-full" />
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-5xl md:text-7xl font-black text-primary tracking-tighter leading-[0.85] uppercase italic">
-                            Un Pilotage <br /><span className="text-secondary/20">en Temps Réel.</span>
+                    </div>
+
+                    <div className="w-full md:w-1/2">
+                        <span className="text-primary/60 font-medium tracking-wider uppercase text-sm">Contrôle Total</span>
+                        <h2 className="text-3xl sm:text-5xl font-black text-primary mt-2 mb-6">
+                            Suivez votre projet en temps réel.
+                        </h2>
+                        <p className="text-lg text-secondary/80 mb-8 leading-relaxed">
+                            Plus besoin de deviner où en est votre projet. Accédez à votre espace client pour suivre l'avancement, discuter avec l'équipe et valider les étapes.
                         </p>
-                    </div>
-                </div>
 
-                <div className="grid lg:grid-cols-12 gap-8">
-                    {/* Main Feature: Dashboard Preview */}
-                    <div className="lg:col-span-8 p-12 rounded-[2.5rem] bg-background border border-border/50 relative overflow-hidden flex flex-col justify-end min-h-[600px] shadow-2xl">
-                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-
-                        {/* Mock UI Elements */}
-                        <div className="absolute top-20 right-10 left-10 bottom-10 bg-card rounded-2xl border border-border/50 shadow-inner group-hover:scale-[1.02] transition-transform duration-700 opacity-40">
-                            <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/20" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
-                                    <div className="w-3 h-3 rounded-full bg-green-500/20" />
+                        <div className="space-y-6">
+                            <div className="flex gap-4">
+                                <div className="min-w-12 w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                                    <CheckCircle className="w-6 h-6" />
                                 </div>
-                                <div className="text-[10px] font-mono opacity-20 italic">AUTOMATIC_COMMAND_CENTER_V2</div>
+                                <div>
+                                    <h4 className="text-xl font-bold mb-1">Validation Simple</h4>
+                                    <p className="text-secondary/70 text-sm">Validez chaque étape du projet en un clic.</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="min-w-12 w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                                    <MessageSquare className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xl font-bold mb-1">Discussion Directe</h4>
+                                    <p className="text-secondary/70 text-sm">Discutez directement avec vos développeurs.</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="relative z-10">
-                            <div className="px-4 py-1 bg-accent/10 border border-accent/20 rounded-full w-fit mb-6">
-                                <span className="text-[9px] font-black text-accent uppercase tracking-widest italic">Live_Interface</span>
-                            </div>
-                            <h4 className="text-4xl font-black text-primary mb-6 leading-none uppercase italic tracking-tighter">Nexus_Control Dashboard</h4>
-                            <p className="text-secondary/70 max-w-sm mb-0 font-medium">Faites l'expérience d'une transparence totale. Suivez chaque ligne de code, chaque jalon et chaque sprint en temps réel depuis votre portail dédié.</p>
+                        <div className="mt-10">
+                            <Link href="/dashboard" className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
+                                Accéder à mon espace <ArrowRight className="w-4 h-4" />
+                            </Link>
                         </div>
-                    </div>
-
-                    {/* Side Features */}
-                    <div className="lg:col-span-4 flex flex-col gap-8">
-                        {FEATURES.map((item, i) => (
-                            <div key={i} className="flex-grow p-12 rounded-[2.5rem] bg-card border border-border/50 hover:border-primary/20 transition-all group">
-                                <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-background transition-colors">
-                                    <item.icon className="w-6 h-6" />
-                                </div>
-                                <div className="text-[9px] font-black text-accent uppercase tracking-[0.2em] mb-4 italic">// {item.tag}</div>
-                                <h4 className="text-2xl font-black text-primary mb-4 uppercase italic tracking-tight">{item.title}</h4>
-                                <p className="text-secondary/60 text-sm font-medium leading-relaxed">{item.desc}</p>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </div>

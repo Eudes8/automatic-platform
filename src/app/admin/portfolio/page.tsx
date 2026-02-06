@@ -16,13 +16,13 @@ export default async function AdminPortfolio() {
                 <div>
                     <div className="flex items-center gap-3 mb-4">
                         <Terminal className="w-5 h-5 text-accent" />
-                        <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.5em] italic">RECORDS_ARCHIVE // ALPHA_NODE</p>
+                        <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.2em] italic">Portfolio & Réalisations</p>
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
-                        GESTION <span className="text-secondary/20">Archives.</span>
+                        GESTION <span className="text-secondary/20">Portfolio.</span>
                     </h1>
-                    <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.3em] mt-3 italic max-w-lg">
-                        // CONTRÔLE_ET_DÉPLOIEMENT_DES_PREUVES_D_EXÉCUTION.
+                    <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.2em] mt-3 italic max-w-lg">
+                        Gérez les projets affichés sur votre site vitrine.
                     </p>
                 </div>
                 <PortfolioCRUDModal mode="CREATE" />
@@ -52,7 +52,7 @@ export default async function AdminPortfolio() {
                             <div className="flex justify-between items-start">
                                 <div>
                                     <span className="text-[9px] font-black text-accent uppercase tracking-[0.2em] italic mb-3 block border-l-2 border-accent/30 pl-3">
-                                        UNIT_TYPE: {project.category}
+                                        Catégorie : {project.category}
                                     </span>
                                     <h3 className="text-3xl font-black text-primary uppercase italic tracking-tighter group-hover:text-accent transition-colors duration-500">
                                         {project.title}
@@ -62,7 +62,7 @@ export default async function AdminPortfolio() {
                             </div>
 
                             <p className="text-secondary/40 text-[11px] font-bold uppercase italic tracking-tight line-clamp-3 leading-relaxed">
-                                // {project.description}
+                                {project.description}
                             </p>
 
                             <div className="flex flex-wrap gap-3 pt-2">
@@ -77,13 +77,13 @@ export default async function AdminPortfolio() {
                                 {project.url && (
                                     <a href={project.url} target="_blank" className="flex items-center gap-2 text-[9px] font-black uppercase text-secondary/20 hover:text-primary transition-all duration-500 group/link">
                                         <ExternalLink size={14} className="group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 transition-transform" />
-                                        LIVE_NODES
+                                        VOIR LE SITE
                                     </a>
                                 )}
                                 {project.github && (
                                     <a href={project.github} target="_blank" className="flex items-center gap-2 text-[9px] font-black uppercase text-secondary/20 hover:text-primary transition-all duration-500 group/link">
                                         <Github size={14} className="group-hover/link:scale-110 transition-transform" />
-                                        SOURCE_XFER
+                                        CODE SOURCE
                                     </a>
                                 )}
                                 <div className="ml-auto flex items-center gap-3">
@@ -92,7 +92,7 @@ export default async function AdminPortfolio() {
                                         project.featured ? 'bg-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)]' : 'bg-secondary/20'
                                     )} />
                                     <span className="text-[8px] font-black uppercase text-secondary/20 tracking-widest italic pt-0.5">
-                                        {project.featured ? 'UNIT_FEATURED_ACTIVE' : 'UNIT_ARCHIVE_STD'}
+                                        {project.featured ? 'EN VEDETTE' : 'STANDARD'}
                                     </span>
                                 </div>
                             </div>
@@ -109,9 +109,8 @@ export default async function AdminPortfolio() {
                     <div className="col-span-full py-48 text-center bg-white/40 backdrop-blur-3xl border border-dashed border-border/50 rounded-[3rem] shadow-inner relative overflow-hidden">
                         <div className="absolute inset-0 bg-primary/2 pointer-events-none" />
                         <Grid2X2 className="w-20 h-20 text-primary/5 mx-auto mb-10" />
-                        <p className="text-secondary/20 font-black uppercase tracking-[0.4em] italic leading-relaxed">
-                            // AUCUNE_ARCHIVE_DÉTECTÉE_DANS_LE_MAINFRAME. <br />
-                            EN_ATTENTE_D_IMAGE_DISK_POUR_INDEXATION.
+                        <p className="text-secondary/20 font-black uppercase tracking-[0.2em] italic leading-relaxed">
+                            Aucun projet dans le portfolio pour le moment.
                         </p>
                     </div>
                 )}

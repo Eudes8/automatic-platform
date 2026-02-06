@@ -444,7 +444,7 @@ export async function generateProjectBrief(
         { title: "1. PRÉSENTATION DU PROJET", content: description || "Aucune description fournie." },
         { title: "2. SPÉCIFICATIONS TECHNIQUES (TECH STACK)", content: techStack.length > 0 ? techStack.join(", ") : "Standard Web Stack (Next.js, React, Tailwind)" },
         { title: "3. DÉLAIS ET LIVRAISON", content: `Régime d'exécution : ${timeline || "Standard"}\nLivraison estimée selon jalons définis.` },
-        { title: "4. ARCHITECTURE ET SÉCURITÉ", content: "Architecture Serverless haute performance. Sécurité des données via cryptage SSL 256 bits et protocoles de protection Supabase." },
+        { title: "4. ARCHITECTURE ET SÉCURITÉ", content: "Architecture haute performance. Sécurité des données via protocoles de protection avancés." },
     ];
 
     for (const section of sections) {

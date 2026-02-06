@@ -100,14 +100,15 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
+            {/* Header - Mobile friendly */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <Link href="/admin/tickets">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Retour aux tickets
                     </Button>
                 </Link>
-                <h1 className="text-2xl font-bold">{ticket.title}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">{ticket.title}</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -115,20 +116,20 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                 <div className="lg:col-span-2 space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Détails du ticket</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl">Détails du ticket</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 {getStatusBadge(status)}
                                 {getPriorityBadge(ticket.priority)}
                             </div>
 
                             <div>
                                 <h3 className="font-semibold mb-2">Description</h3>
-                                <p className="text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+                                <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base">{ticket.description}</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span className="font-medium">Créé le:</span>{" "}
                                     {format(new Date(ticket.createdAt), "dd/MM/yyyy à HH:mm", { locale: fr })}
@@ -144,7 +145,7 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                     {/* Responses */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                                 <MessageSquare className="h-5 w-5" />
                                 Réponses ({ticket.responses.length})
                             </CardTitle>
@@ -156,27 +157,27 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                                 </p>
                             ) : (
                                 ticket.responses.map((response) => (
-                                    <div key={response.id} className="border rounded-lg p-4">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-2">
+                                    <div key={response.id} className="border rounded-lg p-3 sm:p-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <User className="h-4 w-4" />
-                                                <span className="font-medium">{response.author.name}</span>
+                                                <span className="font-medium text-sm sm:text-base">{response.author.name}</span>
                                                 {response.author.role === "ADMIN" && (
-                                                    <Badge variant="secondary">Admin</Badge>
+                                                    <Badge variant="secondary" className="text-xs">Admin</Badge>
                                                 )}
                                                 {response.isInternal && (
-                                                    <Badge variant="outline" className="text-orange-600">
+                                                    <Badge variant="outline" className="text-orange-600 text-xs">
                                                         <EyeOff className="h-3 w-3 mr-1" />
                                                         Interne
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-1 text-sm text-gray-500">
+                                            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
                                                 <Clock className="h-3 w-3" />
                                                 {format(new Date(response.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
                                             </div>
                                         </div>
-                                        <p className="text-gray-700 whitespace-pre-wrap">{response.message}</p>
+                                        <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base">{response.message}</p>
                                     </div>
                                 ))
                             )}
@@ -186,7 +187,7 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                     {/* Add Response */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Ajouter une réponse</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl">Ajouter une réponse</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <Textarea
@@ -194,9 +195,10 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                                 value={responseMessage}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResponseMessage(e.target.value)}
                                 rows={4}
+                                className="text-sm sm:text-base"
                             />
 
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
@@ -205,15 +207,17 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                                         onChange={(e) => setIsInternal(e.target.checked)}
                                         className="rounded"
                                     />
-                                    <label htmlFor="internal" className="text-sm flex items-center gap-1">
+                                    <label htmlFor="internal" className="text-sm flex items-center gap-1 cursor-pointer">
                                         <EyeOff className="h-3 w-3" />
-                                        Réponse interne (visible uniquement par les admins)
+                                        <span className="hidden sm:inline">Réponse interne (visible uniquement par les admins)</span>
+                                        <span className="sm:hidden">Réponse interne</span>
                                     </label>
                                 </div>
 
                                 <Button
                                     onClick={handleAddResponse}
                                     disabled={!responseMessage.trim() || isPending}
+                                    className="w-full sm:w-auto"
                                 >
                                     <Send className="h-4 w-4 mr-2" />
                                     Envoyer
@@ -227,9 +231,9 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
                 <div className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Informations client</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl">Informations client</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
+                        <CardContent className="space-y-2 text-sm sm:text-base">
                             <div>
                                 <span className="font-medium">Nom:</span> {ticket.client.name}
                             </div>
@@ -246,7 +250,7 @@ export function TicketDetail({ ticket, users, onUpdateStatus, onAssign, onAddRes
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gestion du ticket</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl">Gestion du ticket</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>

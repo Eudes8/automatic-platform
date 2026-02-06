@@ -1,46 +1,39 @@
 "use client";
 
-import { Cpu, Globe, Zap, ArrowRight } from "lucide-react";
+import { Feather, Zap, Smile, ArrowRight } from "lucide-react";
 
 const SERVICES = [
     {
-        title: "Fusion_Backend",
-        desc: "Infrastructures distribuées ultra-rapides sur Next.js 15 & Edge Computing. Latence minimale, sécurité maximale.",
-        icon: Globe,
-        id: "01",
-        tag: "INFRA_SCALABLE"
-    },
-    {
-        title: "Matrix_Interface",
-        desc: "Design system atomique et interfaces fluides. Expérience utilisateur chirurgicale axée sur la conversion.",
-        icon: Cpu,
-        id: "02",
-        tag: "UI_PERFORMANCE"
-    },
-    {
-        title: "Logic_Automata",
-        desc: "Intégration d'IA générative et agents autonomes pour l'automatisation totale de vos flux métiers.",
+        title: "Ultra Rapide",
+        desc: "Nous utilisons les technologies les plus modernes pour que votre projet charge instantanément.",
         icon: Zap,
+        id: "01",
+    },
+    {
+        title: "Design Élégant",
+        desc: "Un design simple, beau et facile à utiliser pour vos utilisateurs sur tous les appareils.",
+        icon: Feather,
+        id: "02",
+    },
+    {
+        title: "Support Dédié",
+        desc: "Nous restons avec vous après le lancement pour s'assurer que tout fonctionne parfaitement.",
+        icon: Smile,
         id: "03",
-        tag: "AI_SOLUTIONS"
     }
 ];
 
 export default function Services() {
     return (
-        <section id="services" className="py-40 relative overflow-hidden">
-            {/* Background element */}
-            <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/[0.02] -skew-x-12 transform origin-top translate-x-1/2" />
-
-            <div className="container mx-auto px-6">
-                <div className="max-w-3xl mb-32">
-                    <div className="flex items-center gap-3 mb-6">
-                        <span className="w-10 h-[1px] bg-accent" />
-                        <h2 className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">Protocoles_Opérationnels</h2>
-                    </div>
-                    <p className="text-5xl md:text-7xl font-black text-primary leading-[0.85] tracking-tighter uppercase italic">
-                        L'Ingénierie <br />
-                        <span className="text-secondary/20">Sans Compromis.</span>
+        <section id="services" className="py-20 bg-background relative overflow-hidden">
+            <div className="container mx-auto px-4 sm:px-6">
+                <div className="max-w-3xl mb-16 mx-auto text-center">
+                    <span className="text-primary/60 font-medium tracking-wider uppercase text-sm">Nos Engagements</span>
+                    <h2 className="text-3xl sm:text-5xl font-black text-primary mt-2 mb-6">
+                        Tout ce dont vous avez besoin.
+                    </h2>
+                    <p className="text-lg text-secondary/80 max-w-2xl mx-auto">
+                        Nous simplifions la complexité pour vous offrir le meilleur de la technologie, sans les maux de tête.
                     </p>
                 </div>
 
@@ -48,26 +41,16 @@ export default function Services() {
                     {SERVICES.map((s, i) => (
                         <div
                             key={i}
-                            className="group p-12 rounded-3xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-500 relative flex flex-col h-full shadow-sm hover:shadow-2xl hover:shadow-primary/5"
+                            className="group p-8 rounded-3xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 relative flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:shadow-primary/5 h-full"
                         >
-                            <div className="flex justify-between items-start mb-12">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-background transition-colors">
-                                    <s.icon className="w-6 h-6" />
-                                </div>
-                                <span className="text-3xl font-black text-primary/5 italic group-hover:text-primary/10 transition-colors uppercase leading-none">{s.id}</span>
+                            <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform duration-300">
+                                <s.icon className="w-8 h-8" />
                             </div>
 
-                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-accent mb-4">
-                // {s.tag}
-                            </div>
-                            <h3 className="text-2xl font-black text-primary mb-5 uppercase italic tracking-tight">{s.title}</h3>
-                            <p className="text-secondary/70 text-sm leading-relaxed mb-10 flex-grow font-medium">
+                            <h3 className="text-xl font-bold text-primary mb-3">{s.title}</h3>
+                            <p className="text-secondary/70 leading-relaxed mb-6">
                                 {s.desc}
                             </p>
-
-                            <div className="flex items-center gap-3 text-primary font-black text-[10px] uppercase tracking-[0.25em] pt-6 border-t border-border/50 opacity-40 group-hover:opacity-100 transition-opacity italic">
-                                Exécuter le protocole <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                            </div>
                         </div>
                     ))}
                 </div>

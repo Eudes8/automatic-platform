@@ -46,45 +46,45 @@ export default function NotificationPreferences({ initialPrefs }: NotificationPr
     ] as const;
 
     return (
-        <div className="space-y-12 relative z-10">
+        <div className="space-y-8 sm:space-y-12 relative z-10">
             {/* Section Header */}
-            <div className="flex items-center gap-5 mb-10">
-                <div className="w-12 h-12 rounded-[1.2rem] bg-primary/5 border border-primary/20 flex items-center justify-center text-primary">
-                    <Bell size={24} />
+            <div className="flex items-center gap-3 sm:gap-5 mb-6 sm:mb-10">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[1rem] sm:rounded-[1.2rem] bg-primary/5 border border-primary/20 flex items-center justify-center text-primary">
+                    <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                    <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter leading-none">
+                    <h3 className="text-2xl sm:text-3xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         NOTIFICATIONS.
                     </h3>
-                    <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.3em] mt-2 italic">Canaux de communication & protocoles d'alerte</p>
+                    <p className="text-[8px] sm:text-[9px] font-black text-secondary/30 uppercase tracking-[0.2em] sm:tracking-[0.3em] mt-1 sm:mt-2 italic">Canaux de communication & protocoles d'alerte</p>
                 </div>
             </div>
 
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
                 {channels.map((item) => (
                     <div
                         key={item.key}
                         onClick={() => toggle(item.key)}
-                        className="flex justify-between items-center p-10 rounded-[2.5rem] bg-background/20 border border-transparent hover:border-border/50 hover:bg-white transition-all duration-500 group/toggle cursor-pointer shadow-sm"
+                        className="flex justify-between items-center p-5 sm:p-10 rounded-[1.5rem] sm:rounded-[2.5rem] bg-background/20 border border-transparent hover:border-border/50 hover:bg-white transition-all duration-500 group/toggle cursor-pointer shadow-sm"
                     >
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4 sm:gap-6">
                             <div className={cn(
-                                "w-12 h-12 rounded-[1.2rem] flex items-center justify-center bg-white border border-border/30 shadow-inner group-hover/toggle:scale-110 transition-transform duration-500",
+                                "w-10 h-10 sm:w-12 sm:h-12 rounded-[1rem] sm:rounded-[1.2rem] flex items-center justify-center bg-white border border-border/30 shadow-inner group-hover/toggle:scale-110 transition-transform duration-500",
                                 item.color
                             )}>
-                                <item.icon size={20} />
+                                <item.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
-                            <div className="flex flex-col gap-2">
-                                <span className="text-[11px] font-black text-primary uppercase tracking-[0.2em] italic">{item.label}</span>
-                                <span className="text-[9px] font-black text-secondary/30 uppercase tracking-widest italic">{item.desc}</span>
+                            <div className="flex flex-col gap-1 sm:gap-2">
+                                <span className="text-[10px] sm:text-[11px] font-black text-primary uppercase tracking-[0.2em] italic">{item.label}</span>
+                                <span className="text-[8px] sm:text-[9px] font-black text-secondary/30 uppercase tracking-widest italic">{item.desc}</span>
                             </div>
                         </div>
                         <div className={cn(
-                            "w-16 h-8 rounded-full flex items-center px-1.5 transition-all duration-500 shadow-inner",
+                            "w-14 h-7 sm:w-16 sm:h-8 rounded-full flex items-center px-1.5 transition-all duration-500 shadow-inner",
                             prefs[item.key] ? "bg-primary shadow-primary/20" : "bg-secondary/10"
                         )}>
                             <div className={cn(
-                                "w-5 h-5 rounded-full shadow-sm transition-all duration-500",
+                                "w-4 h-4 sm:w-5 sm:h-5 rounded-full shadow-sm transition-all duration-500",
                                 prefs[item.key] ? "bg-background ml-auto rotate-90" : "bg-white/40"
                             )} />
                         </div>
@@ -92,13 +92,13 @@ export default function NotificationPreferences({ initialPrefs }: NotificationPr
                 ))}
             </div>
 
-            <div className="pt-10 flex justify-end">
+            <div className="pt-6 sm:pt-10 flex justify-end">
                 <button
                     onClick={handleSave}
                     disabled={isPending}
-                    className="px-12 py-6 bg-primary text-background font-black uppercase text-[11px] tracking-[0.4em] rounded-[2rem] shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-500 italic flex items-center gap-4 disabled:opacity-50"
+                    className="px-8 sm:px-12 py-4 sm:py-6 bg-primary text-background font-black uppercase text-[10px] sm:text-[11px] tracking-[0.3em] sm:tracking-[0.4em] rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-500 italic flex items-center gap-3 sm:gap-4 disabled:opacity-50"
                 >
-                    {isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    {isPending ? <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                     SYNCHRONISER_FLAGS
                 </button>
             </div>

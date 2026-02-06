@@ -63,6 +63,7 @@ export async function sendChatMessage(projectId: string, text: string, attachmen
             await createAdminNotification(
                 "Nouveau Message Client",
                 `${user.name} a envoyé un message sur "${project?.title}"`,
+                "CHAT",
                 `/admin/chat`
             );
         }

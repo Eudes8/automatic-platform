@@ -24,15 +24,15 @@ function getStatusBadge(status: TicketStatus) {
     };
 
     const labels = {
-        OPEN: "THREAD_OPEN",
-        IN_PROGRESS: "SCANNING_ISSUE",
-        CLOSED: "ARCHIVED_LOG",
-        RESOLVED: "NODE_FIXED"
+        OPEN: "Ouvert",
+        IN_PROGRESS: "En cours",
+        CLOSED: "Terminé",
+        RESOLVED: "Résolu"
     };
 
     return (
         <span className={cn(
-            "px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border italic shadow-sm",
+            "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
             styles[status]
         )}>
             {labels[status]}
@@ -49,15 +49,15 @@ function getPriorityBadge(priority: TicketPriority) {
     };
 
     const codes = {
-        LOW: "L_01: LOW",
-        MEDIUM: "L_02: NORM",
-        HIGH: "L_03: CRIT",
-        URGENT: "L_04: URGT"
+        LOW: "Faible",
+        MEDIUM: "Normal",
+        HIGH: "Prioritaire",
+        URGENT: "Urgent"
     };
 
     return (
         <span className={cn(
-            "px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border italic shadow-sm",
+            "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
             styles[priority]
         )}>
             {codes[priority]}
@@ -69,16 +69,15 @@ export function ClientTicketList({ tickets }: ClientTicketListProps) {
     if (tickets.length === 0) {
         return (
             <div className="p-16 bg-card/10 border border-dashed border-border/50 rounded-[3rem] text-center space-y-6">
-                <div className="w-20 h-20 rounded-[1.5rem] bg-primary/5 border border-primary/10 flex items-center justify-center text-secondary/20 mx-auto shadow-inner">
-                    <Terminal size={32} />
+                <div className="w-20 h-20 rounded-[1.5rem] bg-primary/5 border border-primary/10 flex items-center justify-center text-secondary/20 mx-auto">
+                    <MessageSquare size={32} />
                 </div>
                 <div>
-                    <h3 className="text-xl font-heading font-black text-primary italic uppercase tracking-tighter mb-2">
-                        AUCUN_DATA_THREAD.
+                    <h3 className="text-xl font-bold text-primary tracking-tight mb-2">
+                        Aucune demande pour le moment
                     </h3>
-                    <p className="text-[10px] text-secondary/40 font-black uppercase tracking-[0.3em] italic max-w-xs mx-auto leading-relaxed">
-                        // Aucun ticket de support détecté dans la base locale.<br />
-                        Utilisez le terminal d'initialisation pour soumettre une requête.
+                    <p className="text-sm text-secondary/40 font-medium max-w-xs mx-auto">
+                        Vous n'avez pas encore envoyé de ticket de support. Cliquez sur le bouton ci-dessus pour commencer.
                     </p>
                 </div>
             </div>
@@ -88,9 +87,9 @@ export function ClientTicketList({ tickets }: ClientTicketListProps) {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
             <div className="flex items-center gap-4 px-4">
-                <h2 className="text-2xl font-heading font-black text-primary italic uppercase tracking-tighter">THREADS_ACTIFS.</h2>
+                <h2 className="text-2xl font-bold text-primary tracking-tight">Mes demandes</h2>
                 <div className="flex-1 h-px bg-border/50" />
-                <span className="text-[10px] font-black text-secondary/30 uppercase tracking-[0.3em] italic">COUNT: {tickets.length.toString().padStart(2, '0')}</span>
+                <span className="text-[10px] font-bold text-secondary/30 uppercase tracking-widest">Total: {tickets.length}</span>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
@@ -124,26 +123,26 @@ export function ClientTicketList({ tickets }: ClientTicketListProps) {
                                     {ticket.assignedTo && (
                                         <div className="flex items-center gap-2">
                                             <Shield size={14} className="text-primary/30" />
-                                            <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest italic">OWNER: {ticket.assignedTo.name?.toUpperCase()}</span>
+                                            <span className="text-[10px] font-bold text-secondary/40 uppercase tracking-wider">Assigné à : {ticket.assignedTo.name}</span>
                                         </div>
                                     )}
 
                                     {ticket.project && (
                                         <div className="flex items-center gap-2">
                                             <Terminal size={14} className="text-primary/30" />
-                                            <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest italic">NODE: {ticket.project.title.toUpperCase()}</span>
+                                            <span className="text-[10px] font-bold text-secondary/40 uppercase tracking-wider">Projet : {ticket.project.title}</span>
                                         </div>
                                     )}
 
                                     <div className="flex items-center gap-2">
                                         <MessageSquare size={14} className="text-primary/30" />
-                                        <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest italic">{ticket.responses.length} RESPONSE_LOGS</span>
+                                        <span className="text-[10px] font-bold text-secondary/40 uppercase tracking-wider">{ticket.responses.length} réponse{ticket.responses.length > 1 ? 's' : ''}</span>
                                     </div>
 
                                     <div className="flex items-center gap-2 ml-auto">
                                         <Clock size={14} className="text-primary/30" />
-                                        <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest italic">
-                                            INIT: {format(new Date(ticket.createdAt), "dd_MM_yyyy", { locale: fr })}
+                                        <span className="text-[10px] font-bold text-secondary/40 uppercase tracking-wider">
+                                            Envoyé le {format(new Date(ticket.createdAt), "dd MMMM yyyy", { locale: fr })}
                                         </span>
                                     </div>
                                 </div>

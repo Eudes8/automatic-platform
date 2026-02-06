@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 
 const formSchema = z.object({
     name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-    email: z.string().email("Format d'identifiant XFER invalide"),
-    password: z.string().min(6, "Le protocole de sécurité requiert 6 caractères min."),
+    email: z.string().email("Format d'e-mail invalide"),
+    password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -39,14 +39,14 @@ export default function RegisterForm() {
             });
 
             if (response.ok) {
-                toast.success("ACCÈS_CRÉÉ: Protocole de bienvenue initialisé");
+                toast.success("Compte créé avec succès");
                 router.push("/login");
             } else {
                 const errorData = await response.json();
-                toast.error(`ERREUR_SYNC: ${errorData.message || "Échec de l'enregistrement"}`);
+                toast.error(errorData.message || "Échec de l'enregistrement");
             }
         } catch (error) {
-            toast.error("ERREUR_SYSTÈME: Connexion au Mainframe interrompue");
+            toast.error("Une erreur est survenue lors de la connexion");
         } finally {
             setIsLoading(false);
         }
@@ -59,37 +59,37 @@ export default function RegisterForm() {
             transition={{ duration: 0.8 }}
             className="w-full max-w-lg"
         >
-            <div className="bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[3.5rem] p-12 lg:p-16 shadow-2xl relative overflow-hidden group">
+            <div className="bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[2rem] sm:rounded-[2.5rem] md:rounded-[3rem] lg:rounded-[3.5rem] p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 shadow-2xl relative overflow-hidden group">
                 {/* Visual Accent */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 bg-primary/5 rounded-full blur-[60px] sm:blur-[70px] md:blur-[80px] lg:blur-[90px] -mr-16 -mt-16 sm:-mr-24 sm:-mt-24 md:-mr-32 md:-mt-32 lg:-mr-36 lg:-mt-36 pointer-events-none" />
 
                 <div className="mb-14 relative z-10">
                     <div className="flex items-center gap-4 mb-8">
                         <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shadow-inner">
                             <Plus size={24} />
                         </div>
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">AUTH_REGISTER_V1 // UNIT_NEW</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] italic">Créer un compte</span>
                     </div>
 
                     <h2 className="text-5xl font-black text-primary italic uppercase tracking-tighter leading-[0.85] mb-6">
-                        INITIALISER <br />
-                        <span className="text-accent">ACCÈS.</span>
+                        REJOINDRE <br />
+                        <span className="text-accent">L'AVENTURE.</span>
                     </h2>
-                    <p className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] italic max-w-[280px] leading-relaxed">
-                        // CRÉATION_DE_NODE_DANS_L_ÉCOSYSTÈME_AUTOMATIC.
+                    <p className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] italic max-w-[280px] leading-relaxed">
+                        Créez votre accès personnel à la plateforme Automatic.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 relative z-10">
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-4 italic flex items-center gap-2">
-                            IDENTITÉ_NOM <span className="text-primary/20">// NOM_COMPLET</span>
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-4 italic flex items-center gap-2">
+                            Nom complet
                         </label>
                         <div className="relative group/input">
                             <input
                                 {...register("name")}
                                 className="w-full bg-background border border-border/50 rounded-[2rem] p-8 text-sm text-primary focus:outline-none focus:border-primary/50 focus:ring-8 focus:ring-primary/5 transition-all duration-500 font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
-                                placeholder="STATION_NAME_IDENTIFIER"
+                                placeholder="JEAN DUPONT"
                             />
                             {errors.name && (
                                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-3 ml-4 animate-pulse">
@@ -100,15 +100,15 @@ export default function RegisterForm() {
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-4 italic flex items-center gap-2">
-                            FLUX_XFER_IDENTITY <span className="text-primary/20">// EMAIL</span>
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-4 italic flex items-center gap-2">
+                            Adresse e-mail
                         </label>
                         <div className="relative group/input">
                             <input
                                 {...register("email")}
                                 type="email"
                                 className="w-full bg-background border border-border/50 rounded-[2rem] p-8 text-sm text-primary focus:outline-none focus:border-primary/50 focus:ring-8 focus:ring-primary/5 transition-all duration-500 font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
-                                placeholder="NODE@SYSTEMX.COM"
+                                placeholder="EMAIL@EXEMPLE.COM"
                             />
                             {errors.email && (
                                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-3 ml-4 animate-pulse">
@@ -119,8 +119,8 @@ export default function RegisterForm() {
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-4 italic flex items-center gap-2">
-                            PROTOCOLE_SÉCURITÉ <span className="text-primary/20">// PASSWORD</span>
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-4 italic flex items-center gap-2">
+                            Mot de passe
                         </label>
                         <div className="relative group/input">
                             <input
@@ -148,7 +148,7 @@ export default function RegisterForm() {
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    SYNC_MAIN_DATABASE
+                                    S'inscrire
                                     <div className="p-2 bg-background/20 rounded-lg group-hover/btn:translate-x-2 transition-transform duration-500">
                                         <ArrowRight size={16} />
                                     </div>
@@ -168,7 +168,7 @@ export default function RegisterForm() {
                                 onClick={() => router.push("/login")}
                                 className="w-full py-6 border border-border/50 hover:border-primary/30 rounded-[1.8rem] text-[9px] font-black text-secondary/40 hover:text-primary uppercase tracking-[0.3em] transition-all duration-500 italic bg-white/50"
                             >
-                                // DÉJÀ_MEMBRE?_SE_CONNECTER
+                                Déjà inscrit ? Se connecter
                             </button>
                         </div>
                     </div>
@@ -184,7 +184,7 @@ export default function RegisterForm() {
             <div className="mt-12 flex items-center gap-4 px-10">
                 <ShieldCheck className="text-emerald-500 w-5 h-5" />
                 <p className="text-[8px] font-black text-secondary/20 uppercase tracking-[0.2em] italic max-w-sm leading-relaxed">
-                    VOTRE_NODE_EST_SÉCURISÉ_VIA_UN_CHIFFREMENT_INDUSTRIEL_V2_SYSTÈME_D_IDENTITÉ_DÉPLOYÉ_SUR_NODES_ALPHA.
+                    Vos données sont sécurisées via un chiffrement industriel de pointe.
                 </p>
             </div>
         </motion.div>

@@ -42,25 +42,24 @@ export default function ProjectStats({ project }: { project: Project }) {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
-            <div className="bg-card/30 border border-border/50 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -mr-64 -mt-64 pointer-events-none" />
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700">
+            <div className="bg-card/30 border border-border/50 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 md:p-14 relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/5 rounded-full blur-[60px] sm:blur-[100px] -mr-32 sm:-mr-64 -mt-32 sm:-mt-64 pointer-events-none" />
 
-                <div className="flex flex-col md:flex-row justify-between items-end gap-12 relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6 sm:gap-12 relative z-10">
                     <div className="flex-1 w-full">
-                        <div className="flex items-center gap-3 mb-6">
-                            <Zap className="w-4 h-4 text-accent animate-pulse" />
-                            <span className="text-secondary/40 font-black uppercase tracking-[0.4em] text-[10px] italic">// Statut_Opérationnel</span>
+                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                            <span className="text-secondary/40 font-bold uppercase tracking-widest text-[8px] sm:text-[10px]">Statut du projet</span>
                         </div>
 
-                        <h2 className="text-6xl md:text-8xl font-black text-primary mt-2 mb-14 tracking-tighter uppercase italic leading-[0.8]">
+                        <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-primary mt-1 sm:mt-2 mb-8 sm:mb-14 tracking-tighter uppercase italic leading-[0.8]">
                             Phase <br /> <span className="text-secondary/20">{activePhaseLabel}.</span>
                         </h2>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-6">
                             {updatedPhases.map((phase, idx) => (
-                                <div key={phase.id} className="space-y-3">
-                                    <span className={`text-[9px] font-black uppercase tracking-widest block italic truncate ${phase.status === "completed" ? "text-primary" : phase.status === "active" ? "text-accent" : "text-secondary/20"
+                                <div key={phase.id} className="space-y-2 sm:space-y-3">
+                                    <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest block italic truncate ${phase.status === "completed" ? "text-primary" : phase.status === "active" ? "text-accent" : "text-secondary/20"
                                         }`}>
                                         {phase.label}
                                     </span>
@@ -79,62 +78,62 @@ export default function ProjectStats({ project }: { project: Project }) {
                     </div>
 
                     <div className="flex flex-col items-center md:items-end w-full md:w-auto">
-                        <div className="relative mb-6">
-                            <svg className="w-40 h-40 transform -rotate-90">
+                        <div className="relative mb-4 sm:mb-6">
+                            <svg className="w-32 h-32 sm:w-40 sm:h-40 transform -rotate-90">
                                 <circle
-                                    cx="80"
-                                    cy="80"
-                                    r="70"
+                                    cx="64"
+                                    cy="64"
+                                    r="56"
                                     stroke="currentColor"
-                                    strokeWidth="10"
+                                    strokeWidth="8"
                                     fill="transparent"
                                     className="text-secondary/5"
                                 />
                                 <motion.circle
-                                    cx="80"
-                                    cy="80"
-                                    r="70"
+                                    cx="64"
+                                    cy="64"
+                                    r="56"
                                     stroke="currentColor"
-                                    strokeWidth="10"
+                                    strokeWidth="8"
                                     fill="transparent"
-                                    strokeDasharray={439.8}
-                                    initial={{ strokeDashoffset: 439.8 }}
-                                    animate={{ strokeDashoffset: 439.8 * (1 - (progress / 100)) }}
+                                    strokeDasharray={351.86}
+                                    initial={{ strokeDashoffset: 351.86 }}
+                                    animate={{ strokeDashoffset: 351.86 * (1 - (progress / 100)) }}
                                     transition={{ duration: 2, ease: "circOut" }}
                                     className="text-primary"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-4xl font-black text-primary italic leading-none">{progress}%</span>
-                                <span className="text-[9px] font-black text-secondary/30 uppercase tracking-widest mt-2">Global_Sync</span>
+                                <span className="text-3xl sm:text-4xl font-bold text-primary leading-none">{progress}%</span>
+                                <span className="text-[8px] sm:text-[9px] font-bold text-secondary/30 uppercase tracking-widest mt-1 sm:mt-2">Progression</span>
                             </div>
                         </div>
-                        <p className="text-secondary/20 font-black uppercase text-[9px] tracking-[0.3em] italic">Dernière_MAJ : {updateLabel}</p>
+                        <p className="text-secondary/20 font-bold uppercase text-[8px] sm:text-[9px] tracking-widest">Mise à jour : {updateLabel}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform"><Clock className="w-7 h-7" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+                <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-4 sm:gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 transition-transform"><Clock className="w-5 h-5 sm:w-7 sm:h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Temps_Écoulé</p>
-                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">{diffDays} Jour{diffDays > 1 ? 's' : ''}</p>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase text-secondary/40 tracking-widest mb-1">Temps écoulé</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-primary tracking-tight uppercase leading-none">{diffDays} Jour{diffDays > 1 ? 's' : ''}</p>
                     </div>
                 </div>
-                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
-                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600 shadow-inner group-hover:scale-110 transition-transform"><CheckCircle2 className="w-7 h-7" /></div>
+                <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-4 sm:gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-emerald-500/5 flex items-center justify-center text-emerald-600 shadow-inner group-hover:scale-110 transition-transform"><CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Progression</p>
-                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">{progress}% <span className="text-secondary/20 font-black">Sync.</span></p>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase text-secondary/40 tracking-widest mb-1">Progression</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-primary tracking-tight uppercase leading-none">{progress}%</p>
                     </div>
                 </div>
-                <div className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-6 shadow-xl group hover:border-primary/20 transition-all">
-                    <div className="w-16 h-16 rounded-2xl bg-accent/5 flex items-center justify-center text-accent shadow-inner group-hover:scale-110 transition-transform"><ShieldCheck className="w-7 h-7" /></div>
+                <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-card/30 border border-border/50 flex items-center gap-4 sm:gap-6 shadow-xl group hover:border-primary/20 transition-all">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-accent/5 flex items-center justify-center text-accent shadow-inner group-hover:scale-110 transition-transform"><ShieldCheck className="w-5 h-5 sm:w-7 sm:h-7" /></div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-secondary/40 tracking-[0.3em] mb-1 italic">// Sécurité_Node</p>
-                        <p className="text-3xl font-black text-primary italic tracking-tight uppercase leading-none">Status: {activePhaseLabel.split(' ')[0]}</p>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase text-secondary/40 tracking-widest mb-1">Étape actuelle</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-primary tracking-tight uppercase leading-none">{activePhaseLabel}</p>
                     </div>
                 </div>
             </div>

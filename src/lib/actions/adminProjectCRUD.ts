@@ -52,6 +52,7 @@ export async function createProject(formData: FormData) {
         await createAdminNotification(
             "Nouveau Project",
             `Project "${title}" créé pour ${client.name}`,
+            "PROJECT",
             `/admin/projects/${project.id}`
         );
         revalidatePath("/admin/projects");

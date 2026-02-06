@@ -30,20 +30,19 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
 
                 <div className="relative z-10">
                     <div className="flex items-center justify-center gap-3 mb-8">
-                        <Terminal className="w-5 h-5 text-accent animate-pulse" />
-                        <span className="text-accent font-black tracking-[0.4em] uppercase text-[10px] italic">ACCÈS SÉCURISÉ // DOCUMENTS LÉGAUX</span>
+                        <span className="text-accent font-bold tracking-widest uppercase text-[10px]">Signature du contrat</span>
                     </div>
 
                     <div className="w-24 h-24 bg-primary/5 border border-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
                         <ShieldAlert className="w-12 h-12 text-primary" />
                     </div>
 
-                    <h2 className="text-4xl md:text-5xl font-black text-primary italic uppercase tracking-tighter mb-6 leading-tight">
+                    <h2 className="text-4xl md:text-5xl font-bold text-primary uppercase tracking-tight mb-6 leading-tight">
                         Signature <br /><span className="text-secondary/20">Requise.</span>
                     </h2>
 
-                    <p className="text-secondary/60 text-lg mb-12 leading-relaxed font-medium italic">
-                        Afin d'accéder à votre espace de travail et lancer le projet <span className="text-primary font-black not-italic">"{projectName}"</span>,
+                    <p className="text-secondary/60 text-lg mb-12 leading-relaxed font-medium">
+                        Afin d'accéder à votre espace de travail et lancer le projet <span className="text-primary font-bold">"{projectName}"</span>,
                         la signature du contrat de prestation est nécessaire.
                     </p>
 
@@ -52,9 +51,9 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                             <FileCheck className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h4 className="text-primary font-black text-[11px] uppercase tracking-widest mb-1 italic">Sécurisation du Partenariat</h4>
-                            <p className="text-secondary/40 text-[11px] leading-relaxed font-bold uppercase tracking-wider">
-                                Ce document définit les jalons de production, votre budget {budget ? `(${budget})` : ""} et garantit la protection de vos actifs intellectuels.
+                            <h4 className="text-primary font-bold text-[11px] uppercase tracking-widest mb-1">Sécurisation du Partenariat</h4>
+                            <p className="text-secondary/40 text-[11px] leading-relaxed font-medium tracking-wide">
+                                Ce document définit les jalons de production, votre budget {budget ? `(${budget})` : ""} et garantit la protection de vos droits.
                             </p>
                         </div>
                     </div>
@@ -62,12 +61,12 @@ export default function ContractBarrier({ projectName, projectId, clientName, bu
                     <div className="flex flex-col gap-6">
                         <button
                             onClick={() => setIsSignerOpen(true)}
-                            className="w-full py-6 bg-primary text-background font-black rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 uppercase tracking-[0.3em] group text-xs italic"
+                            className="w-full py-6 bg-primary text-background font-bold rounded-2xl transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 uppercase tracking-widest group text-xs"
                         >
                             Consulter et signer le contrat <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
-                        <p className="text-[9px] text-secondary/20 font-black uppercase tracking-[0.4em] italic">
-                            // CONNEXION SÉCURISÉE // CERTIFICATION SSL ACTIVE
+                        <p className="text-[9px] text-secondary/20 font-bold uppercase tracking-widest">
+                            Connexion sécurisée
                         </p>
                     </div>
                 </div>

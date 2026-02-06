@@ -19,13 +19,13 @@ export default async function AdminInvoicesPage() {
                 <div>
                     <div className="flex items-center gap-3 mb-4">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                        <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.5em] italic">FINANCE_UNIT // ALPHA_CORE</p>
+                        <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.2em] italic">Comptabilité & Finances</p>
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         GESTION <span className="text-secondary/20">Factures.</span>
                     </h1>
-                    <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.3em] mt-3 italic max-w-lg">
-                        // SUIVI_FLUX_RÉSEAU_ET_REVENUS_UNITÉS.
+                    <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.2em] mt-3 italic max-w-lg">
+                        Suivi des revenus et de la facturation client.
                     </p>
                 </div>
                 <InvoiceCRUDModal />
@@ -38,18 +38,18 @@ export default async function AdminInvoicesPage() {
                     <div className="flex-1 relative group/search">
                         <input
                             type="text"
-                            placeholder="RECHERCHE_ID_FACTURE..."
+                            placeholder="Rechercher une facture..."
                             className="w-full bg-background border border-border/50 rounded-[1.5rem] py-5 px-8 text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
                         />
                     </div>
                     <div className="relative w-full md:w-80 group/select">
                         <select className="w-full bg-background border border-border/50 rounded-[1.5rem] py-5 px-8 text-[11px] font-black uppercase italic tracking-[0.2em] text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner appearance-none">
-                            <option value="">TOUS_LES_STADES</option>
-                            <option value="DRAFT">BROUILLON_STAGE</option>
-                            <option value="SENT">NODES_ENVOYÉS</option>
-                            <option value="PAID">SYNC_ACCOMPLIE</option>
-                            <option value="OVERDUE">RETARD_DÉTECTÉ</option>
-                            <option value="CANCELLED">FLUX_ANNULÉ</option>
+                            <option value="">Tous les statuts</option>
+                            <option value="DRAFT">Brouillon</option>
+                            <option value="SENT">Envoyée</option>
+                            <option value="PAID">Payée</option>
+                            <option value="OVERDUE">En retard</option>
+                            <option value="CANCELLED">Annulée</option>
                         </select>
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
                             <ChevronRight size={14} className="rotate-90" />
@@ -61,13 +61,13 @@ export default async function AdminInvoicesPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-primary/5 text-secondary/40 text-[9px] font-black uppercase tracking-[0.3em] italic border-b border-border/30">
-                                <th className="p-8">FACTURE_ID_LOG</th>
-                                <th className="p-8">IDENTITÉ_CLIENT</th>
-                                <th className="p-8">UNITÉ_PROJET</th>
-                                <th className="p-8">FLUX_VALEUR</th>
-                                <th className="p-8">SYNC_STATUS</th>
-                                <th className="p-8">ÉCHÉANCE_TIMESTAMP</th>
-                                <th className="p-8 text-right">PROTOCOL_ACTIONS</th>
+                                <th className="p-8">ID FACTURE</th>
+                                <th className="p-8">CLIENT</th>
+                                <th className="p-8">PROJET</th>
+                                <th className="p-8">MONTANT</th>
+                                <th className="p-8">STATUT</th>
+                                <th className="p-8">ÉCHÉANCE</th>
+                                <th className="p-8 text-right">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -80,7 +80,7 @@ export default async function AdminInvoicesPage() {
                                             </div>
                                             <div>
                                                 <p className="font-black text-primary text-xs italic tracking-tighter uppercase">#{invoice.id.slice(-8)}</p>
-                                                <p className="text-secondary/20 text-[9px] font-black uppercase tracking-widest mt-1">{new Date(invoice.createdAt).toLocaleDateString()}.LOG</p>
+                                                <p className="text-secondary/20 text-[9px] font-black uppercase tracking-widest mt-1">{new Date(invoice.createdAt).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -90,17 +90,17 @@ export default async function AdminInvoicesPage() {
                                                 {invoice.client?.name?.[0]?.toUpperCase() || <UserIcon size={14} />}
                                             </div>
                                             <div>
-                                                <p className="text-primary font-black text-xs uppercase italic tracking-widest">{invoice.client?.name || "CLI_ANONYME"}</p>
+                                                <p className="text-primary font-black text-xs uppercase italic tracking-widest">{invoice.client?.name || "CLIENT"}</p>
                                                 <p className="text-secondary/20 text-[9px] font-black uppercase tracking-tight mt-0.5">{invoice.client?.email}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="p-8">
-                                        <span className="text-secondary/40 font-black text-[10px] uppercase italic tracking-tighter">/{invoice.project?.title || "N_A"}</span>
+                                        <span className="text-secondary/40 font-black text-[10px] uppercase italic tracking-tighter">{invoice.project?.title || "N/A"}</span>
                                     </td>
                                     <td className="p-8">
                                         <div className="flex items-center gap-2 text-emerald-600 font-black text-sm italic tracking-tighter uppercase">
-                                            {invoice.amount} <span className="text-[10px] opacity-40">CFA_SYNC</span>
+                                            {invoice.amount} <span className="text-[10px] opacity-40">CFA</span>
                                         </div>
                                     </td>
                                     <td className="p-8">
@@ -111,9 +111,9 @@ export default async function AdminInvoicesPage() {
                                                     invoice.status === "OVERDUE" ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse" :
                                                         "bg-slate-500/10 text-slate-500 border-slate-500/20"
                                         )}>
-                                            {invoice.status === "PAID" ? "SYNC_OK" :
-                                                invoice.status === "SENT" ? "SENT_OK" :
-                                                    invoice.status === "OVERDUE" ? "ALERT_RETARD" : "DRAFT_MODE"}
+                                            {invoice.status === "PAID" ? "PAYÉE" :
+                                                invoice.status === "SENT" ? "ENVOYÉE" :
+                                                    invoice.status === "OVERDUE" ? "EN RETARD" : "BROUILLON"}
                                         </span>
                                     </td>
                                     <td className="p-8">

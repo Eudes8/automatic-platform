@@ -107,40 +107,40 @@ export default function Deliverables({
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700">
             {/* 4x4 Quick Actions */}
             <div className="grid grid-cols-1 gap-4">
                 <button
                     onClick={handleBriefDownload}
                     disabled={downloading === "brief"}
-                    className="group relative flex items-center justify-between p-8 bg-primary text-background rounded-[2.5rem] overflow-hidden transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-primary/20"
+                    className="group relative flex items-center justify-between p-6 sm:p-8 bg-primary text-background rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden transition-all hover:scale-[1.01] active:scale-95 shadow-2xl shadow-primary/20"
                 >
                     <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                    <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                            {downloading === "brief" ? <Loader2 className="animate-spin w-5 h-5 text-background" /> : <Briefcase size={22} />}
+                    <div className="flex items-center gap-4 sm:gap-5 relative z-10">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 flex items-center justify-center">
+                            {downloading === "brief" ? <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5 text-background" /> : <Briefcase className="w-5 h-5 sm:w-[22px] sm:h-[22px]" />}
                         </div>
                         <div className="text-left">
-                            <p className="text-[11px] font-black uppercase tracking-[0.3em] font-heading h-4 italic overflow-hidden">CAHIER_DES_CHARGES</p>
-                            <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">Générer le document technique</p>
+                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Cahier des Charges</p>
+                            <p className="text-[8px] sm:text-[9px] font-bold text-white/50 uppercase tracking-widest mt-0.5 sm:mt-1">Télécharger le document technique</p>
                         </div>
                     </div>
-                    <ChevronRight className="relative z-10 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight className="relative z-10 opacity-50 group-hover:opacity-100 transition-opacity w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
             </div>
 
             {/* Structured Deliverables */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {categories.map((cat, i) => (
-                    <div key={i} className="p-8 bg-card/30 border border-border/50 rounded-[3rem] space-y-6">
-                        <h5 className="flex items-center gap-3 text-[10px] font-black text-secondary/30 uppercase tracking-[0.4em] italic px-2">
-                            <cat.icon size={14} className="text-primary" />
-                            // {cat.title}
+                    <div key={i} className="p-6 sm:p-8 bg-card/30 border border-border/50 rounded-[2rem] sm:rounded-[3rem] space-y-4 sm:space-y-6 shadow-sm">
+                        <h5 className="flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-bold text-secondary/30 uppercase tracking-widest px-2">
+                            <cat.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                            {cat.title}
                         </h5>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                             {cat.items.length === 0 ? (
-                                <p className="text-[9px] text-secondary/20 font-bold uppercase tracking-widest italic px-2">Aucun élément synchronisé</p>
+                                <p className="text-[8px] sm:text-[9px] text-secondary/20 font-bold uppercase tracking-widest px-2">Aucun document disponible</p>
                             ) : (
                                 cat.items.map((item: DeliverableItem) => (
                                     <div
@@ -150,22 +150,22 @@ export default function Deliverables({
                                             else if (item.type === "brief") handleBriefDownload();
                                             else if (item.href) window.open(item.href, '_blank');
                                         }}
-                                        className="group flex items-center justify-between p-5 bg-background/50 border border-border/50 rounded-[2rem] hover:border-primary/40 transition-all cursor-pointer shadow-sm hover:shadow-xl"
+                                        className="group flex items-center justify-between p-4 sm:p-5 bg-background/50 border border-border/50 rounded-[1.5rem] sm:rounded-2xl hover:border-primary/40 transition-all cursor-pointer shadow-sm hover:shadow-xl"
                                     >
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3 sm:gap-4">
                                             <div className={cn(
-                                                "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                                                "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all",
                                                 item.type === "contract" ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/5 text-primary"
                                             )}>
-                                                {item.type === "contract" ? <CheckCircle2 size={18} /> :
-                                                    item.type === "brief" ? <Files size={18} /> :
-                                                        item.assetType === "code" ? <Code size={18} /> :
-                                                            item.assetType === "web" ? <Globe size={18} /> : <FileText size={18} />}
+                                                {item.type === "contract" ? <CheckCircle2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> :
+                                                    item.type === "brief" ? <Files className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> :
+                                                        item.assetType === "code" ? <Code className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> :
+                                                            item.assetType === "web" ? <Globe className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <FileText className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
                                             </div>
-                                            <span className="text-[11px] font-black text-primary uppercase italic tracking-tight">{item.name}</span>
+                                            <span className="text-[10px] sm:text-[11px] font-bold text-primary uppercase tracking-tight">{item.name}</span>
                                         </div>
-                                        <div className="w-8 h-8 rounded-lg bg-secondary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all">
-                                            {downloading === item.id ? <Loader2 className="animate-spin w-3 h-3" /> : <Download size={12} />}
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all">
+                                            {downloading === item.id ? <Loader2 className="animate-spin w-3 h-3" /> : <Download className="w-3 h-3" />}
                                         </div>
                                     </div>
                                 ))
@@ -175,13 +175,13 @@ export default function Deliverables({
                 ))}
             </div>
 
-            <div className="p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-[2.5rem]">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest italic">Nexus_Sync: Optima</p>
+            <div className="p-6 sm:p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] sm:rounded-[2.5rem]">
+                <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500" />
+                    <p className="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Espace Sécurisé</p>
                 </div>
-                <p className="text-[9px] text-secondary/40 font-bold leading-loose italic">
-                    Toutes les pièces sont certifiées par AUTOMATIC CI. Le stockage est crypté bout-en-bout via protocole AES-256.
+                <p className="text-[8px] sm:text-[9px] text-secondary/40 font-bold leading-loose">
+                    Tous vos documents sont certifiés par AUTOMATIC CI et stockés de manière sécurisée.
                 </p>
             </div>
         </div>

@@ -5,7 +5,7 @@ import { Project, User, Asset, Message, ProjectStatus } from "@prisma/client";
 import { KanbanColumn } from "./kanban/KanbanColumn";
 import { updateProjectStatus } from "@/lib/actions/kanban";
 import { toast } from "sonner";
-import { LayoutGrid, ListFilter, Search, Zap, Plus, Filter } from "lucide-react";
+import { LayoutGrid, ListFilter, Search, Zap, Plus, Filter, ChevronDown, ChevronRight } from "lucide-react";
 
 export type ProjectWithClient = Project & {
     client: User | null;

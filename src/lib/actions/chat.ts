@@ -67,8 +67,24 @@ export async function sendMessage(conversationId: string, content: string, attac
             attachment,
             read: false,
         },
-        include: { sender: true }
+        include: {
+            sender: true,
+            project: { select: { title: true } }
+        }
     });
+
+    // Notify Admins
+    if (user.role !== "ADMIN") {
+        const { createAdminNotification } = await import("./notifications");
+        const senderName = user.name || "Un client";
+        const context = message.project?.title ? ` (Projet: ${message.project.title})` : "";
+        await createAdminNotification(
+            `Message de ${senderName}${context}`,
+            content.slice(0, 100),
+            "CHAT",
+            `/admin/chat?cid=${conversationId}`
+        );
+    }
 
     return message;
 }

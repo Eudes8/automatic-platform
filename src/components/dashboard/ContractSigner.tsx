@@ -151,9 +151,9 @@ export default function ContractSigner({
                                 <div className="w-20 h-20 rounded-[1.5rem] bg-primary/5 border border-primary/10 flex items-center justify-center text-primary shadow-inner mb-8">
                                     <PenTool size={36} />
                                 </div>
-                                <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter mb-4">Signature.</h3>
-                                <p className="text-secondary/60 text-xs leading-relaxed font-medium uppercase tracking-widest italic opacity-80">
-                                    Veuillez apposer votre signature ci-dessous pour valider votre engagement et lancer la production.
+                                <h3 className="text-3xl font-bold text-primary uppercase tracking-tight mb-4">Signature</h3>
+                                <p className="text-secondary/60 text-xs leading-relaxed font-bold uppercase tracking-widest opacity-80">
+                                    Veuillez signer ci-dessous pour valider votre contrat et lancer le projet.
                                 </p>
                             </div>
 
@@ -178,13 +178,13 @@ export default function ContractSigner({
                                             <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
                                                 <Check className="w-8 h-8 animate-bounce" />
                                             </div>
-                                            <p className="font-black uppercase tracking-[0.4em] text-[10px] italic">CONTRAT SIGNÉ AVEC SUCCÈS</p>
+                                            <p className="font-bold uppercase tracking-widest text-[10px]">Contrat signé avec succès</p>
                                         </div>
                                     )}
 
                                     {!signed && (
                                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-secondary/10 font-black uppercase text-4xl -rotate-12 select-none tracking-widest italic">SIGNER ICI</span>
+                                            <span className="text-secondary/10 font-bold uppercase text-4xl -rotate-12 select-none tracking-widest">Signer ici</span>
                                         </div>
                                     )}
                                 </div>
@@ -193,21 +193,21 @@ export default function ContractSigner({
                                     <button
                                         onClick={clear}
                                         disabled={signed || isProcessing}
-                                        className="flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] text-secondary/30 hover:bg-secondary/5 hover:text-primary disabled:opacity-30 transition-all italic"
+                                        className="flex-1 py-5 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-secondary/30 hover:bg-secondary/5 hover:text-primary disabled:opacity-30 transition-all"
                                     >
-                                        EFFACER
+                                        Effacer
                                     </button>
                                     <button
                                         onClick={save}
                                         disabled={isCanvasEmpty || isProcessing}
-                                        className="flex-[2] py-5 rounded-2xl bg-primary hover:scale-[1.02] active:scale-[0.98] text-background text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 disabled:grayscale disabled:opacity-50 transition-all flex items-center justify-center gap-3 italic"
+                                        className="flex-[2] py-5 rounded-2xl bg-primary hover:scale-[1.02] active:scale-[0.98] text-background text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-primary/20 disabled:grayscale disabled:opacity-50 transition-all flex items-center justify-center gap-3"
                                     >
                                         {isProcessing ? (
-                                            <>TRAITEMENT... <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
+                                            <>Traitement... <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
                                         ) : signed ? (
-                                            <>VOTRE COPIE EST PRÊTE <Download size={14} /></>
+                                            <>Télécharger ma copie <Download size={14} /></>
                                         ) : (
-                                            <>CONFIRMER LA SIGNATURE <ChevronDown size={14} className="-rotate-90" /></>
+                                            <>Confirmer la signature <ChevronDown size={14} className="-rotate-90" /></>
                                         )}
                                     </button>
                                 </div>
@@ -216,9 +216,8 @@ export default function ContractSigner({
                             <div className="p-8 bg-secondary/5 border-t border-border/50 transition-colors group-hover:bg-secondary/10">
                                 <div className="flex items-center gap-4">
                                     <Shield size={20} className="text-primary/20" />
-                                    <p className="text-[9px] text-secondary/40 leading-relaxed font-black uppercase tracking-[0.2em] italic">
-                                        SÉCURISATION DES DONNÉES PAR CHIFFREMENT AVANCÉ<br />
-                                        ORIGINE : AUTOMATIC ABIDJAN HUB
+                                    <p className="text-[9px] text-secondary/40 leading-relaxed font-bold uppercase tracking-widest">
+                                        Données sécurisées par chiffrement
                                     </p>
                                 </div>
                             </div>

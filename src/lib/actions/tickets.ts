@@ -71,6 +71,7 @@ export async function createTicket(formData: FormData) {
     await createAdminNotification(
         "Nouveau Ticket Support",
         `Ticket "${title}" créé par ${user.name}`,
+        "INFO",
         `/admin/tickets/${ticket.id}`
     );
 
@@ -101,6 +102,7 @@ export async function updateTicketStatus(ticketId: string, status: TicketStatus)
             userId: ticket.clientId,
             title: "Mise à jour de votre ticket",
             message: `Le statut de votre ticket "${ticket.title}" est maintenant : ${status}`,
+            type: "INFO",
             link: `/dashboard/tickets/${ticket.id}`
         }
     });
@@ -131,6 +133,7 @@ export async function assignTicket(ticketId: string, assignedToId: string) {
                 userId: assignedToId,
                 title: "Ticket assigné",
                 message: `Vous avez été assigné au ticket "${ticket.title}"`,
+                type: "INFO",
                 link: `/admin/tickets/${ticket.id}`
             }
         });
@@ -173,6 +176,7 @@ export async function addTicketResponse(ticketId: string, message: string, isInt
                     userId: notifyUserId,
                     title: "Nouvelle réponse sur votre ticket",
                     message: `Réponse sur "${ticket.title}"`,
+                    type: "CHAT",
                     link: user.role === "ADMIN" ? `/admin/tickets/${ticketId}` : `/dashboard/tickets/${ticketId}`
                 }
             });

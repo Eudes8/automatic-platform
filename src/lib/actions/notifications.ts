@@ -4,10 +4,14 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "./users";
 import { revalidatePath } from "next/cache";
 
+// Use local type if Prisma generate hasn't fully propagated to IDE
+export type NotificationType = "INFO" | "SUCCESS" | "WARNING" | "ERROR" | "PROJECT" | "PAYMENT" | "CHAT";
+
 export async function createNotification(
     userId: string,
     title: string,
     message: string,
+    type: NotificationType = "INFO",
     link?: string
 ) {
     try {
@@ -16,6 +20,7 @@ export async function createNotification(
                 userId,
                 title,
                 message,
+                type,
                 link,
                 read: false
             }
@@ -89,6 +94,23 @@ export async function markAllAsRead() {
     }
 }
 
+export async function deleteAllNotifications() {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+
+    try {
+        await prisma.notification.deleteMany({
+            where: { userId: user.id }
+        });
+
+        revalidatePath('/dashboard');
+        revalidatePath('/admin');
+        return { success: true };
+    } catch (error) {
+        return { success: false };
+    }
+}
+
 export async function deleteNotification(notificationId: string) {
     const user = await getCurrentUser();
     if (!user) return { success: false };
@@ -106,14 +128,14 @@ export async function deleteNotification(notificationId: string) {
     }
 }
 
-export async function createAdminNotification(title: string, message: string, link?: string) {
+export async function createAdminNotification(title: string, message: string, type: NotificationType = "INFO", link?: string) {
     try {
         const admins = await prisma.user.findMany({
             where: { role: 'ADMIN' }
         });
 
         for (const admin of admins) {
-            await createNotification(admin.id, title, message, link);
+            await createNotification(admin.id, title, message, type, link);
         }
         return { success: true };
     } catch (error) {
@@ -141,8 +163,9 @@ export async function notifyNewRequirement(projectId: string, requirementTitle: 
         for (const admin of admins) {
             await createNotification(
                 admin.id,
-                "🆕 Nouveau Besoin Client",
+                "Nouveau Besoin Client",
                 `${project.client?.name || 'Un client'} a ajouté "${requirementTitle}" au projet ${project.title}`,
+                "PROJECT",
                 `/admin/projects/${projectId}`
             );
         }
@@ -151,8 +174,9 @@ export async function notifyNewRequirement(projectId: string, requirementTitle: 
     else {
         await createNotification(
             project.clientId,
-            "💡 Nouvelle Proposition",
+            "Nouvelle Proposition",
             `AUTOMATIC a proposé "${requirementTitle}" pour votre projet ${project.title}`,
+            "PROJECT",
             `/dashboard/projects/${projectId}`
         );
     }
@@ -178,8 +202,9 @@ export async function notifyRequirementStatusChange(
     if (project.clientId !== changedByUserId) {
         await createNotification(
             project.clientId,
-            `${statusEmoji} Mise à Jour Cahier des Charges`,
+            `Mise à Jour Cahier des Charges`,
             `"${requirement.title}" est maintenant ${newStatus}`,
+            "PROJECT",
             `/dashboard/projects/${project.id}`
         );
     }
@@ -196,8 +221,9 @@ export async function notifyNewAsset(projectId: string, assetName: string) {
 
     await createNotification(
         project.clientId,
-        "📦 Nouveau Livrable",
+        "Nouveau Livrable",
         `${assetName} a été ajouté à votre projet ${project.title}`,
+        "SUCCESS",
         `/dashboard/projects/${projectId}`
     );
 }
@@ -212,8 +238,9 @@ export async function notifyContractReady(projectId: string) {
 
     await createNotification(
         project.clientId,
-        "📝 Contrat Prêt",
+        "Contrat Prêt",
         `Votre contrat pour ${project.title} est prêt à être signé`,
+        "WARNING",
         `/dashboard/projects/${projectId}`
     );
 }

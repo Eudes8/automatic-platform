@@ -23,9 +23,9 @@ export default async function AdminUsersPage({
         <div className="space-y-12 p-10 lg:p-14 animate-in fade-in slide-in-from-bottom-6 duration-700">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-border/50 pb-12">
                 <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="w-10 h-px bg-primary/30" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">GESTION CLIENTÈLE // FICHIER CENTRAL</span>
+                    <div className="flex items-center gap-3 mb-4 text-primary/40 text-[10px] font-black uppercase tracking-[0.2em] italic">
+                        <span className="w-10 h-px bg-primary/20" />
+                        Gestion Clients
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         CRM <span className="text-secondary/20">Clients.</span>
@@ -48,8 +48,8 @@ export default async function AdminUsersPage({
                     </div>
                     <div className="flex items-center gap-4 px-6 border-l border-border/50 hidden md:flex">
                         <div className="flex flex-col items-end">
-                            <span className="text-[8px] font-black text-secondary/20 uppercase tracking-widest italic">TOTAL_DOSSIERS</span>
-                            <span className="text-sm font-black text-primary italic">{total} CLIENTS</span>
+                            <span className="text-[8px] font-black text-secondary/20 uppercase tracking-widest italic">Total dossiers</span>
+                            <span className="text-sm font-black text-primary italic">{total} Clients</span>
                         </div>
                     </div>
                 </div>
@@ -133,8 +133,8 @@ export default async function AdminUsersPage({
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8 p-10 border-t border-border/50 bg-secondary/2 relative z-10">
-                        <div className="text-[10px] font-black text-secondary/20 uppercase tracking-[0.3em] italic">
-                            XFER_STATS: {(page - 1) * 20 + 1} TO {Math.min(page * 20, total)} // DEPTH: {total} RECORDS
+                        <div className="text-[10px] font-black text-secondary/20 uppercase tracking-[0.2em] italic">
+                            Affichage de {(page - 1) * 20 + 1} à {Math.min(page * 20, total)} sur {total} clients.
                         </div>
                         <div className="flex gap-4">
                             {page > 1 && (

@@ -1,136 +1,131 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronRight, Terminal, AtSign, Cpu } from "lucide-react";
-import { useEffect, useState } from "react";
-
-function Counter({ value, suffix = "" }: { value: number, suffix?: string }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let start = 0;
-    const end = value;
-    const duration = 2000;
-    let timer = setInterval(() => {
-      start += Math.ceil(end / 100);
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, duration / 100);
-    return () => clearInterval(timer);
-  }, [value]);
-
-  return <span>{count}{suffix}</span>;
-}
+import { Smartphone, Globe, Laptop, ArrowRight, Sparkles } from "lucide-react";
 
 export default function Hero() {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* Serious Tech Background */}
-      <div className="absolute inset-0 z-0">
-        {/* Millimetric Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+    <div className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden bg-background pt-20 pb-10">
 
-        {/* Floating Tech Coordinates */}
-        <div className="absolute top-1/4 left-10 text-[10px] font-mono text-primary/20 writing-vertical select-none">
-          LAT_4.3948 / LON_-3.9840 / ABIDJAN_HUB
-        </div>
-        <div className="absolute bottom-1/4 right-10 text-[10px] font-mono text-primary/20 writing-vertical select-none">
-          ENGINE_V2.0 / STABLE_BUILD / 256-BIT_ENC
-        </div>
+      {/* Soft Background Gradients */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-[100px]" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 pt-20">
-        <div className="max-w-6xl mx-auto text-center">
+      <div className="container mx-auto px-4 z-10 relative">
+        <div className="max-w-4xl mx-auto text-center mb-12 sm:mb-20">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 px-3 py-1.5 rounded-full border border-primary/10 bg-primary/5 backdrop-blur-md mb-12"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary text-sm font-medium mb-8"
           >
-            <div className="flex h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
-              Protocol_Digital : Initialisation_2026
-            </span>
+            <Sparkles className="w-4 h-4" />
+            <span>La technologie rendue simple</span>
           </motion.div>
 
-          <motion.div
-            style={{ y: y1, opacity }}
-            className="relative"
-          >
-            <h1 className="text-6xl md:text-[9rem] font-black mb-8 tracking-[-0.08em] leading-[0.85] text-primary italic uppercase">
-              Forgez votre <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary animate-gradient-x">Empire Digital.</span>
-            </h1>
-
-            <p className="text-lg md:text-2xl text-secondary max-w-3xl mx-auto mb-16 leading-tight font-black uppercase tracking-tighter italic">
-              AUTOMATIC déploie des infrastructures logicielles indestructibles pour les bâtisseurs du <span className="text-accent">nouveau monde.</span>
-            </p>
-          </motion.div>
-
-          <motion.div
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 tracking-tight text-primary leading-tight"
           >
-            <Link
-              href="/onboarding"
-              className="group relative px-10 py-5 bg-primary text-background rounded-full font-black text-[11px] uppercase tracking-[0.3em] overflow-hidden transition-all hover:scale-[1.05] active:scale-95 flex items-center gap-4"
-            >
-              {/* Glint effect */}
-              <div className="absolute inset-0 w-1/4 h-full bg-white/20 -skew-x-[45deg] animate-glint" />
+            Que voulez-vous <br className="hidden sm:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary animate-gradient-x">
+              créer aujourd'hui ?
+            </span>
+          </motion.h1>
 
-              Initialiser le Project
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            <Link
-              href="#portfolio"
-              className="px-10 py-5 rounded-full font-black text-[11px] uppercase tracking-[0.3em] text-primary border border-primary/20 hover:border-primary/50 transition-all flex items-center gap-4 hover:bg-primary/5"
-            >
-              Consulter le Registre
-            </Link>
-          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg sm:text-xl text-secondary/80 max-w-2xl mx-auto"
+          >
+            Pas besoin de compétences techniques. Sélectionnez simplement votre projet et laissez la magie opérer.
+          </motion.p>
         </div>
 
-        {/* Counter Stats Section */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="mt-32 pt-12 border-t border-primary/5 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto"
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
         >
-          {[
-            { label: "Actifs_Déployés", val: 124, suffix: "+" },
-            { label: "Uptime_Système", val: 99.9, suffix: "%" },
-            { label: "Indice_Vitesse", val: 450, suffix: "Mbps" },
-            { label: "Grade_Tech", val: 1, suffix: "/S-TIER" },
-          ].map((stat, i) => (
-            <div key={i} className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-black text-accent opacity-40 italic">ITEM_{i + 1}</span>
+          {/* Card 1: Application Mobile */}
+          <motion.div variants={item}>
+            <Link href="/onboarding?type=app" className="group block relative h-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-3xl transform group-hover:scale-[1.02] transition-transform duration-300" />
+              <div className="relative p-8 h-full bg-card border border-border/50 rounded-3xl hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all text-center flex flex-col items-center">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary group-hover:scale-110 transition-transform duration-300">
+                  <Smartphone className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-primary">Application Mobile</h3>
+                <p className="text-secondary/70 mb-8">
+                  Créez votre propre application pour iPhone et Android.
+                </p>
+                <div className="mt-auto inline-flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wider group-hover:gap-3 transition-all">
+                  Commencer <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
-              <p className="text-3xl font-black text-primary italic leading-none">
-                <Counter value={stat.val} suffix={stat.suffix} />
-              </p>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary opacity-60 italic">{stat.label}</p>
-            </div>
-          ))}
-        </motion.div>
-      </div>
+            </Link>
+          </motion.div>
 
-      {/* Background Scanner Line Overlay */}
-      <div className="absolute inset-0 pointer-events-none z-20">
-        <div className="w-full h-[1px] bg-primary/10 absolute top-0 animate-scan-line" />
+          {/* Card 2: Site Web */}
+          <motion.div variants={item}>
+            <Link href="/onboarding?type=website" className="group block relative h-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-3xl transform group-hover:scale-[1.02] transition-transform duration-300" />
+              <div className="relative p-8 h-full bg-card border border-border/50 rounded-3xl hover:border-accent/50 hover:shadow-xl hover:shadow-accent/5 transition-all text-center flex flex-col items-center">
+                <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-6 text-accent group-hover:scale-110 transition-transform duration-300">
+                  <Globe className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-primary">Site Internet</h3>
+                <p className="text-secondary/70 mb-8">
+                  Présentez votre activité au monde entier avec un site moderne.
+                </p>
+                <div className="mt-auto inline-flex items-center gap-2 text-sm font-bold text-accent uppercase tracking-wider group-hover:gap-3 transition-all">
+                  Commencer <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+
+          {/* Card 3: Logiciel */}
+          <motion.div variants={item}>
+            <Link href="/onboarding?type=software" className="group block relative h-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-3xl transform group-hover:scale-[1.02] transition-transform duration-300" />
+              <div className="relative p-8 h-full bg-card border border-border/50 rounded-3xl hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/5 transition-all text-center flex flex-col items-center">
+                <div className="w-20 h-20 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                  <Laptop className="w-10 h-10" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-primary">Logiciel Sur Mesure</h3>
+                <p className="text-secondary/70 mb-8">
+                  Des outils puissants pour gérer et automatiser votre entreprise.
+                </p>
+                <div className="mt-auto inline-flex items-center gap-2 text-sm font-bold text-purple-500 uppercase tracking-wider group-hover:gap-3 transition-all">
+                  Commencer <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+
+        </motion.div>
       </div>
     </div>
   );

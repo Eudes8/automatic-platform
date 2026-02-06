@@ -149,6 +149,22 @@ export async function signContract(projectId: string, signatureBase64?: string) 
         revalidatePath('/dashboard');
         revalidatePath(`/dashboard/projects/${projectId}`);
         revalidatePath('/dashboard/projects');
+        revalidatePath('/admin');
+
+        // Notify Admins
+        const signedProject = await prisma.project.findUnique({
+            where: { id: projectId },
+            include: { client: true }
+        });
+        if (signedProject) {
+            const { createAdminNotification } = await import("./notifications");
+            await createAdminNotification(
+                "Contrat Signé",
+                `${signedProject.client?.name || 'Un client'} a signé le contrat pour ${signedProject.title}`,
+                "SUCCESS",
+                `/admin/projects/${projectId}`
+            );
+        }
 
         console.log("[Action] Contract signed successfully!");
         return { success: true, pdfUrl };

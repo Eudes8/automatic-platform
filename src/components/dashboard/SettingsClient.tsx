@@ -19,44 +19,44 @@ export default function SettingsClient({ user, invoices }: SettingsClientProps) 
     const [activeTab, setActiveTab] = useState("IDENTITÉ");
 
     const tabs = [
-        { name: "IDENTITÉ", icon: User },
-        { name: "SÉCURITÉ", icon: Lock },
-        { name: "NOTIFICATIONS", icon: Bell },
-        { name: "FACTURES", icon: CreditCard },
+        { name: "IDENTITÉ", label: "Profil", icon: User },
+        { name: "SÉCURITÉ", label: "Sécurité", icon: Lock },
+        { name: "NOTIFICATIONS", label: "Notifications", icon: Bell },
+        { name: "FACTURES", label: "Factures", icon: CreditCard },
     ];
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-12">
             {/* Navigation Sidebar */}
-            <aside className="lg:col-span-1 space-y-4">
-                <p className="px-6 text-[9px] font-black text-secondary/20 uppercase tracking-[0.6em] mb-6 italic">// PARAMÈTRES_NODES</p>
+            <aside className="lg:col-span-1 space-y-3 sm:space-y-4">
+                <p className="px-4 sm:px-6 text-[8px] sm:text-[9px] font-bold text-secondary/20 uppercase tracking-widest mb-4 sm:mb-6">Configuration</p>
                 {tabs.map((item, i) => (
                     <button
                         key={i}
                         onClick={() => setActiveTab(item.name)}
                         className={cn(
-                            "w-full flex items-center justify-between px-8 py-6 rounded-[2rem] text-[10px] uppercase font-black tracking-[0.3em] italic transition-all duration-500 group relative overflow-hidden",
+                            "w-full flex items-center justify-between px-5 sm:px-8 py-4 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] text-[9px] sm:text-[10px] uppercase font-bold tracking-widest transition-all duration-500 group relative overflow-hidden",
                             activeTab === item.name
-                                ? "bg-primary text-background shadow-2xl shadow-primary/20 scale-[1.05]"
+                                ? "bg-primary text-background shadow-2xl shadow-primary/20 scale-[1.02] sm:scale-[1.05]"
                                 : "text-secondary/30 hover:text-primary hover:bg-white border border-transparent hover:border-border/50 shadow-sm"
                         )}
                     >
-                        <div className="flex items-center gap-5 relative z-10">
-                            <item.icon size={18} className={activeTab === item.name ? "opacity-100" : "opacity-20 group-hover:opacity-100 transition-opacity"} />
-                            {item.name}
+                        <div className="flex items-center gap-3 sm:gap-5 relative z-10">
+                            <item.icon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                            {item.label}
                         </div>
                         {activeTab === item.name && <div className="w-1.5 h-1.5 rounded-full bg-background animate-ping" />}
                     </button>
                 ))}
 
-                <div className="mt-16 p-8 bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[2.5rem] shadow-xl">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary/30">
-                            <Shield size={20} />
+                <div className="mt-10 sm:mt-16 p-5 sm:p-8 bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-xl">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary/30">
+                            <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div>
-                            <p className="text-[9px] font-black text-secondary/40 uppercase tracking-widest italic">SYSTÈME_INTÉGRITÉ</p>
-                            <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest italic mt-0.5">VÉRIFIÉ_ET_SCELLÉ</p>
+                            <p className="text-[8px] sm:text-[9px] font-bold text-secondary/40 uppercase tracking-widest">Intégrité du compte</p>
+                            <p className="text-[7px] sm:text-[8px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Vérifié</p>
                         </div>
                     </div>
                     <div className="h-[2px] bg-background rounded-full overflow-hidden border border-border/50">
@@ -66,9 +66,9 @@ export default function SettingsClient({ user, invoices }: SettingsClientProps) 
             </aside>
 
             {/* Main Content Area */}
-            <div className="lg:col-span-3 space-y-12">
-                <div className="bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[3.5rem] p-12 lg:p-16 shadow-2xl relative overflow-hidden group/card min-h-[600px]">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/2 rounded-full blur-[120px] -mr-80 -mt-80 pointer-events-none" />
+            <div className="lg:col-span-3 space-y-8 sm:space-y-12">
+                <div className="bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[2rem] sm:rounded-[3.5rem] p-6 sm:p-12 lg:p-16 shadow-2xl relative overflow-hidden group/card min-h-[400px] sm:min-h-[600px]">
+                    <div className="absolute top-0 right-0 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-primary/2 rounded-full blur-[80px] sm:blur-[120px] -mr-40 sm:-mr-80 -mt-40 sm:-mt-80 pointer-events-none" />
 
                     <div className="relative z-10 animate-in fade-in slide-in-from-right-4 duration-500">
                         {activeTab === "IDENTITÉ" && user && (

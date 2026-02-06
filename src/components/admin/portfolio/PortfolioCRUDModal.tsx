@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, X, Loader2, Image as ImageIcon, Link as LinkIcon, Github, Star, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { createPortfolioProject, updatePortfolioProject, deletePortfolioProject } from "@/lib/actions/portfolio";
 import { toast } from "sonner";
 
@@ -61,9 +62,9 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
             {mode === "CREATE" ? (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="px-6 py-4 bg-primary text-background rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
+                    className="px-4 sm:px-6 py-3 sm:py-4 bg-primary text-background rounded-xl sm:rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2 sm:gap-3"
                 >
-                    <Plus className="w-4 h-4" /> ARCHIVER_NOUVEAU_PROJET
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">ARCHIVER_NOUVEAU_PROJET</span><span className="sm:hidden">ARCHIVER</span>
                 </button>
             ) : (
                 <button
@@ -76,27 +77,27 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
             )}
 
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-xl p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-xl p-2 sm:p-4">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="w-full max-w-2xl bg-card border border-border/60 rounded-[2.5rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar"
+                        className="w-full max-w-2xl bg-card border border-border/60 rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-10 relative shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar"
                     >
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="absolute top-8 right-8 text-secondary/40 hover:text-primary transition-colors"
+                            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-secondary/40 hover:text-primary transition-colors"
                         >
-                            <X className="w-6 h-6" />
+                            <X className="w-5 h-5 sm:w-6 sm:h-6" />
                         </button>
 
-                        <div className="flex items-center gap-3 mb-8">
-                            <span className="w-8 h-[1px] bg-accent" />
-                            <h3 className="text-xl font-black text-primary uppercase italic tracking-tighter">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+                            <span className="w-6 sm:w-8 h-[1px] bg-accent" />
+                            <h3 className="text-base sm:text-xl font-black text-primary uppercase italic tracking-tighter">
                                 {mode === "CREATE" ? "Initialisation_Archive" : "Modification_Protocole"}
                             </h3>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Titre_Projet</label>
@@ -188,5 +189,3 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
         </>
     );
 }
-
-import { motion } from "framer-motion";
