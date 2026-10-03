@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { resend } from "@/lib/resend";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getAuthenticatedUser } from "@/lib/api-helpers";
 import { z } from "zod";
 
+// ⚠️ Sécurité : cette route est maintenant RÉSERVÉE aux utilisateurs
+// authentifiés (Neon Auth). Le compte client est créé côté navigateur via
+// authClient.signUp.email (endpoint public Better Auth) AVANT d'appeler
+// cette route. Le serveur ne manipule plus jamais de mot de passe :
+// l'ancien comportement (réinitialisation du mot de passe d'un email
+// existant depuis le formulaire public) était une faille de prise de
+// contrôle de compte et a été supprimé.
 const projectSchema = z.object({
     projectTitle: z.string().min(3),
     name: z.string().min(2),
@@ -11,11 +18,19 @@ const projectSchema = z.object({
     type: z.enum(["starter", "web", "mobile", "saas"]),
     features: z.array(z.string()).min(1),
     timeline: z.string(),
-    password: z.string().min(8),
 });
 
 export async function POST(req: Request) {
     try {
+        // 0. Authentification obligatoire (session Neon Auth + profil Prisma)
+        const authenticated = await getAuthenticatedUser();
+        if (!authenticated) {
+            return NextResponse.json(
+                { success: false, error: "Authentification requise." },
+                { status: 401 }
+            );
+        }
+
         const body = await req.json();
 
         // Validation
@@ -28,38 +43,22 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        const { projectTitle, name, email, type, features, timeline, password } = result.data;
+        const { projectTitle, name, email, type, features, timeline } = result.data;
 
-        // 1. Create/Update User in Supabase Auth (Directly)
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true,
-            user_metadata: { full_name: name },
-            app_metadata: { role: 'CLIENT' }
-        });
-
-        if (authError) {
-            if (authError.message.includes('already been registered')) {
-                const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
-                const existingUser = users.find(u => u.email === email);
-                if (existingUser) {
-                    await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-                        password,
-                        app_metadata: { role: 'CLIENT' }
-                    });
-                }
-            } else {
-                throw authError;
-            }
+        // 1. L'email de la requête doit correspondre au compte authentifié
+        if (email.toLowerCase() !== authenticated.email.toLowerCase()) {
+            return NextResponse.json(
+                { success: false, error: "Cet email ne correspond pas à votre session." },
+                { status: 403 }
+            );
         }
 
-        // 2. Sync with Prisma
+        // 2. Synchroniser le profil Prisma (nom affichable)
         const user = await prisma.user.upsert({
-            where: { email },
+            where: { email: authenticated.email },
             update: { name },
             create: {
-                email,
+                email: authenticated.email,
                 name,
                 role: "CLIENT",
             },
@@ -83,12 +82,13 @@ export async function POST(req: Request) {
             },
         });
 
-        // 4. Send Custom Estimation Email
-        await resend.emails.send({
-            from: 'AUTOMATIC <hello@resend.dev>',
-            to: email,
-            subject: `🚀 Protocole Initialisé - Nexus Build Overview`,
-            html: `
+        // 4. Send Custom Estimation Email (best effort — ne bloque pas la création)
+        try {
+            await resend.emails.send({
+                from: 'AUTOMATIC <hello@resend.dev>',
+                to: email,
+                subject: `🚀 Protocole Initialisé - Nexus Build Overview`,
+                html: `
         <div style="font-family: 'Courier New', Courier, monospace; max-width: 600px; margin: 0 auto; background: #000000; color: #ffffff; padding: 40px; border: 1px solid #333;">
           <h1 style="color: #ffffff; font-size: 20px; border-bottom: 1px solid #222; padding-bottom: 20px;">AUTOMATIC_SYSTÈME // RAPPORT_INITIAL</h1>
           <p style="color: #666; font-size: 12px;">ID_SESSION: ${project.id}</p>
@@ -107,14 +107,22 @@ export async function POST(req: Request) {
               ACCÉDER_AU_MAINFRAME
             </a>
           </div>
-        </div>
-      `,
-        });
+        </div>`,
+            });
+        } catch (mailError) {
+            console.error("[projects] Envoi email de confirmation échoué (non bloquant):", mailError);
+        }
 
-        return NextResponse.json({ success: true, projectId: project.id, userId: user.id });
+        return NextResponse.json({
+            success: true,
+            project,
+            message: "Projet créé avec succès.",
+        });
     } catch (error) {
-        console.error("Project Creation Error:", error);
-        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+        console.error("[projects] Erreur création projet:", error);
+        return NextResponse.json(
+            { success: false, error: "Erreur serveur lors de la création du projet." },
+            { status: 500 }
+        );
     }
 }
-

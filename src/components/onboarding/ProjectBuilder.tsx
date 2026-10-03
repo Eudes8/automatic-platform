@@ -20,7 +20,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatCurrency, getClientCurrency, Currency } from "@/lib/utils/currency";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
 
 const STEPS = [
     { id: "intro", title: "Nom" },
@@ -107,11 +107,36 @@ export default function ProjectBuilder() {
     const onFormSubmit = async (data: FormData) => {
         setSubmitting(true);
         try {
-            // Add default timeline/budget if missing for simplification
+            // 1. Créer le compte (ou connecter si l'email existe déjà).
+            // L'inscription passe par Neon Auth (Better Auth) : endpoint public,
+            // le mot de passe ne transite JAMAIS par notre API.
+            const signUp = await authClient.signUp.email({
+                email: data.email,
+                password: data.password,
+                name: data.name,
+            });
+
+            if (signUp.error) {
+                // Email déjà inscrit ? Tentative de connexion avec le mot de passe fourni.
+                const signIn = await authClient.signIn.email({
+                    email: data.email,
+                    password: data.password,
+                });
+                if (signIn.error) {
+                    alert("Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe actuel.");
+                    setSubmitting(false);
+                    return;
+                }
+            }
+
+            // 2. Créer le projet (route authentifiée — plus de mot de passe dans le payload)
             const payload = {
-                ...data,
-                budget: "medium",
-                timeline: "standard"
+                projectTitle: data.projectTitle,
+                name: data.name,
+                email: data.email,
+                type: data.type,
+                features: data.features,
+                timeline: "standard",
             };
             const response = await fetch("/api/projects", {
                 method: "POST",
@@ -120,18 +145,8 @@ export default function ProjectBuilder() {
             });
             const result = await response.json();
             if (result.success) {
-                // IMPORTANT: Sign in the user automatically so they don't see "Invité" or an empty dashboard
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email: data.email,
-                    password: data.password
-                });
-
-                if (signInError) {
-                    console.error("Auto-login failed:", signInError);
-                    window.location.href = "/login?registered=true";
-                } else {
-                    window.location.href = "/dashboard";
-                }
+                // La session Neon Auth est déjà active après inscription/connexion
+                window.location.href = "/dashboard";
             } else {
                 alert(result.error);
             }

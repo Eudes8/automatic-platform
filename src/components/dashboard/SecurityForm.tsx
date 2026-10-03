@@ -1,35 +1,66 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Lock, Smartphone, Fingerprint, Mail, Key, Loader2, CheckCircle2 } from "lucide-react";
+import { Shield, Lock, Smartphone, Fingerprint, Mail, Key, Loader2, CheckCircle2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { authClient } from "@/lib/auth-client";
 
 export default function SecurityForm({ email }: { email: string }) {
     const [isPending, setIsPending] = useState(false);
     const [lastResetSent, setLastResetSent] = useState<Date | null>(null);
+    const [otpSent, setOtpSent] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [newPassword, setNewPassword] = useState("");
 
-    async function handlePasswordReset() {
+    // Étape 1 : envoyer un code à 6 chiffres par email (OTP managé Neon Auth)
+    async function handleSendOtp() {
         setIsPending(true);
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/settings`,
+            const { error } = await authClient.emailOtp.sendVerificationOtp({
+                email,
+                type: "forget-password",
             });
 
             if (error) throw error;
 
+            setOtpSent(true);
             setLastResetSent(new Date());
-            toast.success("E-mail de réinitialisation envoyé", {
-                description: "Vérifiez votre boîte de réception pour changer votre mot de passe.",
+            toast.success("Code de sécurité envoyé", {
+                description: "Saisissez le code reçu par email avec votre nouveau mot de passe.",
                 className: "glass-premium rounded-2xl border-premium p-4 font-bold text-xs uppercase tracking-widest",
             });
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Une erreur est survenue.";
+            toast.error("Erreur", {
+                description: message,
+            });
+        } finally {
+            setIsPending(false);
+        }
+    }
+
+    // Étape 2 : code + nouveau mot de passe
+    async function handleConfirmReset(e: React.FormEvent) {
+        e.preventDefault();
+        setIsPending(true);
+        try {
+            const { error } = await authClient.emailOtp.resetPassword({
+                email,
+                otp,
+                password: newPassword,
+            });
+
+            if (error) throw error;
+
+            toast.success("Mot de passe mis à jour", {
+                description: "Votre nouveau mot de passe est actif.",
+                className: "glass-premium rounded-2xl border-premium p-4 font-bold text-xs uppercase tracking-widest",
+            });
+            setOtpSent(false);
+            setOtp("");
+            setNewPassword("");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Code invalide ou expiré.";
             toast.error("Erreur", {
                 description: message,
             });
@@ -63,16 +94,59 @@ export default function SecurityForm({ email }: { email: string }) {
                         <h4 className="text-[10px] sm:text-[11px] font-bold text-primary uppercase tracking-widest">Mot de passe</h4>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-secondary/40 font-bold leading-relaxed">
-                        Pour des raisons de sécurité, la modification du mot de passe se fait via un lien sécurisé envoyé à votre adresse e-mail.
+                        Pour des raisons de sécurité, la modification du mot de passe se fait via un code à 6 chiffres envoyé à votre adresse e-mail.
                     </p>
-                    <button
-                        onClick={handlePasswordReset}
-                        disabled={isPending}
-                        className="w-full py-4 sm:py-5 bg-primary text-background font-bold uppercase text-[9px] sm:text-[10px] tracking-widest rounded-2xl shadow-xl shadow-primary/10 hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50"
-                    >
-                        {isPending ? <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                        Réinitialiser mon accès
-                    </button>
+
+                    {!otpSent ? (
+                        <button
+                            onClick={handleSendOtp}
+                            disabled={isPending}
+                            className="w-full py-4 sm:py-5 bg-primary text-background font-bold uppercase text-[9px] sm:text-[10px] tracking-widest rounded-2xl shadow-xl shadow-primary/10 hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50"
+                        >
+                            {isPending ? <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                            Recevoir un code de sécurité
+                        </button>
+                    ) : (
+                        <form onSubmit={handleConfirmReset} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-widest ml-1">Code reçu par email</label>
+                                <div className="relative">
+                                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary/30" />
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                        placeholder="••••••"
+                                        maxLength={6}
+                                        className="w-full pl-11 pr-4 py-3.5 bg-background border border-border/50 rounded-2xl focus:border-primary outline-none text-primary text-sm font-black tracking-[0.4em] text-center"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-widest ml-1">Nouveau mot de passe</label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="••••••••••••"
+                                    minLength={8}
+                                    className="w-full px-4 py-3.5 bg-background border border-border/50 rounded-2xl focus:border-primary outline-none text-primary text-xs font-bold"
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isPending || otp.length < 6 || newPassword.length < 8}
+                                className="w-full py-4 bg-primary text-background font-bold uppercase text-[9px] sm:text-[10px] tracking-widest rounded-2xl shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                Confirmer le nouveau mot de passe
+                            </button>
+                        </form>
+                    )}
+
                     {lastResetSent && (
                         <div className="flex items-center gap-2 text-[7px] sm:text-[8px] font-black text-emerald-500 uppercase tracking-widest italic justify-center">
                             <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Dernier envoi : {lastResetSent.toLocaleTimeString()}
@@ -109,7 +183,7 @@ export default function SecurityForm({ email }: { email: string }) {
                         <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         <div>
                             <p className="text-[9px] sm:text-[10px] font-bold text-primary uppercase tracking-widest">Session Actuelle</p>
-                            <p className="text-[8px] sm:text-[9px] font-bold text-secondary/40 uppercase tracking-widest mt-1">IP: {email === 'automaticbmje@gmail.com' ? '41.202.219.124' : 'Protégé'} // Côte d'Ivoire</p>
+                            <p className="text-[8px] sm:text-[9px] font-bold text-secondary/40 uppercase tracking-widest mt-1">Session protégée // Neon Auth</p>
                         </div>
                     </div>
                     <span className="text-[7px] sm:text-[8px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-3 sm:px-4 py-1.5 rounded-full border border-emerald-500/20">Sécurisé</span>

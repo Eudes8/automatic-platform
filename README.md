@@ -9,14 +9,14 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
 - **💳 Paiement en ligne Moneroo** : Règlement des factures par Mobile Money, carte bancaire et plus — confirmation automatique par webhook sécurisé.
 - **📊 Dashboard de Pilotage** : Suivi de progression en temps réel et gestion des actifs.
 - **💬 Salon de Discussion** : Ligne directe entre le client et l'équipe technique experte.
-- **🛡️ Sécurité de Pointe** : Authentification via Supabase et gestion des accès granulaires.
+- **🛡️ Sécurité de Pointe** : Authentification **Neon Auth** (Better Auth managé), sessions httpOnly, contrôle d'accès granulaire serveur.
 
 ## 🛠 Stack Technique
 
 - **Next.js 16** (App Router, Server Actions)
 - **Tailwind CSS 4** (Design System Cyber/Dark)
 - **Prisma 7** + PostgreSQL
-- **Supabase** (Auth & Serverless Logic)
+- **Neon Auth** (Better Auth managé) + Supabase (Realtime & Storage uniquement)
 - **Framer Motion** (Animations premium)
 - **pdf-lib** (Génération de contrats)
 
@@ -86,7 +86,7 @@ mise en veille automatique (scale to zero) : idéal pour le plan gratuit.
 - Variables d'environnement configurées (production + preview + development) :
   `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `DIRECT_URL` (Neon),
   `MONEROO_SECRET_KEY`, `MONEROO_WEBHOOK_SECRET`, `MONEROO_CURRENCY`,
-  `NEXT_PUBLIC_APP_URL`, plus Supabase et Resend.
+  `NEXT_PUBLIC_APP_URL`, plus `NEON_AUTH_BASE_URL`/`NEON_AUTH_COOKIE_SECRET` (auth) et Supabase/Resend.
 - Si vous recréez la base un jour : `neon link` + `neon env pull` en local,
   puis `npx prisma db push`, et mettez à jour les variables Vercel.
 
@@ -162,3 +162,38 @@ Pour plus de détails sur l'architecture technique, les flux de données et la s
 
 ---
 *Propulsé par l'équipe AUTOMATIC — Redéfinir l'excellence digitale.*
+
+## 🔐 Authentification (Neon Auth — Better Auth managé)
+
+L'authentification est hébergée par **Neon Auth** (Better Auth managé) :
+utilisateurs et sessions vivent dans le schéma `neon_auth` de la base,
+elles se branchent donc avec la base (dev/staging/prod isolés par branche).
+
+| Élément | Rôle |
+|---------|------|
+| `/api/auth/*` | Proxy same-origin vers le service Neon Auth (route catch-all Next). |
+| `src/lib/auth-server.ts` | Instance serveur `createNeonAuth` (sessions httpOnly signées). |
+| `src/lib/auth-client.ts` | Client navigateur (`signIn.email`, `signUp.email`, `emailOtp`…). |
+| `getAuthenticatedUser()` | Session Neon Auth → profil Prisma (`User`) par email. |
+
+- **Rôles** : `User.role` (Prisma) — `ADMIN` / `CLIENT`. Les layouts serveur
+  `/admin` et `/dashboard` vérifient session + rôle ; les actions serveur
+  utilisent `requireAdmin()`.
+- **Bootstrap admin** : la première requête authentifiée de
+  `automaticbmje@gmail.com` crée automatiquement son profil ADMIN.
+- **Mot de passe oublié** : code OTP à 6 chiffres envoyé par le SMTP managé
+  Neon (`emailOtp.sendVerificationOtp` → `emailOtp.resetPassword`).
+- **Production** : SMTP personnalisé requis pour les emails de marque
+  (checklist : https://neon.com/docs/auth/production-checklist.md).
+
+### Corrections de sécurité incluses
+
+| Faille corrigée | Gravité |
+|-----------------|---------|
+| `GET /api/admin/set-password` (sans auth) permettait de réinitialiser le mot de passe admin (mot de passe en dur dans le dépôt) | Critique |
+| `POST /api/projects` (public) réinitialisait le mot de passe de n'importe quel email existant → prise de contrôle de compte | Critique |
+| `GET /api/admin/promote` (sans auth) promouvait en ADMIN | Haute |
+| `GET /api/check-user` exposait les données d'un compte sans authentification | Haute |
+| Layout `/admin` sans contrôle de rôle côté serveur | Moyenne |
+| Upload de fichiers via le client navigateur côté serveur | Moyenne |
+| Headers de sécurité absents (nosniff, X-Frame-Options, HSTS…) | Moyenne |

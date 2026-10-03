@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
-import AuthSync from "@/components/auth/AuthSync";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { Toaster } from "sonner";
 
@@ -55,7 +54,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthSync />
           <Toaster
             position="bottom-right"
             toastOptions={{

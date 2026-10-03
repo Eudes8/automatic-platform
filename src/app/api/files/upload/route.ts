@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/actions/users";
-import { supabase } from "@/lib/supabase";
+import { uploadFileToStorage } from "@/lib/storage";
 import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
@@ -33,23 +33,22 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Project not found or access denied" }, { status: 404 });
         }
 
-        // Upload to Supabase Storage
+        // Upload via le client admin Supabase Storage (côté serveur uniquement)
         const fileName = `${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage
-            .from("project-assets")
-            .upload(`${projectId}/${fileName}`, file);
-
-        if (error) {
-            console.error("Upload error:", error);
-            return NextResponse.json({ error: "Upload failed" }, { status: 500 });
-        }
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const publicUrl = await uploadFileToStorage(
+            "project-assets",
+            `${projectId}/${fileName}`,
+            buffer,
+            file.type || "application/octet-stream"
+        );
 
         // Save file reference to database
         const asset = await prisma.asset.create({
             data: {
                 projectId: projectId,
                 name: file.name,
-                url: data.path,
+                url: publicUrl,
                 type: file.type
             }
         });

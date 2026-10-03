@@ -1,64 +1,20 @@
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
-    let response = NextResponse.next({
+// Middleware allégé : logique publique uniquement.
+// L'authentification est désormais gérée par Neon Auth (Better Auth) :
+// - Les pages protégées (/dashboard, /admin) vérifient la session côté
+//   serveur dans leurs layouts (src/app/*/layout.tsx) — défense en profondeur.
+// - Les routes API vérifient la session via getAuthenticatedUser().
+// - Le cycle auth passe par le proxy same-origin /api/auth/* (Neon Auth).
+export function proxy(request: NextRequest) {
+    const response = NextResponse.next({
         request: {
             headers: request.headers,
         },
     })
 
-    // 1. Initialize Supabase Client
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value
-                },
-                set(name: string, value: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    })
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
-                },
-            },
-        }
-    )
-
-    const path = request.nextUrl.pathname;
-
-    // 1.5 Edge Geolocation: Detection du pays pour fix la monnaie
+    // Détection du pays pour initialiser la devise préférée (fix monnaie)
     const preferredCurrency = request.cookies.get('automatic_preferred_currency')?.value;
     if (!preferredCurrency) {
         const country = request.headers.get('x-vercel-ip-country') || 'FR';
@@ -67,42 +23,6 @@ export async function proxy(request: NextRequest) {
             path: '/',
             maxAge: 60 * 60 * 24 * 365, // 1 year
         });
-    }
-
-    console.log(`[Proxy] Request to ${path}`);
-
-    // 2. Check Auth Session
-    const { data: { user } } = await supabase.auth.getUser()
-    const role = user?.app_metadata?.role;
-    const userEmail = user?.email;
-
-    console.log(`[Proxy] Auth User: ${userEmail || 'NONE'} | Role: ${role || 'NONE'}`);
-
-    // 3. Define Access Control Rules
-    const isProtectedPath = path.startsWith('/dashboard') || path.startsWith('/admin');
-    const isAdminPath = path.startsWith('/admin');
-    const isAuthPage = path.startsWith('/login') || path.startsWith('/register');
-
-    // 4. Handle Unauthenticated Access
-    if (isProtectedPath && !user) {
-        console.log(`[Proxy] Access Denied: Redirecting to login`);
-        return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    // 5. Handle Admin Access Control (RBAC)
-    if (isAdminPath) {
-        if (role !== 'ADMIN') {
-            console.log(`[Proxy] Admin Access Denied for ${userEmail} (Role: ${role})`);
-            return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
-    }
-
-    // 6. Redirect authenticated users away from Login page
-    if (isAuthPage && user) {
-        if (role === 'ADMIN') {
-            return NextResponse.redirect(new URL('/admin', request.url));
-        }
-        return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     return response
@@ -115,7 +35,7 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * - api/ (API routes - generally we might want to protect them too but let's be careful not to block webhooks)
+         * - api/ (API routes - protected individually via getAuthenticatedUser)
          * - public (public files)
          */
         '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

@@ -6,8 +6,7 @@ import { generateInvoicePDF } from "@/lib/pdf-generator";
 import { uploadFileToStorage } from "@/lib/storage";
 import { requireAdmin } from "@/lib/utils/adminAuth";
 import { logAdminAction } from "@/lib/utils/audit";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/actions/users";
 
 export async function createInvoice(formData: FormData) {
     const admin = await requireAdmin();
@@ -85,20 +84,7 @@ export async function getAllInvoices() {
 
 export async function getClientInvoices() {
     try {
-        const cookieStore = await cookies();
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                cookies: {
-                    get(name: string) {
-                        return cookieStore.get(name)?.value;
-                    },
-                },
-            }
-        );
-
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await getCurrentUser();
         if (!user || !user.email) return [];
 
         return await prisma.invoice.findMany({

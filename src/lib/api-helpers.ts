@@ -3,33 +3,33 @@
  */
 
 import prisma from "@/lib/prisma";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { auth, ADMIN_EMAIL } from "@/lib/auth-server";
 import type { User } from "@prisma/client";
 
 /**
- * Récupère l'utilisateur authentifié (Supabase Auth) et son profil Prisma.
- * Renvoie null si la session est absente ou inconnue de la base.
+ * Récupère l'utilisateur authentifié (Neon Auth / Better Auth) et son profil
+ * Prisma. Renvoie null si la session est absente ou inconnue de la base.
+ *
+ * Bootstrap : si la session correspond à ADMIN_EMAIL et qu'aucun profil
+ * n'existe encore (nouvelle base), le profil ADMIN est créé automatiquement.
  */
 export async function getAuthenticatedUser(): Promise<User | null> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
+    const { data } = await auth.getSession();
+    const email = data?.user?.email?.toLowerCase();
+    if (!email) return null;
 
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser?.email) return null;
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) return existing;
 
-    return await prisma.user.findUnique({ where: { email: authUser.email } });
+    if (email === ADMIN_EMAIL.toLowerCase()) {
+      // Bootstrap idempotent du profil administrateur (réservé à cet email)
+      return await prisma.user.create({
+        data: { email: ADMIN_EMAIL, name: "Super Admin", role: "ADMIN" },
+      });
+    }
+
+    return null;
   } catch (error) {
     console.error("[api-helpers] Échec de récupération de l'utilisateur :", error);
     return null;

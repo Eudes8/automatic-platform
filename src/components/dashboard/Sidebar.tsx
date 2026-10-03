@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
 import {
     LayoutDashboard,
     MessageSquare,
@@ -55,7 +55,7 @@ export default function Sidebar({ user }: SidebarProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        await authClient.signOut();
         window.location.href = "/login";
     };
 

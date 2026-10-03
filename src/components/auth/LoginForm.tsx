@@ -1,55 +1,83 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { authClient } from "@/lib/auth-client";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2, Zap } from "lucide-react";
+import { Mail, Lock, Loader2, Zap, KeyRound, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+
+type ResetStep = "idle" | "awaiting-code";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const [magicLinkSent, setMagicLinkSent] = useState(false);
+    const [resetStep, setResetStep] = useState<ResetStep>("idle");
+    const [otp, setOtp] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [resetSuccess, setResetSuccess] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setMessage("");
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await authClient.signIn.email({
             email,
             password,
         });
 
         if (error) {
-            setMessage(error.message);
+            setMessage(error.message || "Échec de connexion. Vérifiez vos identifiants.");
+            setLoading(false);
         } else {
             window.location.href = "/dashboard";
         }
-        setLoading(false);
     };
 
-    const handleMagicLink = async () => {
+    // Étape 1 : envoyer un code de réinitialisation par email (OTP managé)
+    const handleForgotPassword = async () => {
         if (!email) {
             setMessage("Veuillez saisir votre email.");
             return;
         }
         setLoading(true);
-        const { error } = await supabase.auth.signInWithOtp({
+        setMessage("");
+        const { error } = await authClient.emailOtp.sendVerificationOtp({
             email,
-            options: {
-                emailRedirectTo: `${window.location.origin}/dashboard`,
-            }
+            type: "forget-password",
         });
 
         if (error) {
-            setMessage(error.message);
+            setMessage(error.message || "Impossible d'envoyer le code de réinitialisation.");
         } else {
-            setMagicLinkSent(true);
+            setResetStep("awaiting-code");
         }
         setLoading(false);
+    };
+
+    // Étape 2 : code + nouveau mot de passe
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage("");
+        const { error } = await authClient.emailOtp.resetPassword({
+            email,
+            otp,
+            password: newPassword,
+        });
+
+        if (error) {
+            setMessage(error.message || "Code invalide ou expiré.");
+            setLoading(false);
+        } else {
+            setResetSuccess(true);
+            setResetStep("idle");
+            setOtp("");
+            setNewPassword("");
+            setLoading(false);
+        }
     };
 
     return (
@@ -75,24 +103,80 @@ export default function LoginForm() {
                 </div>
             </div>
 
-            {magicLinkSent ? (
-                <div className="text-center py-10 relative z-10">
-                    <div className="w-24 h-24 bg-primary/5 rounded-[2rem] border border-primary/10 flex items-center justify-center mx-auto mb-10 shadow-inner">
-                        <Mail className="w-10 h-10 text-primary" />
-                    </div>
-                    <h3 className="text-2xl font-heading font-black text-primary mb-4 uppercase italic tracking-tighter">Lien envoyé.</h3>
-                    <p className="text-secondary/60 text-sm leading-relaxed font-bold italic uppercase tracking-tight mb-12">
-                        Un lien de connexion magique a été injecté dans le flux de :<br />
-                        <span className="text-primary font-black underline underline-offset-4 decoration-primary/30">{email}</span>
+            {resetSuccess && (
+                <div className="p-4 mb-6 bg-green-500/5 border border-green-500/20 rounded-[1.5rem] relative z-10">
+                    <p className="text-green-600 text-[9px] font-black uppercase tracking-[0.2em] italic leading-tight">
+                        Mot de passe mis à jour avec succès. Vous pouvez vous connecter.
                     </p>
-                    <button
-                        onClick={() => setMagicLinkSent(false)}
-                        className="px-10 py-5 bg-secondary/5 border border-border/50 rounded-[1.5rem] text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] hover:text-primary hover:border-primary/20 transition-all italic hover:shadow-xl"
-                    >
-                        Réessayer l'envoi
-                    </button>
                 </div>
+            )}
+
+            {resetStep === "awaiting-code" ? (
+                /* ---------- Réinitialisation : code + nouveau mot de passe ---------- */
+                <form onSubmit={handleResetPassword} className="space-y-6 relative z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <button
+                            type="button"
+                            onClick={() => { setResetStep("idle"); setMessage(""); }}
+                            className="flex items-center gap-2 text-[9px] font-black text-secondary/40 uppercase tracking-widest hover:text-primary transition-colors italic"
+                        >
+                            <ArrowLeft className="w-3 h-3" /> Retour
+                        </button>
+                    </div>
+                    <p className="text-[10px] text-secondary/50 font-bold uppercase tracking-widest italic leading-relaxed">
+                        Un code à 6 chiffres a été envoyé à <span className="text-primary">{email}</span>.
+                        Saisissez-le avec votre nouveau mot de passe.
+                    </p>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-2 italic">Code de sécurité</label>
+                        <div className="relative group/input">
+                            <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="••••••"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                className="w-full pl-12 pr-5 py-5 bg-background border border-border/50 rounded-[1.5rem] focus:border-primary outline-none text-primary text-sm font-black tracking-[0.5em] text-center"
+                                required
+                                maxLength={6}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-2 italic">Nouveau mot de passe</label>
+                        <div className="relative group/input">
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
+                            <input
+                                type="password"
+                                placeholder="••••••••••••"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full pl-12 pr-5 py-5 bg-background border border-border/50 rounded-[1.5rem] focus:border-primary outline-none text-primary text-xs font-bold"
+                                required
+                                minLength={8}
+                            />
+                        </div>
+                    </div>
+
+                    {message && (
+                        <div className="p-4 bg-accent/5 border border-accent/20 rounded-[1.5rem]">
+                            <p className="text-accent text-[9px] font-black uppercase tracking-[0.2em] italic leading-tight">{message}</p>
+                        </div>
+                    )}
+
+                    <button
+                        disabled={loading}
+                        type="submit"
+                        className="w-full py-5 bg-primary text-background font-black rounded-[1.5rem] transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 uppercase text-[10px] tracking-[0.3em] italic"
+                    >
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Définir le mot de passe"}
+                    </button>
+                </form>
             ) : (
+                /* ---------- Connexion classique ---------- */
                 <>
                     <form onSubmit={handleLogin} className="space-y-8 relative z-10">
                         <div className="space-y-3">
@@ -115,7 +199,7 @@ export default function LoginForm() {
                                 <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] italic">Mot de passe</label>
                                 <button
                                     type="button"
-                                    onClick={handleMagicLink}
+                                    onClick={handleForgotPassword}
                                     className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest hover:text-blue-500 transition-colors italic hover:underline decoration-blue-500/20 underline-offset-4"
                                 >
                                     Mot de passe oublié ?

@@ -1,29 +1,22 @@
 import { createAdminUser } from "@/lib/actions/initAdmin";
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { auth, ADMIN_EMAIL } from "@/lib/auth-server";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-    // Check if user is authenticated and is admin
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value;
-                },
-            },
-        }
-    );
+/**
+ * Bootstrap du profil ADMIN dans Prisma (idempotent).
+ * Sécurisé : réservé à l'utilisateur authentifié dont l'email correspond
+ * à ADMIN_EMAIL. Crée le profil si absent — ne crée JAMAIS de compte
+ * d'authentification et n'accorde aucun droit par lui-même.
+ */
+export async function POST() {
+    const { data } = await auth.getSession();
+    const sessionUser = data?.user;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!sessionUser) {
         return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin (assuming role is in user metadata or from DB)
-    // For simplicity, check email or something
-    if (user.email !== "automaticbmje@gmail.com") {
+    if (sessionUser.email !== ADMIN_EMAIL) {
         return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 

@@ -2,11 +2,17 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { getCurrentUser } from "@/lib/actions/users";
 import ChatWidget from "@/components/chat/ChatWidget";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
+
+  // Guard serveur : session obligatoire (Neon Auth + profil Prisma)
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <div className="flex h-screen bg-background text-primary overflow-hidden relative selection:bg-primary/10 selection:text-primary">
