@@ -8,15 +8,19 @@ import type { User } from "@prisma/client";
 
 /**
  * Récupère l'utilisateur authentifié (Neon Auth / Better Auth) et son profil
- * Prisma. Renvoie null si la session est absente ou inconnue de la base.
+ * Prisma. Renvoie null si la session est absente.
  *
- * Bootstrap : si la session correspond à ADMIN_EMAIL et qu'aucun profil
- * n'existe encore (nouvelle base), le profil ADMIN est créé automatiquement.
+ * Synchronisation automatique (auto-provisioning) :
+ * - ADMIN_EMAIL → profil ADMIN créé au premier accès (bootstrap idempotent).
+ * - Tout autre compte authentifié → profil CLIENT créé au premier accès
+ *   (l'identité est déjà prouvée par la session Better Auth ; le rôle CLIENT
+ *   n'ouvre aucun privilège, les guards vérifient toujours le rôle ensuite).
  */
 export async function getAuthenticatedUser(): Promise<User | null> {
   try {
     const { data } = await auth.getSession();
-    const email = data?.user?.email?.toLowerCase();
+    const sessionUser = data?.user;
+    const email = sessionUser?.email?.toLowerCase();
     if (!email) return null;
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -29,7 +33,13 @@ export async function getAuthenticatedUser(): Promise<User | null> {
       });
     }
 
-    return null;
+    // Compte client créé via Neon Auth (onboarding / inscription) sans profil
+    // Prisma encore : on le crée ici pour que l'espace client fonctionne
+    // immédiatement après l'inscription.
+    const displayName = sessionUser?.name?.trim() || email.split("@")[0];
+    return await prisma.user.create({
+      data: { email, name: displayName, role: "CLIENT" },
+    });
   } catch (error) {
     console.error("[api-helpers] Échec de récupération de l'utilisateur :", error);
     return null;

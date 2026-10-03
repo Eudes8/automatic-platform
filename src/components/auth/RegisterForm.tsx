@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Loader2, Plus, ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { authClient } from "@/lib/auth-client";
 
 const formSchema = z.object({
     name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -32,21 +33,28 @@ export default function RegisterForm() {
     async function onSubmit(data: FormValues) {
         setIsLoading(true);
         try {
-            const response = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+            // Inscription via Neon Auth (Better Auth) : endpoint public managé,
+            // le mot de passe ne transite jamais par notre API. La session est
+            // établie directement (cookie httpOnly posé par le proxy /api/auth).
+            const signUp = await authClient.signUp.email({
+                email: data.email,
+                password: data.password,
+                name: data.name,
             });
 
-            if (response.ok) {
-                toast.success("Compte créé avec succès");
-                router.push("/login");
-            } else {
-                const errorData = await response.json();
-                toast.error(errorData.message || "Échec de l'enregistrement");
+            if (signUp.error) {
+                toast.error(
+                    signUp.error.message === "User already exists"
+                        ? "Un compte existe déjà avec cet email. Connectez-vous."
+                        : signUp.error.message || "Échec de l'enregistrement"
+                );
+                return;
             }
-        } catch (error) {
-            toast.error("Une erreur est survenue lors de la connexion");
+
+            toast.success("Compte créé avec succès");
+            router.push("/dashboard");
+        } catch {
+            toast.error("Une erreur est survenue lors de l'inscription");
         } finally {
             setIsLoading(false);
         }
@@ -73,7 +81,7 @@ export default function RegisterForm() {
 
                     <h2 className="text-5xl font-black text-primary italic uppercase tracking-tighter leading-[0.85] mb-6">
                         REJOINDRE <br />
-                        <span className="text-accent">L'AVENTURE.</span>
+                        <span className="text-accent">L&apos;AVENTURE.</span>
                     </h2>
                     <p className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] italic max-w-[280px] leading-relaxed">
                         Créez votre accès personnel à la plateforme Automatic.
@@ -93,7 +101,7 @@ export default function RegisterForm() {
                             />
                             {errors.name && (
                                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-3 ml-4 animate-pulse">
-                                    // {errors.name.message}
+                                    {"// "}{errors.name.message}
                                 </p>
                             )}
                         </div>
@@ -112,7 +120,7 @@ export default function RegisterForm() {
                             />
                             {errors.email && (
                                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-3 ml-4 animate-pulse">
-                                    // {errors.email.message}
+                                    {"// "}{errors.email.message}
                                 </p>
                             )}
                         </div>
@@ -131,7 +139,7 @@ export default function RegisterForm() {
                             />
                             {errors.password && (
                                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-3 ml-4 animate-pulse">
-                                    // {errors.password.message}
+                                    {"// "}{errors.password.message}
                                 </p>
                             )}
                         </div>
@@ -148,7 +156,7 @@ export default function RegisterForm() {
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    S'inscrire
+                                    S&apos;inscrire
                                     <div className="p-2 bg-background/20 rounded-lg group-hover/btn:translate-x-2 transition-transform duration-500">
                                         <ArrowRight size={16} />
                                     </div>
