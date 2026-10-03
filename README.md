@@ -60,7 +60,8 @@ mise en veille automatique (scale to zero) : idéal pour le plan gratuit.
 
 | Paramètre | Valeur |
 |-----------|--------|
-| Projet Neon | `icy-surf-49786297` (branche `main`, région `aws-us-east-2`) |
+| Projet Neon | `tiny-art-76610867` — **permanent**, dans le compte Neon `behjeaneudes8@gmail.com` |
+| Branche / région | `main` · `aws-us-east-1` (alignée sur Vercel iad1) |
 | Schéma | 17 tables créées via `npx prisma db push` |
 | Connexion app | `DATABASE_URL` (URL **poolée** `-pooler`, PgBouncer) |
 | Connexion migrations | `DIRECT_URL` = `DATABASE_URL_UNPOOLED` (URL **directe**) |
@@ -76,32 +77,18 @@ mise en veille automatique (scale to zero) : idéal pour le plan gratuit.
 > (`prepared statement "s0" already exists`) : PgBouncer ne supporte pas
 > les sessions. `prisma.config.ts` lit donc `DIRECT_URL`.
 
-### Brancher la base sur Vercel (déploiement)
+### Déploiement Vercel (connecté)
 
-1. **Option A — base déjà provisionnée (recommandé)** : copiez les valeurs
-   de `.env` (local) dans **Vercel → Settings → Environment Variables** :
-   - `DATABASE_URL` (URL poolée)
-   - `DATABASE_URL_UNPOOLED` et `DIRECT_URL` (URL directe)
-2. **Option B — créer Vercel Postgres** : sur Vercel → onglet **Storage →
-   Create Database → Postgres (Neon)** → connectez le projet → les variables
-   sont injectées automatiquement ; ajoutez simplement
-   `DIRECT_URL` = valeur de `DATABASE_URL_UNPOOLED`.
-3. Appliquez le schéma si nécessaire : `npx prisma db push` en local
-   (il utilise `DIRECT_URL`), ou laissez le build Vercel le faire.
-
-### ⏳ Rendre la base permanente (claim)
-
-Le projet Neon créé sans compte est **temporaire (72 h)**. Pour le conserver
-gratuitement et définitivement, il faut le « claim » dans un compte Neon
-(free plan) :
-
-```bash
-npm i -g neon
-neon claim accept --no-open   # ouvre l'URL de transfert, connexion requise
-```
-
-Après le transfert, l'URL `DATABASE_URL` est **rotée** : récupérez la nouvelle
-avec `neon link` + `neon env pull`, puis mettez à jour Vercel.
+- Le projet Vercel `automatic-platform` est **lié au dépôt GitHub**
+  (`Eudes8/automatic-platform`, branche `master`) : chaque push déclenche
+  un déploiement production automatique.
+- URL de production : **https://automatic-platform-beige.vercel.app**
+- Variables d'environnement configurées (production + preview + development) :
+  `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `DIRECT_URL` (Neon),
+  `MONEROO_SECRET_KEY`, `MONEROO_WEBHOOK_SECRET`, `MONEROO_CURRENCY`,
+  `NEXT_PUBLIC_APP_URL`, plus Supabase et Resend.
+- Si vous recréez la base un jour : `neon link` + `neon env pull` en local,
+  puis `npx prisma db push`, et mettez à jour les variables Vercel.
 
 ## 💳 Passerelle de paiement Moneroo
 
