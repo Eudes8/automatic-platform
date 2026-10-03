@@ -52,6 +52,57 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 🗄 Base de données gratuite (Neon / Vercel Postgres)
+
+La base **PostgreSQL gratuite** est hébergée sur **Neon** — le même moteur qui
+propulse **Vercel Postgres** (Marketplace Vercel). Serverless, autoscaling,
+mise en veille automatique (scale to zero) : idéal pour le plan gratuit.
+
+| Paramètre | Valeur |
+|-----------|--------|
+| Projet Neon | `icy-surf-49786297` (branche `main`, région `aws-us-east-2`) |
+| Schéma | 17 tables créées via `npx prisma db push` |
+| Connexion app | `DATABASE_URL` (URL **poolée** `-pooler`, PgBouncer) |
+| Connexion migrations | `DIRECT_URL` = `DATABASE_URL_UNPOOLED` (URL **directe**) |
+
+### Règle d'or des deux URLs
+
+| Usage | URL à utiliser |
+|-------|----------------|
+| Application / fonctions serverless | `DATABASE_URL` (poolée) |
+| `prisma db push` / `prisma migrate` | `DIRECT_URL` (directe) |
+
+> ⚠️ Les migrations sur l'URL poolée échouent avec des erreurs obscures
+> (`prepared statement "s0" already exists`) : PgBouncer ne supporte pas
+> les sessions. `prisma.config.ts` lit donc `DIRECT_URL`.
+
+### Brancher la base sur Vercel (déploiement)
+
+1. **Option A — base déjà provisionnée (recommandé)** : copiez les valeurs
+   de `.env` (local) dans **Vercel → Settings → Environment Variables** :
+   - `DATABASE_URL` (URL poolée)
+   - `DATABASE_URL_UNPOOLED` et `DIRECT_URL` (URL directe)
+2. **Option B — créer Vercel Postgres** : sur Vercel → onglet **Storage →
+   Create Database → Postgres (Neon)** → connectez le projet → les variables
+   sont injectées automatiquement ; ajoutez simplement
+   `DIRECT_URL` = valeur de `DATABASE_URL_UNPOOLED`.
+3. Appliquez le schéma si nécessaire : `npx prisma db push` en local
+   (il utilise `DIRECT_URL`), ou laissez le build Vercel le faire.
+
+### ⏳ Rendre la base permanente (claim)
+
+Le projet Neon créé sans compte est **temporaire (72 h)**. Pour le conserver
+gratuitement et définitivement, il faut le « claim » dans un compte Neon
+(free plan) :
+
+```bash
+npm i -g neon
+neon claim accept --no-open   # ouvre l'URL de transfert, connexion requise
+```
+
+Après le transfert, l'URL `DATABASE_URL` est **rotée** : récupérez la nouvelle
+avec `neon link` + `neon env pull`, puis mettez à jour Vercel.
+
 ## 💳 Passerelle de paiement Moneroo
 
 Les clients règlent leurs factures depuis leur dashboard via **Moneroo**
@@ -109,7 +160,9 @@ Les clients règlent leurs factures depuis leur dashboard via **Moneroo**
 2. **Connecter à Vercel** :
    - Allez sur [Vercel](https://vercel.com) et cliquez sur **Add New > Project**.
    - Importez votre dépôt GitHub `automatic-platform`.
-   - Configurez les **Environment Variables** sur Vercel à partir de votre fichier `.env`.
+   - Configurez les **Environment Variables** sur Vercel à partir de votre fichier `.env`
+     (voir la section **Base de données** : `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
+     `DIRECT_URL`, puis Supabase, Resend et Moneroo).
    - Cliquez sur **Deploy**.
 
 3. **CI/CD Automatisé** :
