@@ -64,6 +64,7 @@ Les clients règlent leurs factures depuis leur dashboard via **Moneroo**
    MONEROO_SECRET_KEY="votre_clé_api_secrète"        # Dashboard Moneroo → Développeurs → Clés API
    MONEROO_WEBHOOK_SECRET="votre_secret_webhook"     # Dashboard Moneroo → Développeurs → Webhooks
    NEXT_PUBLIC_APP_URL="https://votre-domaine.com"   # URL publique de l'app
+   MONEROO_CURRENCY="XOF"                            # Devise (USD en sandbox si XOF non activé)
    ```
 
 2. Dans le dashboard Moneroo (Développeurs → Webhooks), enregistrez l'URL :

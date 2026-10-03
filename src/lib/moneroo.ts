@@ -11,11 +11,18 @@
 
 const MONEROO_API_BASE = "https://api.moneroo.io/v1";
 
-/** Devise par défaut de la plateforme : Franc CFA (XOF). */
-export const DEFAULT_CURRENCY = "XOF";
+/**
+ * Devise par défaut des paiements.
+ * Configurable via MONEROO_CURRENCY (utile en mode test où seules certaines
+ * devises sont activées sur le compte Moneroo, ex. USD en sandbox).
+ * Production attendue : XOF (Franc CFA).
+ */
+export const DEFAULT_CURRENCY = (process.env.MONEROO_CURRENCY ?? "XOF").toUpperCase();
 
 /** Devises supportées par Moneroo pour les marchés ciblés par la plateforme. */
-export const SUPPORTED_CURRENCIES = ["XOF", "XAF", "USD", "EUR", "NGN", "GHS", "KES"] as const;
+export const SUPPORTED_CURRENCIES = [
+  "XOF", "XAF", "USD", "EUR", "NGN", "GHS", "KES", "TZS", "UGX", "ZAR",
+] as const;
 export type MonerooCurrency = (typeof SUPPORTED_CURRENCIES)[number];
 
 export interface MonerooCustomer {
