@@ -6,6 +6,7 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
 
 - **⚡ Project Builder Intelligent** : Configuration de projet avec estimation de budget instantanée.
 - **📜 Signature Électronique** : Barrière contractuelle intégrée avec génération de PDF certifié.
+- **💳 Paiement en ligne Moneroo** : Règlement des factures par Mobile Money, carte bancaire et plus — confirmation automatique par webhook sécurisé.
 - **📊 Dashboard de Pilotage** : Suivi de progression en temps réel et gestion des actifs.
 - **💬 Salon de Discussion** : Ligne directe entre le client et l'équipe technique experte.
 - **🛡️ Sécurité de Pointe** : Authentification via Supabase et gestion des accès granulaires.
@@ -50,6 +51,47 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    ```bash
    npm run dev
    ```
+
+## 💳 Passerelle de paiement Moneroo
+
+Les clients règlent leurs factures depuis leur dashboard via **Moneroo**
+(Mobile Money MTN / Moov / Orange / Airtel, Wave, cartes bancaires, etc.).
+
+### Configuration
+
+1. Renseignez dans `.env` :
+   ```env
+   MONEROO_SECRET_KEY="votre_clé_api_secrète"        # Dashboard Moneroo → Développeurs → Clés API
+   MONEROO_WEBHOOK_SECRET="votre_secret_webhook"     # Dashboard Moneroo → Développeurs → Webhooks
+   NEXT_PUBLIC_APP_URL="https://votre-domaine.com"   # URL publique de l'app
+   ```
+
+2. Dans le dashboard Moneroo (Développeurs → Webhooks), enregistrez l'URL :
+   ```
+   https://votre-domaine.com/api/webhooks/moneroo
+   ```
+
+### Fonctionnement
+
+| Étape | Description |
+|-------|-------------|
+| 1 | Le client clique sur **« Payer · Moneroo »** sur une facture (`SENT`/`OVERDUE`). |
+| 2 | Le serveur initialise le paiement (`POST /v1/payments/initialize`) et enregistre un `Payment` en base. |
+| 3 | Le client est redirigé vers la page de checkout Moneroo (`checkout_url`). |
+| 4 | Après paiement, Moneroo le renvoie sur `/dashboard/invoices?paymentId=…&paymentStatus=…` : le statut est re-vérifié via l'API et synchronisé. |
+| 5 | En parallèle, le **webhook** reçoit les événements (`payment.success`, `payment.failed`, `payment.cancelled`) signés **HMAC-SHA256** (`X-Moneroo-Signature`). |
+| 6 | À la réception d'un `payment.success` : facture passée en `PAID`, notifications client + équipe, historique `Payment` mis à jour (idempotent). |
+
+### Endpoints
+
+| Route | Rôle |
+|-------|------|
+| `POST /api/payments/moneroo/initialize` | Initialise un paiement pour une facture (client authentifié). |
+| `GET /api/payments/moneroo/verify?paymentId=…` | Re-vérifie un paiement au retour du client. |
+| `POST /api/webhooks/moneroo` | Webhook Moneroo (signature obligatoire, idempotent). |
+
+> 💡 **Mode test** : utilisez la clé API et le webhook de la boutique de test,
+> puis les moyens de paiement factices proposés par Moneroo au checkout.
 
 ## 🚀 Déploiement
 ### Déploiement via GitHub & Vercel (Recommandé)

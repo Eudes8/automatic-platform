@@ -1,7 +1,10 @@
 import { getClientInvoices } from "@/lib/actions/invoices";
-import { Receipt, FileText, Download, Calendar, ExternalLink } from "lucide-react";
+import { Receipt, FileText, Download, Calendar } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Invoice, Project } from "@prisma/client";
+import PayInvoiceButton from "@/components/dashboard/PayInvoiceButton";
+import PaymentReturnHandler from "@/components/dashboard/PaymentReturnHandler";
 
 type InvoiceWithProject = Invoice & {
     project: Project | null;
@@ -14,6 +17,10 @@ export default async function ClientInvoicesPage() {
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
+            {/* Traitement du retour Moneroo (?paymentId=...&paymentStatus=...) */}
+            <Suspense fallback={null}>
+                <PaymentReturnHandler />
+            </Suspense>
             <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 pb-10 border-b border-border/50">
                 <div>
                     <div className="flex items-center gap-3 mb-4">
@@ -40,11 +47,13 @@ export default async function ClientInvoicesPage() {
                         {/* Status Badge */}
                         <div className="absolute top-8 right-8">
                             <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border shadow-sm ${invoice.status === "PAID" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                invoice.status === "OVERDUE" ? "bg-red-500/10 text-red-600 border-red-500/20" :
-                                    "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                                invoice.status === "OVERDUE" ? "bg-red-500/10 text-red-600 border-red-500/20 animate-pulse" :
+                                    invoice.status === "SENT" ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                                        "bg-slate-500/10 text-slate-500 border-slate-500/20"
                                 }`}>
                                 {invoice.status === "PAID" ? "Payée" :
-                                    invoice.status === "OVERDUE" ? "En retard" : "En attente"}
+                                    invoice.status === "OVERDUE" ? "En retard" :
+                                        invoice.status === "SENT" ? "À payer" : "Brouillon"}
                             </span>
                         </div>
 
@@ -84,18 +93,43 @@ export default async function ClientInvoicesPage() {
                         </div>
 
                         <div className="mt-10">
-                            {invoice.pdfUrl ? (
-                                <Link
-                                    href={invoice.pdfUrl}
-                                    target="_blank"
-                                    className="w-full py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all duration-500 shadow-2xl shadow-primary/20 group/btn"
-                                >
-                                    <Download size={14} className="group-hover/btn:translate-y-0.5 transition-transform" />
-                                    Télécharger
-                                </Link>
+                            {invoice.status === "PAID" ? (
+                                /* Facture réglée : accès au justificatif PDF */
+                                invoice.pdfUrl ? (
+                                    <Link
+                                        href={invoice.pdfUrl}
+                                        target="_blank"
+                                        className="w-full py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all duration-500 shadow-2xl shadow-primary/20 group/btn"
+                                    >
+                                        <Download size={14} className="group-hover/btn:translate-y-0.5 transition-transform" />
+                                        Télécharger
+                                    </Link>
+                                ) : (
+                                    <div className="w-full py-5 bg-secondary/5 border border-border/50 rounded-[1.5rem] text-secondary/20 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3">
+                                        Document en préparation...
+                                    </div>
+                                )
+                            ) : invoice.status === "SENT" || invoice.status === "OVERDUE" ? (
+                                /* Facture payable : paiement Moneroo (Mobile Money, carte, etc.) */
+                                <div className="flex gap-3">
+                                    <div className="flex-1">
+                                        <PayInvoiceButton invoiceId={invoice.id} amount={invoice.amount} />
+                                    </div>
+                                    {invoice.pdfUrl && (
+                                        <Link
+                                            href={invoice.pdfUrl}
+                                            target="_blank"
+                                            aria-label="Télécharger la facture"
+                                            className="w-[4.5rem] shrink-0 rounded-[1.5rem] bg-secondary/5 border border-border/50 flex items-center justify-center text-secondary/60 hover:text-primary hover:border-primary/40 transition-all duration-500 shadow-inner"
+                                        >
+                                            <Download size={16} />
+                                        </Link>
+                                    )}
+                                </div>
                             ) : (
+                                /* DRAFT ou autres : pas d'action de paiement */
                                 <div className="w-full py-5 bg-secondary/5 border border-border/50 rounded-[1.5rem] text-secondary/20 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3">
-                                    Document en préparation...
+                                    Facture non payable
                                 </div>
                             )}
                         </div>
