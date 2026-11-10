@@ -41,7 +41,22 @@ Ce document fournit une vue d'ensemble exhaustive de la plateforme AUTOMATIC, se
   - Envoi de notifications SMS/Email (via Resend).
   - Gestion des factures (Prévu dans le schéma Prisma).
 
-### 5. Services de Support (Tickets)
+### 5. Exécution & Livraison (Équipe · Tâches · Jalons · Livrables)
+- **Statut**: ✅ Opérationnel
+- **Console interne**: `/admin/projects/[id]/execution`
+- **Espace client**: section « Avancement » de `/dashboard/projects/[id]`
+- **Description**: back-office d'exécution du projet — tableau de tâches
+  (backlog → terminé), jalons datés, affectation nominative des collaborateurs
+  internes, livrables versionnés avec fichiers joints.
+- **Avancement**: recalculé automatiquement (tâches terminées / total, repli sur
+  les jalons validés). Plus de pourcentage saisi à la main.
+- **Validation client**: le client accepte un livrable ou demande des corrections
+  (retour écrit conservé sur le livrable) ; l'équipe est notifiée.
+- **Sécurité**: `requireProjectRead` / `requireProjectWrite` / `requireReviewAccess`
+  (`src/lib/utils/projectAccess.ts`) — contrôle d'appartenance au projet sur
+  chaque action serveur.
+
+### 6. Services de Support (Tickets)
 - **Statut**: 🏗️ Structure Prisma prête, UI à finaliser.
 - **Description**: Système de ticketing pour le support post-livraison.
 

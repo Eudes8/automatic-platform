@@ -6,6 +6,8 @@ import Deliverables from "@/components/dashboard/Deliverables";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
 import DeploymentTimeline from "@/components/dashboard/DeploymentTimeline";
 import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
+import ClientExecution from "@/components/projects/ClientExecution";
+import { getProjectExecution } from "@/lib/actions/execution";
 import { Zap, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -50,6 +52,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         );
     }
 
+    // Socle d'exécution (jalons, livrables, équipe) — lecture contrôlée côté serveur.
+    const execution = await getProjectExecution(project.id).catch(() => null);
+    const taskTotal = execution?.tasks.length ?? 0;
+    const taskDone = execution?.tasks.filter((task) => task.status === "DONE").length ?? 0;
+
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-6 duration-700">
             {/* Header: Project Summary */}
@@ -91,6 +98,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
             {/* Main Grid Section */}
             <ProjectStats project={project} />
+
+            <ClientExecution
+                projectId={project.id}
+                projectTitle={project.title}
+                progress={project.progress ?? 0}
+                tasks={{ total: taskTotal, done: taskDone }}
+                milestones={execution?.milestones ?? []}
+                deliverables={execution?.deliverables ?? []}
+                members={execution?.members ?? []}
+                canReview={user.role === "ADMIN" || project.clientId === user.id}
+            />
 
             <div className="grid lg:grid-cols-12 gap-10">
                 {/* Real-time Collaboration */}

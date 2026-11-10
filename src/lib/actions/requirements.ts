@@ -5,10 +5,12 @@ import { getCurrentUser } from "./users";
 import { revalidatePath } from "next/cache";
 import { RequirementStatus, RequirementCategory } from "@prisma/client";
 import { notifyNewRequirement, notifyRequirementStatusChange } from "./notifications";
+import { requireProjectRead, requireProjectWrite } from "@/lib/utils/projectAccess";
 
 export async function createRequirement(projectId: string, title: string, description: string, category: RequirementCategory = "OTHER") {
     const user = await getCurrentUser();
     if (!user) throw new Error("Non autorisé");
+    await requireProjectRead(projectId, user);
 
     const requirement = await prisma.requirement.create({
         data: {
@@ -32,6 +34,13 @@ export async function createRequirement(projectId: string, title: string, descri
 export async function addRequirementComment(requirementId: string, text: string, attachments: string[] = []) {
     const user = await getCurrentUser();
     if (!user) throw new Error("Non autorisé");
+
+    const target = await prisma.requirement.findUnique({
+        where: { id: requirementId },
+        select: { projectId: true },
+    });
+    if (!target) throw new Error("Exigence introuvable");
+    await requireProjectRead(target.projectId, user);
 
     const comment = await prisma.requirementComment.create({
         data: {
@@ -65,6 +74,8 @@ export async function updateRequirementStatus(requirementId: string, status: Req
     });
 
     if (!existing) throw new Error("Requirement not found");
+
+    await requireProjectWrite(existing.projectId, user);
 
     if (existing.status !== status) {
         const [requirement] = await prisma.$transaction([
@@ -118,6 +129,8 @@ export async function deleteRequirement(requirementId: string) {
     });
 
     if (!requirement) throw new Error("Not found");
+
+    await requireProjectWrite(requirement.projectId, user);
 
     await prisma.requirement.delete({
         where: { id: requirementId }

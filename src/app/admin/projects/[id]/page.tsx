@@ -57,6 +57,21 @@ export default async function AdminProjectDetails({ params }: { params: Promise<
                 </div>
             </header>
 
+            <nav className="flex flex-wrap items-center gap-3">
+                <Link
+                    href={`/admin/projects/${project.id}/execution`}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-background text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-transform"
+                >
+                    Exécution & livrables
+                </Link>
+                <Link
+                    href={`/admin/projects/${project.id}`}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl border border-border/60 text-primary text-[10px] font-black uppercase tracking-widest hover:border-primary/40 transition-colors"
+                >
+                    Vue d'ensemble
+                </Link>
+            </nav>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Info */}
                 <div className="lg:col-span-2 space-y-8">

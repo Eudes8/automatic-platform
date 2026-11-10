@@ -52,6 +52,54 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 🧩 Socle d'exécution (équipe, tâches, jalons, livrables)
+
+Chaque projet dispose d'un espace d'exécution réel : l'équipe interne y
+planifie et suit le travail, le client y valide les livrables. L'avancement
+du projet n'est plus saisi à la main, il est **calculé** à partir des tâches
+terminées (ou des jalons validés à défaut de tâches).
+
+| Élément | Où | Rôle |
+|---------|----|------|
+| Tableau de tâches | `/admin/projects/[id]/execution` | Backlog → À faire → En cours → Revue → Terminé, glisser-déposer, priorité, échéance, assignation |
+| Jalons | même page | Découpage du projet en étapes livrables, statut `PLANNED → VALIDATED` |
+| Équipe projet | même page | `ProjectMember` : rôle (chef de projet, dev, design, QA, DevOps), % d'affectation |
+| Livrables | même page | Version, fichier joint, soumission au client |
+| Validation client | `/dashboard/projects/[id]` | Avancement, jalons, accepter un livrable ou demander des corrections |
+
+### Modèle de données ajouté
+
+| Modèle | Rôle |
+|--------|------|
+| `ProjectMember` | Rattache un utilisateur interne à un projet (rôle + affectation) |
+| `Milestone` | Jalon daté, validable, rattachant tâches et livrables |
+| `Task` | Tâche (statut, priorité, assigné, échéance, estimation) |
+| `Deliverable` | Livrable versionné avec cycle `DRAFT → SUBMITTED → ACCEPTED / CHANGES_REQUESTED` |
+| `StoredFile` | Fichier binaire stocké en base (moteur de stockage interne) |
+
+### Règles d'accès (serveur, jamais côté client)
+
+| Acteur | Lecture | Écriture exécution | Validation livrable |
+|--------|---------|-------------------|---------------------|
+| `ADMIN` | tous les projets | ✅ | ✅ |
+| Membre d'équipe (`ProjectMember`) | son projet | ✅ | ❌ |
+| Client (`Project.clientId`) | son projet | ❌ | ✅ |
+
+Ces règles sont centralisées dans `src/lib/utils/projectAccess.ts` et
+appliquées par toutes les actions serveur : un identifiant de projet reçu
+du navigateur n'est jamais considéré comme une preuve d'accès.
+
+### Stockage des fichiers — deux moteurs
+
+| Moteur | Condition | Comportement |
+|--------|-----------|--------------|
+| Supabase Storage | `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` renseignés | Fichiers servis par le CDN Supabase |
+| PostgreSQL interne (défaut) | sinon | Binaire dans `StoredFile`, servi par `/api/files/[id]` (session + contrôle d'accès projet) |
+
+> Sans compte Supabase, contrats, livrables et pièces jointes fonctionnent
+> donc **sans dépendance externe**. Pour repasser sur Supabase, il suffit de
+> renseigner les deux variables, aucun code à modifier.
+
 ## 🗄 Base de données gratuite (Neon / Vercel Postgres)
 
 La base **PostgreSQL gratuite** est hébergée sur **Neon** — le même moteur qui
