@@ -1,41 +1,52 @@
 import type { Metadata } from "next";
-import { Outfit, Inter } from "next/font/google";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { Toaster } from "sonner";
 
-const outfit = Outfit({
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-bricolage",
+  display: "swap",
 });
 
-const inter = Inter({
+const figtree = Figtree({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-figtree",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://automatic.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://automatic-platform-beige.vercel.app"),
   title: {
-    default: "AUTOMATIC | Boutique d'Ingénierie Digitale Premium",
-    template: "%s | AUTOMATIC"
+    default: "AUTOMATIC · Votre projet numérique, piloté jusqu'à la livraison",
+    template: "%s · AUTOMATIC",
   },
-  description: "Accélérez votre transformation numérique avec des solutions SaaS, Web et IA de haute performance. Design premium, exécution agile et pilotage en temps réel.",
-  keywords: ["SaaS", "Next.js", "Développement Web", "IA", "Automatisation", "France", "Boutique Ingénierie"],
-  authors: [{ name: "AUTOMATIC Team" }],
+  description:
+    "AUTOMATIC conçoit vos applications web et mobiles sur mesure et vous donne un espace unique pour suivre le cahier des charges, les tâches, les livrables et les paiements.",
+  keywords: [
+    "développement web",
+    "application mobile",
+    "logiciel sur mesure",
+    "gestion de projet",
+    "Côte d'Ivoire",
+    "Afrique de l'Ouest",
+  ],
+  authors: [{ name: "AUTOMATIC" }],
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://automatic.com",
+    url: "/",
     siteName: "AUTOMATIC",
-    title: "AUTOMATIC | Boutique d'Ingénierie Digitale",
-    description: "La plateforme de pilotage de vos actifs numériques.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AUTOMATIC Nexus" }],
+    title: "AUTOMATIC · Votre projet numérique, piloté jusqu'à la livraison",
+    description:
+      "De l'idée à la livraison : un seul espace pour votre projet, votre équipe et vos paiements.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AUTOMATIC" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AUTOMATIC | Boutique d'Ingénierie Digitale",
-    description: "Transformez vos idées en actifs numériques.",
+    title: "AUTOMATIC · Votre projet numérique, piloté jusqu'à la livraison",
+    description: "De l'idée à la livraison, dans un seul espace.",
     images: ["/og-image.png"],
   },
 };
@@ -47,17 +58,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="scroll-smooth" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${inter.variable} font-sans antialiased bg-background text-foreground`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={`${bricolage.variable} ${figtree.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <Toaster
-            position="bottom-right"
+            position="bottom-center"
             toastOptions={{
-              className: "glass-premium rounded-2xl border-premium p-3 sm:p-4 font-bold text-[10px] sm:text-xs uppercase tracking-widest max-w-[90vw] sm:max-w-md",
+              className: "!rounded-[10px] !border !border-border !bg-card !text-foreground !text-sm",
             }}
           />
           {children}

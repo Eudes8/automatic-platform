@@ -8,21 +8,22 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
-    const baseClasses = "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-interactive hover:shadow-interactive active:scale-[0.98]"
+    const baseClasses =
+      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:translate-y-[1px]"
 
     const variantClasses = {
-      default: "bg-gradient-primary text-white hover:shadow-premium border border-primary/20",
-      destructive: "bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-card",
-      outline: "border border-premium bg-gradient-card hover:bg-white/80 text-primary shadow-card",
-      secondary: "bg-gradient-card border border-subtle text-secondary hover:text-primary hover:border-premium shadow-card",
-      ghost: "hover:bg-white/60 text-secondary hover:text-primary border border-transparent",
-      link: "text-accent underline-offset-4 hover:underline shadow-none border-none bg-transparent hover:bg-transparent",
+      default: "bg-primary text-background border border-primary hover:opacity-90",
+      destructive: "bg-danger text-white border border-danger hover:opacity-90",
+      outline: "border border-border bg-card text-foreground hover:border-primary/30",
+      secondary: "bg-primary/5 text-foreground border border-border hover:bg-primary/10",
+      ghost: "text-secondary hover:text-foreground hover:bg-primary/5 border border-transparent",
+      link: "text-accent underline-offset-4 hover:underline p-0 h-auto",
     }
 
     const sizeClasses = {
-      default: "h-11 px-6 py-3",
-      sm: "h-9 rounded-lg px-4 text-xs",
-      lg: "h-13 rounded-xl px-8 text-base",
+      default: "h-11 px-5",
+      sm: "h-9 px-3.5 text-[13px]",
+      lg: "h-12 px-6 text-[15px]",
       icon: "h-11 w-11",
     }
 

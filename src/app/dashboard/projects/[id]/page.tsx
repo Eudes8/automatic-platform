@@ -1,143 +1,142 @@
 import { getClientProjects } from "@/lib/actions/projects";
 import { getCurrentUser } from "@/lib/actions/users";
-import ProjectStats from "@/components/dashboard/ProjectStats";
-import ChatSidebar from "@/components/dashboard/ChatSidebar";
+import { getProjectExecution } from "@/lib/actions/execution";
 import Deliverables from "@/components/dashboard/Deliverables";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
-import DeploymentTimeline from "@/components/dashboard/DeploymentTimeline";
-import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
+import RequirementWorkspace, { type RequirementWithDetails } from "@/components/dashboard/RequirementWorkspace";
 import ClientExecution from "@/components/projects/ClientExecution";
-import { getProjectExecution } from "@/lib/actions/execution";
-import { Zap, ChevronLeft } from "lucide-react";
+import { ChevronLeft, CalendarClock, Wallet, Layers } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Requirement, Project, Asset, Contract, Invoice, User } from "@prisma/client";
+import { Project, Asset, Contract, Invoice, User } from "@prisma/client";
+import { PROJECT_STATUS_LABEL, toneFor } from "@/lib/labels";
+import { formatMoney } from "@/lib/format";
 
 type ProjectWithDetails = Project & {
-    client: User | null;
-    assets: Asset[];
-    contracts: Contract[];
-    invoices: (Invoice & { project?: { title: string } | null })[];
-    requirements: (Requirement & {
-        comments: any[];
-        statusHistory: any[]
-    })[];
+  client: User | null;
+  assets: Asset[];
+  contracts: Contract[];
+  invoices: (Invoice & { project?: { title: string } | null })[];
+  requirements: RequirementWithDetails[];
 };
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const user = await getCurrentUser();
+  const { id } = await params;
+  const user = await getCurrentUser();
 
-    if (!user) return notFound();
+  if (!user) return notFound();
 
-    const projects = await getClientProjects();
-    const project = (projects as ProjectWithDetails[]).find(p => p.id.trim() === id.trim());
+  const projects = await getClientProjects();
+  const project = (projects as ProjectWithDetails[]).find((item) => item.id.trim() === id.trim());
 
-    if (!project) {
-        return notFound();
-    }
+  if (!project) return notFound();
 
-    // MANDATORY CONTRACT BARRIER FOR THIS SPECIFIC PROJECT
-    if (!project.contractSigned) {
-        return (
-            <ContractBarrier
-                projectName={project.title}
-                projectId={project.id}
-                clientName={project.client?.name || "Client"}
-                budget={project.budget ? `${project.budget}€` : undefined}
-                description={project.description || undefined}
-            />
-        );
-    }
-
-    // Socle d'exécution (jalons, livrables, équipe) — lecture contrôlée côté serveur.
-    const execution = await getProjectExecution(project.id).catch(() => null);
-    const taskTotal = execution?.tasks.length ?? 0;
-    const taskDone = execution?.tasks.filter((task) => task.status === "DONE").length ?? 0;
-
+  // Barrière contractuelle : la signature conditionne l'accès au projet.
+  if (!project.contractSigned) {
     return (
-        <div className="max-w-7xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            {/* Header: Project Summary */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-6 pb-10 border-b border-border/50">
-                <div className="space-y-8">
-                    <Link
-                        href="/dashboard/projects"
-                        className="group flex items-center gap-3 text-[10px] font-bold text-secondary/40 uppercase tracking-widest hover:text-primary transition-colors"
-                    >
-                        <div className="w-8 h-8 rounded-xl bg-secondary/5 border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all duration-500 group-hover:scale-110">
-                            <ChevronLeft size={14} />
-                        </div>
-                        Retour à la liste
-                    </Link>
-                    <div>
-                        <div className="flex items-center gap-4 mb-6">
-                            <span className="text-accent font-bold uppercase text-[10px] tracking-widest inline-block py-2 px-6 bg-accent/5 rounded-full border border-accent/10 shadow-inner">Session active</span>
-                            <span className="text-secondary/20 font-bold text-[10px] uppercase tracking-widest">PROJET : {project.id.slice(0, 8).toUpperCase()}</span>
-                        </div>
-                        <h1 className="text-5xl md:text-8xl font-bold text-primary tracking-tight uppercase leading-[0.85] mb-4">
-                            {project.title.split(' - ')[0]} <br />
-                            <span className="text-secondary/20 tracking-[-0.05em]">{project.title.split(' - ')[1] || "PILOTAGE"}</span>
-                        </h1>
-                        <p className="text-secondary/40 font-bold text-[10px] uppercase tracking-widest ml-1 leading-relaxed max-w-xl">
-                            Espace de gestion de projet. <br />
-                            Consultez ici l'avancée de vos travaux.
-                        </p>
-                    </div>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                    <button className="px-8 py-5 border border-border/50 bg-background/50 hover:bg-white text-primary font-bold uppercase text-[10px] tracking-widest rounded-[1.5rem] transition-all duration-500 hover:shadow-2xl hover:scale-105 active:scale-95">
-                        Télécharger rapport
-                    </button>
-                    <button className="px-8 py-5 bg-primary text-background font-bold uppercase text-[10px] tracking-widest rounded-[1.5rem] transition-all duration-500 hover:shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95">
-                        Actualiser
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Grid Section */}
-            <ProjectStats project={project} />
-
-            <ClientExecution
-                projectId={project.id}
-                projectTitle={project.title}
-                progress={project.progress ?? 0}
-                tasks={{ total: taskTotal, done: taskDone }}
-                milestones={execution?.milestones ?? []}
-                deliverables={execution?.deliverables ?? []}
-                members={execution?.members ?? []}
-                canReview={user.role === "ADMIN" || project.clientId === user.id}
-            />
-
-            <div className="grid lg:grid-cols-12 gap-10">
-                {/* Real-time Collaboration */}
-                <div className="lg:col-span-8 flex flex-col gap-10">
-                    <DeploymentTimeline progress={project.progress || 0} />
-                    <RequirementWorkspace
-                        projectId={project.id}
-                        initialRequirements={project.requirements || []}
-                        currentUser={user}
-                    />
-                    <ChatSidebar projectId={project.id} />
-                </div>
-
-                {/* Logistics and Deliverables */}
-                <div className="lg:col-span-4 space-y-10">
-                    <Deliverables
-                        projectId={project.id}
-                        projectName={project.title}
-                        projectAssets={project.assets}
-                        contracts={project.contracts}
-                        invoices={project.invoices}
-                        clientName={project.client?.name || "Client"}
-                        budget={project.budget ? `${project.budget}€` : "Non spécifié"}
-                        description={project.description || undefined}
-                        techStack={project.techStack}
-                        timeline={project.timeline || undefined}
-                    />
-                </div>
-            </div>
-        </div>
+      <ContractBarrier
+        projectName={project.title}
+        projectId={project.id}
+        clientName={project.client?.name || "Client"}
+        budget={project.budget ? `${project.budget}€` : undefined}
+        description={project.description || undefined}
+      />
     );
+  }
+
+  const execution = await getProjectExecution(project.id).catch(() => null);
+  const taskTotal = execution?.tasks.length ?? 0;
+  const taskDone = execution?.tasks.filter((task) => task.status === "DONE").length ?? 0;
+
+  return (
+    <div className="space-y-10">
+      <header className="space-y-4">
+        <Link
+          href="/dashboard/projects"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-secondary hover:text-foreground"
+        >
+          <ChevronLeft size={15} aria-hidden="true" /> Mes projets
+        </Link>
+
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-3xl sm:text-[2.2rem]">{project.title}</h1>
+              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${toneFor(project.status)}`}>
+                {PROJECT_STATUS_LABEL[project.status] ?? project.status}
+              </span>
+            </div>
+            {project.description && (
+              <p className="mt-2 max-w-[70ch] text-[14px] leading-relaxed text-secondary">{project.description}</p>
+            )}
+          </div>
+        </div>
+
+        <dl className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border pt-4 text-[13px]">
+          <div className="flex items-center gap-2">
+            <Wallet size={15} className="text-muted" aria-hidden="true" />
+            <dt className="text-muted">Budget</dt>
+            <dd className="font-medium text-foreground">
+              {project.budget ? `${formatMoney(project.budget)}` : "À définir"}
+            </dd>
+          </div>
+          <div className="flex items-center gap-2">
+            <CalendarClock size={15} className="text-muted" aria-hidden="true" />
+            <dt className="text-muted">Délai</dt>
+            <dd className="font-medium text-foreground">{project.timeline || "À définir"}</dd>
+          </div>
+          {project.techStack.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Layers size={15} className="text-muted" aria-hidden="true" />
+              <dt className="text-muted">Technologies</dt>
+              <dd className="font-medium text-foreground">{project.techStack.join(", ")}</dd>
+            </div>
+          )}
+        </dl>
+      </header>
+
+      <ClientExecution
+        projectId={project.id}
+        progress={project.progress ?? 0}
+        tasks={{ total: taskTotal, done: taskDone }}
+        milestones={execution?.milestones ?? []}
+        deliverables={execution?.deliverables ?? []}
+        members={execution?.members ?? []}
+        canReview={user.role === "ADMIN" || project.clientId === user.id}
+      />
+
+      <section aria-labelledby="cdc" className="space-y-3">
+        <h2 id="cdc" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+          Cahier des charges
+        </h2>
+        <div className="surface p-4 sm:p-6">
+          <RequirementWorkspace
+            projectId={project.id}
+            initialRequirements={project.requirements || []}
+            currentUser={user}
+          />
+        </div>
+      </section>
+
+      <section aria-labelledby="documents" className="space-y-3">
+        <h2 id="documents" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+          Documents et factures
+        </h2>
+        <Deliverables
+          projectId={project.id}
+          projectName={project.title}
+          projectAssets={project.assets}
+          contracts={project.contracts}
+          invoices={project.invoices}
+          clientName={project.client?.name || "Client"}
+          budget={project.budget ? `${project.budget}€` : "Non spécifié"}
+          description={project.description || undefined}
+          techStack={project.techStack}
+          timeline={project.timeline || undefined}
+        />
+      </section>
+    </div>
+  );
 }

@@ -8,6 +8,7 @@ import MilestonePanel from "@/components/projects/MilestonePanel";
 import DeliverableManager from "@/components/projects/DeliverableManager";
 import TeamPanel from "@/components/projects/TeamPanel";
 import { formatDay } from "@/types/execution";
+import { PROJECT_STATUS_LABEL } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function ProjectExecutionPage({ params }: { params: Promise
                         </span>
                         <h1 className="mt-2 text-4xl font-bold text-primary tracking-tight">{project.title}</h1>
                         <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-secondary/40">
-                            {project.status} · avancement {project.progress}%
+                            {PROJECT_STATUS_LABEL[project.status] ?? project.status} · avancement {project.progress}%
                         </p>
                     </div>
 

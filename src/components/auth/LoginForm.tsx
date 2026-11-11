@@ -1,251 +1,214 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2, ArrowLeft, KeyRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { motion } from "framer-motion";
-import { Mail, Lock, Loader2, Zap, KeyRound, ArrowLeft } from "lucide-react";
-import Image from "next/image";
 
 type ResetStep = "idle" | "awaiting-code";
 
 export default function LoginForm() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
-    const [resetStep, setResetStep] = useState<ResetStep>("idle");
-    const [otp, setOtp] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [resetSuccess, setResetSuccess] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [resetStep, setResetStep] = useState<ResetStep>("idle");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage("");
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-        const { error } = await authClient.signIn.email({
-            email,
-            password,
-        });
+    const { error } = await authClient.signIn.email({ email, password });
 
-        if (error) {
-            setMessage(error.message || "Échec de connexion. Vérifiez vos identifiants.");
-            setLoading(false);
-        } else {
-            window.location.href = "/dashboard";
-        }
-    };
+    if (error) {
+      setMessage(error.message || "Échec de connexion. Vérifiez vos identifiants.");
+      setLoading(false);
+      return;
+    }
 
-    // Étape 1 : envoyer un code de réinitialisation par email (OTP managé)
-    const handleForgotPassword = async () => {
-        if (!email) {
-            setMessage("Veuillez saisir votre email.");
-            return;
-        }
-        setLoading(true);
-        setMessage("");
-        const { error } = await authClient.emailOtp.sendVerificationOtp({
-            email,
-            type: "forget-password",
-        });
+    window.location.href = "/dashboard";
+  };
 
-        if (error) {
-            setMessage(error.message || "Impossible d'envoyer le code de réinitialisation.");
-        } else {
-            setResetStep("awaiting-code");
-        }
-        setLoading(false);
-    };
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage("Saisissez d'abord votre adresse e-mail.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
 
-    // Étape 2 : code + nouveau mot de passe
-    const handleResetPassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage("");
-        const { error } = await authClient.emailOtp.resetPassword({
-            email,
-            otp,
-            password: newPassword,
-        });
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: "forget-password",
+    });
 
-        if (error) {
-            setMessage(error.message || "Code invalide ou expiré.");
-            setLoading(false);
-        } else {
-            setResetSuccess(true);
-            setResetStep("idle");
-            setOtp("");
-            setNewPassword("");
-            setLoading(false);
-        }
-    };
+    if (error) {
+      setMessage(error.message || "Impossible d'envoyer le code de réinitialisation.");
+    } else {
+      setResetStep("awaiting-code");
+    }
+    setLoading(false);
+  };
 
+  const handleResetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    const { error } = await authClient.emailOtp.resetPassword({
+      email,
+      otp,
+      password: newPassword,
+    });
+
+    if (error) {
+      setMessage(error.message || "Code invalide ou expiré.");
+      setLoading(false);
+      return;
+    }
+
+    setResetSuccess(true);
+    setResetStep("idle");
+    setOtp("");
+    setNewPassword("");
+    setLoading(false);
+  };
+
+  if (resetStep === "awaiting-code") {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "circOut" }}
-            className="w-full max-w-lg p-6 sm:p-8 md:p-12 bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[2rem] sm:rounded-[2.5rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden group"
+      <form onSubmit={handleResetPassword} className="space-y-5">
+        <button
+          type="button"
+          onClick={() => {
+            setResetStep("idle");
+            setMessage("");
+          }}
+          className="inline-flex items-center gap-1.5 text-[13px] text-secondary hover:text-foreground"
         >
-            <div className="absolute top-0 right-0 w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 bg-primary/2 rounded-full blur-[60px] sm:blur-[70px] md:blur-[80px] -mr-16 -mt-16 sm:-mr-24 sm:-mt-24 md:-mr-32 md:-mt-32 pointer-events-none" />
+          <ArrowLeft size={14} aria-hidden="true" /> Revenir à la connexion
+        </button>
 
-            <div className="flex flex-col items-center mb-8 sm:mb-12 md:mb-16 relative z-10">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-[1.2rem] sm:rounded-[1.4rem] md:rounded-[1.8rem] bg-primary text-background flex items-center justify-center shadow-2xl shadow-primary/30 mb-3 sm:mb-4 md:mb-8 border border-white/20 hover:scale-110 transition-transform duration-500">
-                    <Zap size={20} className="sm:w-6 sm:h-6 md:w-8 md:h-8 animate-pulse" />
-                </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-black text-primary tracking-tighter uppercase italic leading-none mb-3 sm:mb-4 text-center">
-                    Connexion <br /><span className="text-secondary/20 tracking-normal">Espace Client.</span>
-                </h2>
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <span className="w-8 h-px sm:w-10 sm:h-px md:w-12 md:h-px bg-border/50" />
-                    <p className="text-[8px] sm:text-[9px] md:text-[10px] text-secondary/20 font-black uppercase tracking-[0.2em] italic">Automatic CI</p>
-                    <span className="w-8 h-px sm:w-10 sm:h-px md:w-12 md:h-px bg-border/50" />
-                </div>
-            </div>
+        <p className="text-[14px] text-secondary">
+          Un code à 6 chiffres a été envoyé à <span className="font-medium text-foreground">{email}</span>.
+        </p>
 
-            {resetSuccess && (
-                <div className="p-4 mb-6 bg-green-500/5 border border-green-500/20 rounded-[1.5rem] relative z-10">
-                    <p className="text-green-600 text-[9px] font-black uppercase tracking-[0.2em] italic leading-tight">
-                        Mot de passe mis à jour avec succès. Vous pouvez vous connecter.
-                    </p>
-                </div>
-            )}
+        <div className="space-y-1.5">
+          <label htmlFor="otp" className="block text-[13px] font-medium text-foreground">
+            Code de sécurité
+          </label>
+          <input
+            id="otp"
+            value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            maxLength={6}
+            placeholder="123456"
+            className="field numeric text-center text-lg tracking-[0.4em]"
+          />
+        </div>
 
-            {resetStep === "awaiting-code" ? (
-                /* ---------- Réinitialisation : code + nouveau mot de passe ---------- */
-                <form onSubmit={handleResetPassword} className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <button
-                            type="button"
-                            onClick={() => { setResetStep("idle"); setMessage(""); }}
-                            className="flex items-center gap-2 text-[9px] font-black text-secondary/40 uppercase tracking-widest hover:text-primary transition-colors italic"
-                        >
-                            <ArrowLeft className="w-3 h-3" /> Retour
-                        </button>
-                    </div>
-                    <p className="text-[10px] text-secondary/50 font-bold uppercase tracking-widest italic leading-relaxed">
-                        Un code à 6 chiffres a été envoyé à <span className="text-primary">{email}</span>.
-                        Saisissez-le avec votre nouveau mot de passe.
-                    </p>
+        <div className="space-y-1.5">
+          <label htmlFor="new-password" className="block text-[13px] font-medium text-foreground">
+            Nouveau mot de passe
+          </label>
+          <input
+            id="new-password"
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            placeholder="8 caractères minimum"
+            className="field"
+          />
+        </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-2 italic">Code de sécurité</label>
-                        <div className="relative group/input">
-                            <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                placeholder="••••••"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full pl-12 pr-5 py-5 bg-background border border-border/50 rounded-[1.5rem] focus:border-primary outline-none text-primary text-sm font-black tracking-[0.5em] text-center"
-                                required
-                                maxLength={6}
-                            />
-                        </div>
-                    </div>
+        {message && <Feedback kind="error">{message}</Feedback>}
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-2 italic">Nouveau mot de passe</label>
-                        <div className="relative group/input">
-                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
-                            <input
-                                type="password"
-                                placeholder="••••••••••••"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full pl-12 pr-5 py-5 bg-background border border-border/50 rounded-[1.5rem] focus:border-primary outline-none text-primary text-xs font-bold"
-                                required
-                                minLength={8}
-                            />
-                        </div>
-                    </div>
-
-                    {message && (
-                        <div className="p-4 bg-accent/5 border border-accent/20 rounded-[1.5rem]">
-                            <p className="text-accent text-[9px] font-black uppercase tracking-[0.2em] italic leading-tight">{message}</p>
-                        </div>
-                    )}
-
-                    <button
-                        disabled={loading}
-                        type="submit"
-                        className="w-full py-5 bg-primary text-background font-black rounded-[1.5rem] transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 uppercase text-[10px] tracking-[0.3em] italic"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Définir le mot de passe"}
-                    </button>
-                </form>
-            ) : (
-                /* ---------- Connexion classique ---------- */
-                <>
-                    <form onSubmit={handleLogin} className="space-y-8 relative z-10">
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] ml-2 italic">Adresse e-mail</label>
-                            <div className="relative group/input">
-                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
-                                <input
-                                    type="email"
-                                    placeholder="VOTRE@EMAIL.COM"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-16 pr-6 py-6 bg-background border border-border/50 rounded-[2rem] focus:border-primary focus:ring-8 focus:ring-primary/5 outline-none text-primary transition-all duration-500 font-black text-xs uppercase italic placeholder:text-secondary/10 placeholder:font-black tracking-widest shadow-inner"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center px-2">
-                                <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] italic">Mot de passe</label>
-                                <button
-                                    type="button"
-                                    onClick={handleForgotPassword}
-                                    className="text-[9px] font-black text-blue-500/40 uppercase tracking-widest hover:text-blue-500 transition-colors italic hover:underline decoration-blue-500/20 underline-offset-4"
-                                >
-                                    Mot de passe oublié ?
-                                </button>
-                            </div>
-                            <div className="relative group/input">
-                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary/20 group-focus-within/input:text-primary transition-colors duration-500" />
-                                <input
-                                    type="password"
-                                    placeholder="••••••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-16 pr-6 py-6 bg-background border border-border/50 rounded-[2rem] focus:border-primary focus:ring-8 focus:ring-primary/5 outline-none text-primary transition-all duration-500 font-black text-xs placeholder:text-secondary/10 shadow-inner"
-                                />
-                            </div>
-                        </div>
-
-                        {message && (
-                            <div className="p-4 bg-accent/5 border border-accent/20 rounded-[1.5rem] flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
-                                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                                <p className="text-accent text-[9px] font-black uppercase tracking-[0.2em] italic leading-tight">{message}</p>
-                            </div>
-                        )}
-
-                        <button
-                            disabled={loading}
-                            type="submit"
-                            className="w-full py-6 bg-primary text-background font-black rounded-[2rem] transition-all duration-500 hover:scale-[1.03] active:scale-95 shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 uppercase text-[11px] tracking-[0.4em] italic hover:shadow-primary/40"
-                        >
-                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Se connecter"}
-                        </button>
-                    </form>
-
-                    <div className="mt-16 pt-10 border-t border-border/50 text-center relative z-10">
-                        <p className="text-secondary/40 text-[10px] font-bold uppercase tracking-[0.2em] italic">
-                            Pas encore de projet ? {" "}
-                            <a href="/onboarding" className="text-primary font-black hover:underline underline-offset-4 decoration-primary/30 ml-2 transition-all">Démarrer un projet</a>
-                        </p>
-                    </div>
-                </>
-            )}
-
-            {/* Background scanner line effect */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
-                <div className="w-full h-[1px] bg-primary animate-scan-line" />
-            </div>
-        </motion.div>
+        <button type="submit" disabled={loading} className="btn btn-primary w-full h-12">
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+          Définir le mot de passe
+        </button>
+      </form>
     );
+  }
+
+  return (
+    <>
+      {resetSuccess && (
+        <div className="mb-5 rounded-[10px] border border-ok/25 bg-ok/5 px-4 py-3 text-[13px] text-ok">
+          Mot de passe mis à jour. Vous pouvez vous connecter.
+        </div>
+      )}
+
+      <form onSubmit={handleLogin} className="space-y-5">
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="block text-[13px] font-medium text-foreground">
+            Adresse e-mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            autoComplete="email"
+            placeholder="vous@entreprise.com"
+            className="field"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="block text-[13px] font-medium text-foreground">
+              Mot de passe
+            </label>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-[12px] font-medium text-accent hover:underline"
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            autoComplete="current-password"
+            placeholder="Votre mot de passe"
+            className="field"
+          />
+        </div>
+
+        {message && <Feedback kind="error">{message}</Feedback>}
+
+        <button type="submit" disabled={loading} className="btn btn-primary h-12 w-full">
+          {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+          Se connecter
+        </button>
+      </form>
+    </>
+  );
+}
+
+function Feedback({ kind, children }: { kind: "error"; children: React.ReactNode }) {
+  return (
+    <p
+      role="alert"
+      className={`rounded-[10px] border px-4 py-3 text-[13px] ${
+        kind === "error" ? "border-danger/25 bg-danger/5 text-danger" : ""
+      }`}
+    >
+      {children}
+    </p>
+  );
 }

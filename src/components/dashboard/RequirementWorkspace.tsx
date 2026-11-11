@@ -48,7 +48,7 @@ interface RequirementStatusHistoryLocal {
     createdAt: Date | string;
 }
 
-interface RequirementWithDetails extends Omit<Requirement, 'status' | 'category'> {
+export interface RequirementWithDetails extends Omit<Requirement, 'status' | 'category'> {
     status: RequirementStatus;
     category: RequirementCategory;
     comments: RequirementComment[];

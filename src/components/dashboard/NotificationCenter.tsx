@@ -159,14 +159,16 @@ export default function NotificationCenter() {
             {/* Bell Icon */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label="Notifications"
+                aria-expanded={isOpen}
                 className={cn(
-                    "relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-500 group overflow-hidden",
+                    "relative grid h-10 w-10 place-items-center rounded-[10px] border transition-colors",
                     isOpen
-                        ? "bg-primary text-background shadow-2xl shadow-primary/20 scale-105"
-                        : "bg-background/80 backdrop-blur-xl border border-border/50 text-secondary/40 hover:text-primary hover:border-primary/20 shadow-sm"
+                        ? "border-primary bg-primary text-background"
+                        : "border-border bg-card text-secondary hover:text-foreground"
                 )}
             >
-                <Bell size={20} className={cn("transition-transform duration-500 group-hover:rotate-12", isOpen && "animate-pulse")} />
+                <Bell size={18} strokeWidth={1.75} />
 
                 <AnimatePresence>
                     {unreadCount > 0 && (

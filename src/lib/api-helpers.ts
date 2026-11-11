@@ -28,22 +28,32 @@ export async function getAuthenticatedUser(): Promise<User | null> {
 
     if (email === ADMIN_EMAIL.toLowerCase()) {
       // Bootstrap idempotent du profil administrateur (réservé à cet email)
-      return await prisma.user.create({
-        data: { email: ADMIN_EMAIL, name: "Super Admin", role: "ADMIN" },
-      });
+      return await upsertProfile(email, "Super Admin", "ADMIN");
     }
 
     // Compte client créé via Neon Auth (onboarding / inscription) sans profil
     // Prisma encore : on le crée ici pour que l'espace client fonctionne
     // immédiatement après l'inscription.
     const displayName = sessionUser?.name?.trim() || email.split("@")[0];
-    return await prisma.user.create({
-      data: { email, name: displayName, role: "CLIENT" },
-    });
+    return await upsertProfile(email, displayName, "CLIENT");
   } catch (error) {
     console.error("[api-helpers] Échec de récupération de l'utilisateur :", error);
     return null;
   }
+}
+
+/**
+ * Crée le profil Prisma s'il n'existe pas encore.
+ * `upsert` évite la course entre deux requêtes concurrentes juste après
+ * l'inscription (layout + page appellent getAuthenticatedUser en parallèle),
+ * qui provoquait une violation de contrainte unique (P2002).
+ */
+async function upsertProfile(email: string, name: string, role: User["role"]): Promise<User> {
+  return prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: { email, name, role },
+  });
 }
 
 /**

@@ -27,7 +27,6 @@ import {
 
 interface ClientExecutionProps {
     projectId: string;
-    projectTitle: string;
     progress: number;
     tasks: { total: number; done: number };
     milestones: MilestoneView[];
@@ -37,7 +36,6 @@ interface ClientExecutionProps {
 }
 
 export default function ClientExecution({
-    projectTitle,
     progress,
     tasks,
     milestones,
@@ -91,7 +89,7 @@ export default function ClientExecution({
                 <div className="flex flex-wrap items-end justify-between gap-6">
                     <div>
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary/40">
-                            Avancement — {projectTitle}
+                            Avancement du projet
                         </h3>
                         <p className="mt-2 text-5xl font-bold text-primary tracking-tight leading-none">
                             {progress}
@@ -110,7 +108,7 @@ export default function ClientExecution({
                                 {members.slice(0, 5).map((member) => (
                                     <span
                                         key={member.id}
-                                        title={`${member.user.name ?? member.user.email} — ${
+                                        title={`${member.user.name ?? member.user.email} · ${
                                             TEAM_ROLE_LABEL[member.role]
                                         }`}
                                         className="w-9 h-9 rounded-full bg-background border-2 border-card text-primary flex items-center justify-center text-[9px] font-black"
@@ -128,7 +126,7 @@ export default function ClientExecution({
 
                 <div className="mt-6 h-2 w-full rounded-full bg-secondary/10 overflow-hidden">
                     <div
-                        className="h-full bg-primary rounded-full transition-all duration-700"
+                        className="h-full bg-accent rounded-full transition-all duration-700"
                         style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                     />
                 </div>

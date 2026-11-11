@@ -89,7 +89,7 @@ export default function TaskBoard({ projectId, tasks, members, milestones, canEd
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary/40">
-                        Exécution — {items.length} tâche{items.length > 1 ? "s" : ""}
+                        Exécution · {items.length} tâche{items.length > 1 ? "s" : ""}
                     </h3>
                     <p className="text-2xl font-bold text-primary tracking-tight mt-1">
                         {done}/{items.length || 0} terminée{done > 1 ? "s" : ""}
@@ -127,7 +127,7 @@ export default function TaskBoard({ projectId, tasks, members, milestones, canEd
                 />
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
                 {TASK_COLUMNS.map((column) => {
                     const columnTasks = grouped.get(column.key) ?? [];
                     return (

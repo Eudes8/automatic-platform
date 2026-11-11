@@ -1,48 +1,42 @@
-"use client";
+import Link from "next/link";
 
-import { motion } from "framer-motion";
+interface LogoProps {
+  href?: string;
+  compact?: boolean;
+  /** "inverse" pour les surfaces sombres (panneau encre). */
+  tone?: "default" | "inverse";
+}
 
-export function Logo() {
-    return (
-        <div className="flex items-center gap-3 group relative">
-            <div className="relative w-10 h-10">
-                {/* Background Rotating Ring */}
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 border-2 border-primary/20 rounded-xl"
-                />
+/**
+ * Marque AUTOMATIC.
+ * Signe : carré encre, losange ajouré, point cobalt. Wordmark en display.
+ */
+export function Logo({ href = "/", compact = false, tone = "default" }: LogoProps) {
+  const inverse = tone === "inverse";
 
-                {/* Inner Animated Diamond */}
-                <motion.div
-                    initial={{ scale: 0.8, rotate: 45 }}
-                    animate={{
-                        scale: [0.8, 1.1, 0.8],
-                        rotate: [45, 135, 45]
-                    }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                    className="absolute inset-2 bg-primary rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.3)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                />
-
-                {/* Fixed Center Core */}
-                <div className="absolute inset-[13px] bg-background rounded-full border border-primary/50" />
-            </div>
-
-            <div className="flex flex-col leading-none">
-                <span className="text-xl font-black uppercase tracking-[-0.05em] text-primary italic">
-                    Automatic
-                </span>
-                <span className="text-[8px] font-black uppercase tracking-[0.4em] text-secondary opacity-40 ml-0.5">
-                    Engineering_Nexus
-                </span>
-            </div>
-
-            {/* Hover Glint Effect */}
-            <div className="absolute -inset-x-4 -inset-y-2 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur-lg -z-10" />
-        </div>
-    );
+  return (
+    <Link href={href} className="inline-flex items-center gap-2.5 group" aria-label="AUTOMATIC, accueil">
+      <span
+        className={`relative grid h-8 w-8 shrink-0 place-items-center rounded-[9px] ${
+          inverse ? "bg-background text-foreground" : "bg-primary text-background"
+        }`}
+      >
+        <span
+          className={`block h-3 w-3 rotate-45 rounded-[2px] border-[1.5px] ${
+            inverse ? "border-foreground/90" : "border-background/90"
+          }`}
+        />
+        <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-accent" />
+      </span>
+      {!compact && (
+        <span
+          className={`font-heading text-[15px] font-semibold uppercase leading-none tracking-[0.14em] ${
+            inverse ? "text-background" : "text-foreground"
+          }`}
+        >
+          Automatic
+        </span>
+      )}
+    </Link>
+  );
 }

@@ -52,6 +52,24 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 🎨 Interface v2 (système "Atelier")
+
+Refonte complète de l'interface : moins de bruit visuel, une seule action
+principale par écran, et une lecture confortable sur téléphone.
+
+| Élément | Règle |
+|---------|-------|
+| Couleur | Canvas papier `#F6F6F2`, encre `#101215`, un seul accent cobalt `#1F3BE0` |
+| Typographie | Bricolage Grotesque (titres) + Figtree (texte), base 15 px, aucune micro-capitale décorative |
+| Structure | Filets 1 px et surfaces blanches plutôt que des cartes empilées |
+| Rayons | 10 px pour les contrôles, 18 px pour les panneaux |
+| Navigation | Barre latérale sur bureau, barre inférieure à 5 onglets sur mobile |
+| Mouvement | Transitions courtes uniquement, coupées si `prefers-reduced-motion` |
+
+Fichiers de référence : `src/app/globals.css` (jetons et classes `.btn`, `.field`, `.surface`),
+`src/components/shell/AppShell.tsx` (coque client et admin), `src/lib/labels.ts` (libellés de
+statuts) et `src/lib/format.ts` (montants XOF et dates).
+
 ## 🧩 Socle d'exécution (équipe, tâches, jalons, livrables)
 
 Chaque projet dispose d'un espace d'exécution réel : l'équipe interne y
