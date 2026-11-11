@@ -59,9 +59,16 @@ function basename(path: string): string {
     return parts[parts.length - 1] || path;
 }
 
-/** Moteur de stockage actif. */
+/**
+ * Moteur de stockage actif.
+ * Supabase n'est utilisé que sur demande explicite (`STORAGE_DRIVER=supabase`)
+ * ET si les clés sont présentes. Par défaut, stockage interne PostgreSQL :
+ * aucun upload ne dépend d'un service externe.
+ */
 export function getStorageDriver(): "supabase" | "database" {
-    return isSupabaseConfigured() ? "supabase" : "database";
+    return process.env.STORAGE_DRIVER === "supabase" && isSupabaseConfigured()
+        ? "supabase"
+        : "database";
 }
 
 export async function uploadFileToStorage(
@@ -72,20 +79,23 @@ export async function uploadFileToStorage(
 ): Promise<string> {
     const body = toBuffer(fileBody);
 
-    if (isSupabaseConfigured()) {
-        const supabaseAdmin = getAdminClient();
-        const { error } = await supabaseAdmin.storage.from(bucket).upload(path, body, {
-            contentType,
-            upsert: true,
-        });
-        if (error) {
-            console.error("Storage upload failed:", error);
-            throw error;
+    if (getStorageDriver() === "supabase") {
+        try {
+            const supabaseAdmin = getAdminClient();
+            const { error } = await supabaseAdmin.storage.from(bucket).upload(path, body, {
+                contentType,
+                upsert: true,
+            });
+            if (error) throw error;
+            const {
+                data: { publicUrl },
+            } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+            return publicUrl;
+        } catch (error) {
+            // Repli : un stockage externe indisponible ne doit jamais bloquer
+            // la signature d'un contrat ou le dépôt d'un livrable.
+            console.error("[storage] Supabase indisponible, bascule sur le stockage interne :", error);
         }
-        const {
-            data: { publicUrl },
-        } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
-        return publicUrl;
     }
 
     const candidateProjectId = extractProjectId(path);
@@ -111,11 +121,15 @@ export async function uploadFileToStorage(
 }
 
 export async function deleteFileFromStorage(bucket: string, path: string): Promise<void> {
-    if (isSupabaseConfigured()) {
-        const supabaseAdmin = getAdminClient();
-        const { error } = await supabaseAdmin.storage.from(bucket).remove([path]);
-        if (error) throw error;
-        return;
+    if (getStorageDriver() === "supabase") {
+        try {
+            const supabaseAdmin = getAdminClient();
+            const { error } = await supabaseAdmin.storage.from(bucket).remove([path]);
+            if (error) throw error;
+            return;
+        } catch (error) {
+            console.error("[storage] Suppression Supabase impossible, repli interne :", error);
+        }
     }
 
     await prisma.storedFile.deleteMany({ where: { name: path } });

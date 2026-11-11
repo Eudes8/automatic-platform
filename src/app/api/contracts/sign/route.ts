@@ -5,6 +5,9 @@ import { generateProjectContract } from "@/lib/utils/pdf";
 import { uploadFileToStorage } from "@/lib/storage";
 import { formatMoney } from "@/lib/format";
 
+// Génération PDF + archivage : laisser de la marge sur Vercel.
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
     try {
         const user = await getCurrentUser();
@@ -34,7 +37,9 @@ export async function POST(request: NextRequest) {
         const pdfBytes = await generateProjectContract(
             project.title,
             user.name || "Client",
-            project.budget ? `${project.budget}€` : "Non spécifié",
+            project.budget
+                ? formatMoney(project.budget).replace(/[\u00A0\u202F\u2009]/g, " ")
+                : "Non spécifié",
             signatureBase64,
             project.id
         );
