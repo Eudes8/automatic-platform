@@ -54,16 +54,32 @@ export default function ContractSigner({
         if (signatureData) {
             try {
                 setIsProcessing(true);
-                const pdfBytes = await generateProjectContract(projectName, clientName, budget, signatureData, projectId, description);
-                const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
-                downloadBlob(blob, `Contrat_AUTOMATIC_${projectName.replace(/\s+/g, "_")}.pdf`);
 
+                // 1. Enregistrer la signature : c'est l'engagement contractuel.
                 await onSign(signatureData);
                 setSigned(true);
+
+                // 2. Fournir une copie locale au client. Un échec ici ne doit
+                //    jamais remettre en cause la signature déjà enregistrée.
+                try {
+                    const pdfBytes = await generateProjectContract(
+                        projectName,
+                        clientName,
+                        budget,
+                        signatureData,
+                        projectId,
+                        description
+                    );
+                    const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+                    downloadBlob(blob, `Contrat_AUTOMATIC_${projectName.replace(/\s+/g, "_")}.pdf`);
+                } catch (pdfError) {
+                    console.error("Copie locale du contrat indisponible:", pdfError);
+                }
+
                 setTimeout(onClose, 2000);
             } catch (error) {
                 console.error("Erreur lors de la signature:", error);
-                alert("Une erreur est survenue lors de la génération du contrat.");
+                alert("La signature n'a pas pu être enregistrée. Réessayez.");
             } finally {
                 setIsProcessing(false);
             }

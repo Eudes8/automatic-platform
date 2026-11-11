@@ -1,5 +1,18 @@
 import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 
+/**
+ * pdf-lib encode le texte en WinAnsi : les espaces insécables (dont l'espace
+ * fine U+202F produite par Intl.NumberFormat en français) et les tirets longs
+ * provoquent une exception. On normalise avant tout dessin.
+ */
+function pdfSafe(value: string): string {
+    return (value ?? "")
+        .replace(/[\u00A0\u202F\u2007\u2009\u200A]/g, " ")
+        .replace(/[\u2013\u2014\u2212]/g, "-")
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"');
+}
+
 export async function generateProjectContract(
     projectName: string,
     clientName: string,
@@ -9,6 +22,12 @@ export async function generateProjectContract(
     description?: string,
     currency: string = "XOF"
 ) {
+    // Normalisation WinAnsi de toutes les chaînes affichées.
+    projectName = pdfSafe(projectName);
+    clientName = pdfSafe(clientName);
+    budget = pdfSafe(budget);
+    description = pdfSafe(description ?? "");
+
     const pdfDoc = await PDFDocument.create();
 
     // Standard fonts
