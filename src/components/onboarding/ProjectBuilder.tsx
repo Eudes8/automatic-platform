@@ -50,14 +50,20 @@ const formSchema = z.object({
     timeline: z.string().optional(), // Made optional or hidden in simple mode
     name: z.string().min(2, "Nom requis"),
     email: z.string().email("Email invalide"),
-    password: z.string().min(8, "8 caractères minimum"),
+    password: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function ProjectBuilder() {
+interface ProjectBuilderProps {
+    currentUser?: { name: string | null; email: string } | null;
+}
+
+export default function ProjectBuilder({ currentUser }: ProjectBuilderProps) {
+    const isAuthenticated = Boolean(currentUser);
     const [currentStep, setCurrentStep] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [currency, setCurrency] = useState<Currency>('EUR');
 
     useEffect(() => {
@@ -80,8 +86,8 @@ export default function ProjectBuilder() {
             projectTitle: "",
             type: "starter",
             features: ["auth"],
-            name: "",
-            email: "",
+            name: currentUser?.name ?? "",
+            email: currentUser?.email ?? "",
             password: ""
         }
     });
@@ -107,25 +113,35 @@ export default function ProjectBuilder() {
     const onFormSubmit = async (data: FormData) => {
         setSubmitting(true);
         try {
-            // 1. Créer le compte (ou connecter si l'email existe déjà).
-            // L'inscription passe par Neon Auth (Better Auth) : endpoint public,
-            // le mot de passe ne transite JAMAIS par notre API.
-            const signUp = await authClient.signUp.email({
-                email: data.email,
-                password: data.password,
-                name: data.name,
-            });
+            setSubmitError(null);
 
-            if (signUp.error) {
-                // Email déjà inscrit ? Tentative de connexion avec le mot de passe fourni.
-                const signIn = await authClient.signIn.email({
-                    email: data.email,
-                    password: data.password,
-                });
-                if (signIn.error) {
-                    alert("Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe actuel.");
+            // 1. Compte : inutile si le client est déjà connecté (cas d'un projet
+            //    lancé depuis son espace). Sinon inscription / connexion Neon Auth.
+            if (!isAuthenticated) {
+                if (!data.password || data.password.length < 8) {
+                    setSubmitError("Choisissez un mot de passe de 8 caractères minimum.");
                     setSubmitting(false);
                     return;
+                }
+
+                const signUp = await authClient.signUp.email({
+                    email: data.email,
+                    password: data.password,
+                    name: data.name,
+                });
+
+                if (signUp.error) {
+                    const signIn = await authClient.signIn.email({
+                        email: data.email,
+                        password: data.password,
+                    });
+                    if (signIn.error) {
+                        setSubmitError(
+                            "Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe actuel."
+                        );
+                        setSubmitting(false);
+                        return;
+                    }
                 }
             }
 
@@ -145,13 +161,13 @@ export default function ProjectBuilder() {
             });
             const result = await response.json();
             if (result.success) {
-                // La session Neon Auth est déjà active après inscription/connexion
                 window.location.href = "/dashboard";
             } else {
-                alert(result.error);
+                setSubmitError(result.error ?? "La création du projet a échoué.");
             }
         } catch (error) {
             console.error("Submission failed", error);
+            setSubmitError("Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.");
         } finally {
             setSubmitting(false);
         }
@@ -213,7 +229,7 @@ export default function ProjectBuilder() {
                             {/* STEP 1: Name */}
                             {currentStep === 0 && (
                                 <div className="space-y-6">
-                                    <h2 className="text-3xl font-black text-primary mb-2">Comment s'appelle votre projet ?</h2>
+                                    <h2 className="text-3xl font-black text-primary mb-2">Comment s&apos;appelle votre projet ?</h2>
                                     <p className="text-secondary/60 text-lg">Donnez-lui un nom, même temporaire.</p>
                                     <div className="pt-4">
                                         <input
@@ -291,8 +307,12 @@ export default function ProjectBuilder() {
                             {/* STEP 4: Info (Final) */}
                             {currentStep === 3 && (
                                 <div className="space-y-6">
-                                    <h2 className="text-3xl font-black text-primary mb-2">C'est presque fini !</h2>
-                                    <p className="text-secondary/60 text-lg">Créez votre compte pour suivre le projet.</p>
+                                    <h2 className="text-3xl font-black text-primary mb-2">C&apos;est presque fini !</h2>
+                                    <p className="text-secondary/60 text-lg">
+                                        {isAuthenticated
+                                            ? "Confirmez vos informations pour lancer le projet."
+                                            : "Créez votre compte pour suivre le projet."}
+                                    </p>
 
                                     <div className="space-y-4">
                                         <div>
@@ -314,16 +334,27 @@ export default function ProjectBuilder() {
                                             />
                                             {errors.email && <span className="text-red-500 text-xs font-bold">{errors.email.message}</span>}
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-bold uppercase tracking-wider text-secondary/50 mb-1 block">Mot de passe</label>
-                                            <input
-                                                {...register("password")}
-                                                type="password"
-                                                className="w-full bg-background border border-border p-4 rounded-xl font-bold focus:border-primary outline-none"
-                                                placeholder="••••••••"
-                                            />
-                                            {errors.password && <span className="text-red-500 text-xs font-bold">{errors.password.message}</span>}
-                                        </div>
+                                        {!isAuthenticated && (
+                                            <div>
+                                                <label className="text-xs font-bold uppercase tracking-wider text-secondary/50 mb-1 block">Mot de passe</label>
+                                                <input
+                                                    {...register("password")}
+                                                    type="password"
+                                                    className="w-full bg-background border border-border p-4 rounded-xl font-bold focus:border-primary outline-none"
+                                                    placeholder="8 caractères minimum"
+                                                />
+                                                {errors.password && <span className="text-red-500 text-xs font-bold">{errors.password.message}</span>}
+                                            </div>
+                                        )}
+
+                                        {submitError && (
+                                            <p
+                                                role="alert"
+                                                className="rounded-xl border border-danger/25 bg-danger/5 px-4 py-3 text-sm text-danger"
+                                            >
+                                                {submitError}
+                                            </p>
+                                        )}
 
                                         <button
                                             onClick={handleSubmit(onFormSubmit)}

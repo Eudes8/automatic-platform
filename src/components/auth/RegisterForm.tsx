@@ -45,8 +45,17 @@ export default function RegisterForm() {
         return;
       }
 
+      // La session n'est pas toujours disponible immédiatement (vérification
+      // e-mail possible côté Neon Auth) : on renvoie vers la connexion avec un
+      // message explicite plutôt que vers une page qui redirigerait sans rien dire.
+      const session = await authClient.getSession();
       toast.success("Compte créé");
-      router.push("/dashboard");
+
+      if (session.data?.session) {
+        router.push("/dashboard");
+      } else {
+        router.push("/login?created=1");
+      }
     } catch {
       toast.error("Une erreur est survenue. Réessayez.");
     } finally {

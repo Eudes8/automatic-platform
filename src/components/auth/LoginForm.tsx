@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 
 type ResetStep = "idle" | "awaiting-code";
 
-export default function LoginForm() {
+export default function LoginForm({ justCreated = false }: { justCreated?: boolean }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -141,6 +141,12 @@ export default function LoginForm() {
 
   return (
     <>
+      {justCreated && !resetSuccess && (
+        <div className="mb-5 rounded-[10px] border border-ok/25 bg-ok/5 px-4 py-3 text-[13px] text-ok">
+          Votre compte est créé. Connectez-vous pour accéder à votre espace.
+        </div>
+      )}
+
       {resetSuccess && (
         <div className="mb-5 rounded-[10px] border border-ok/25 bg-ok/5 px-4 py-3 text-[13px] text-ok">
           Mot de passe mis à jour. Vous pouvez vous connecter.

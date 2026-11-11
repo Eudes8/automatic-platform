@@ -4,7 +4,13 @@ import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata = { title: "Connexion" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ created?: string }>;
+}) {
+  const { created } = await searchParams;
+
   return (
     <AuthShell
       eyebrow="Espace client"
@@ -24,7 +30,7 @@ export default function LoginPage() {
         </p>
       }
     >
-      <LoginForm />
+      <LoginForm justCreated={created === "1"} />
     </AuthShell>
   );
 }
