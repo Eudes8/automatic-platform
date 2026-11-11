@@ -70,15 +70,18 @@ export async function POST(req: Request) {
 
         const basePrice = basePrices[type as keyof typeof basePrices] || 800;
         const featuresTotal = features.reduce((acc, f) => acc + (featurePrices[f] || 0), 0);
-        const totalBudget = basePrice + featuresTotal;
+        // Les prix du tunnel sont exprimés en euros : on stocke le budget
+        // dans la devise de facturation (XOF) pour rester cohérent avec Moneroo.
+        const EUR_TO_XOF = 655.957;
+        const totalBudgetXof = Math.round((basePrice + featuresTotal) * EUR_TO_XOF);
 
         const project = await prisma.project.create({
             data: {
-                title: projectTitle.toUpperCase(),
+                title: projectTitle.trim(),
                 status: "ONBOARDING",
                 clientId: user.id,
                 progress: 10,
-                budget: totalBudget,
+                budget: totalBudgetXof,
             },
         });
 
@@ -96,8 +99,8 @@ export async function POST(req: Request) {
           
           <div style="background: #111; border: 1px solid #222; padding: 25px; border-radius: 4px; margin: 30px 0; text-align: center;">
             <p style="margin: 0; font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 2px;">Estimation_Ressources</p>
-            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 900; color: #ffffff;">${totalBudget}€</p>
-            <p style="margin: 5px 0 0 0; font-size: 10px; color: #333;">~ ${Math.round(totalBudget * 655).toLocaleString()} FCFA</p>
+            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: 900; color: #ffffff;">${totalBudgetXof.toLocaleString('fr-FR')} FCFA</p>
+            <p style="margin: 5px 0 0 0; font-size: 10px; color: #333;">Estimation en francs CFA</p>
           </div>
 
           <p style="color: #888; font-size: 13px; line-height: 1.6;">Le manifeste de mission a été injecté dans votre Command Center. Authentifiez-vous pour superviser le build.</p>

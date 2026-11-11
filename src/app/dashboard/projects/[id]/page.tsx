@@ -40,7 +40,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         projectName={project.title}
         projectId={project.id}
         clientName={project.client?.name || "Client"}
-        budget={project.budget ? `${project.budget}€` : undefined}
+        budget={project.budget ? formatMoney(project.budget) : undefined}
         description={project.description || undefined}
       />
     );
@@ -131,7 +131,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           contracts={project.contracts}
           invoices={project.invoices}
           clientName={project.client?.name || "Client"}
-          budget={project.budget ? `${project.budget}€` : "Non spécifié"}
+          budget={project.budget ? formatMoney(project.budget) : "Non spécifié"}
           description={project.description || undefined}
           techStack={project.techStack}
           timeline={project.timeline || undefined}

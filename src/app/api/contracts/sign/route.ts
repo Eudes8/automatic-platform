@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/actions/users";
 import prisma from "@/lib/prisma";
 import { generateProjectContract } from "@/lib/utils/pdf";
+import { uploadFileToStorage } from "@/lib/storage";
+import { formatMoney } from "@/lib/format";
 
 export async function POST(request: NextRequest) {
     try {
@@ -65,19 +67,34 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // Archiver le PDF signé (stockage interne ou Supabase selon configuration)
+        let pdfUrl: string | null = null;
+        try {
+            const path = `contracts/${projectId}/${Date.now()}_contrat_signe.pdf`;
+            pdfUrl = await uploadFileToStorage(
+                "project-assets",
+                path,
+                Buffer.from(pdfBytes),
+                "application/pdf"
+            );
+        } catch (uploadError) {
+            console.error("[contracts/sign] Archivage du PDF impossible:", uploadError);
+        }
+
         // Update project status
         await prisma.project.update({
             where: { id: projectId },
             data: {
                 contractSigned: true,
-                status: "ANALYSIS"
+                status: "ANALYSIS",
+                ...(pdfUrl ? { contractUrl: pdfUrl } : {}),
             }
         });
 
         return NextResponse.json({
             success: true,
             contract,
-            pdfUrl: `/api/contracts/${contract.id}/pdf` // Optional: endpoint to download PDF
+            pdfUrl,
         });
     } catch (error) {
         console.error("Contract signing error:", error);
