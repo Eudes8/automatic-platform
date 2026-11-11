@@ -85,6 +85,23 @@ export interface WebhookPayload {
   };
 }
 
+/**
+ * Traduit les erreurs les plus fréquentes de l'API Moneroo en consignes
+ * directement actionnables pour l'administrateur.
+ */
+function humanizeApiError(message: string): string {
+  if (/no payment methods enabled/i.test(message)) {
+    return "Aucun moyen de paiement n'est activé pour cette devise sur le compte Moneroo. Ouvrez le tableau de bord Moneroo, ajoutez une passerelle puis activez un moyen de paiement dans cette devise.";
+  }
+  if (/currency/i.test(message) && /(not supported|invalid|not allowed)/i.test(message)) {
+    return "Cette devise n'est pas activée sur le compte Moneroo. Vérifiez MONEROO_CURRENCY et les devises autorisées pour votre boutique.";
+  }
+  if (/unauthorized|authentication/i.test(message)) {
+    return "Clé API Moneroo refusée. Vérifiez MONEROO_SECRET_KEY (clé de test ou de production selon l'environnement).";
+  }
+  return message;
+}
+
 /** Récupère la clé secrète Moneroo (mode test ou production). */
 function getSecretKey(): string {
   const key = process.env.MONEROO_SECRET_KEY;
@@ -168,7 +185,7 @@ export async function initializePayment(
       (payload && typeof payload === "object" && "message" in payload
         ? String((payload as { message?: unknown }).message)
         : undefined) ?? "Initialisation du paiement refusée par Moneroo.";
-    throw new MonerooError(apiMessage, response.status === 401 ? 500 : 502, payload);
+    throw new MonerooError(humanizeApiError(apiMessage), response.status === 401 ? 500 : 502, payload);
   }
 
   const data = (payload as { data?: { id?: string; checkout_url?: string } })?.data;
