@@ -52,6 +52,30 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 💳 Mise en production Moneroo (checklist)
+
+La plateforme facture en **FCFA**. Le bac à sable Moneroo n'accepte que l'USD
+(vérifié : `XOF` → 400, `USD` → OK), d'où une conversion explicite.
+
+| Point | Attendu en production | Où |
+|-------|----------------------|----|
+| Devise | `MONEROO_CURRENCY=XOF` | Variables Vercel |
+| Clé | clé **live** (`pvk_live_...`) | Variables Vercel |
+| Webhook | `https://automatic-platform-beige.vercel.app/api/webhooks/moneroo` | Dashboard Moneroo → Développeurs → Webhooks |
+| Secret webhook | identique à `MONEROO_WEBHOOK_SECRET` | Vercel + dashboard |
+
+Tant que la devise n'est pas `XOF`, un bandeau d'avertissement apparaît sur
+la vue d'ensemble admin, avec le taux de conversion appliqué.
+
+Contrôle rapide du webhook depuis un poste :
+
+```bash
+curl -i -X POST https://automatic-platform-beige.vercel.app/api/webhooks/moneroo \
+  -H "Content-Type: application/json" -H "X-Moneroo-Signature: faux" \
+  -d '{"event":"payment.success","data":{"id":"test"}}'
+# attendu : 403 Signature invalide
+```
+
 ## 🎨 Interface v2 (système "Atelier")
 
 Refonte complète de l'interface : moins de bruit visuel, une seule action

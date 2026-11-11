@@ -100,6 +100,12 @@ export default async function AdminDashboard() {
     })),
   ].slice(0, 6);
 
+  // La plateforme facture en FCFA. Si Moneroo est configuré dans une autre
+  // devise, les montants sont convertis : il faut le dire explicitement.
+  const paymentCurrency = (process.env.MONEROO_CURRENCY ?? "XOF").toUpperCase();
+  const currencyMismatch = paymentCurrency !== "XOF";
+  const conversionRate = process.env.MONEROO_XOF_PER_UNIT ?? (paymentCurrency === "USD" ? "600" : "655.957");
+
   return (
     <div className="space-y-10">
       <header>
@@ -109,6 +115,18 @@ export default async function AdminDashboard() {
           {unpaid.length > 1 ? "s" : ""} à encaisser.
         </p>
       </header>
+
+      {currencyMismatch && (
+        <section className="rounded-[10px] border border-warn/30 bg-warn/5 px-4 py-3">
+          <p className="text-[13px] font-semibold text-warn">
+            Encaissement en {paymentCurrency}, facturation en FCFA
+          </p>
+          <p className="mt-1 text-[13px] text-secondary">
+            Chaque facture est convertie au taux de {conversionRate} FCFA pour 1 {paymentCurrency}. Pour
+            encaisser directement en FCFA, passez la variable MONEROO_CURRENCY à XOF avec une clé live.
+          </p>
+        </section>
+      )}
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Encaissé" value={formatMoney(collectedTotal)} hint={`${paidCount} facture${paidCount > 1 ? "s" : ""} payée${paidCount > 1 ? "s" : ""}`} />
