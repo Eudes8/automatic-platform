@@ -256,6 +256,28 @@ export async function verifyWebhookSignature(
   return timingSafeEqual(a, b);
 }
 
+/**
+ * Convertit un montant facturé en francs CFA vers la devise réellement
+ * envoyée à Moneroo.
+ *
+ * Les factures de la plateforme sont libellées en XOF. Si le compte Moneroo
+ * est configuré dans une autre devise (cas du bac à sable, limité à l'USD),
+ * il faut convertir explicitement : envoyer le montant brut reviendrait à
+ * facturer 1 000 000 USD pour une facture de 1 000 000 FCFA.
+ *
+ * Taux surchargeable via MONEROO_XOF_PER_UNIT (nombre de XOF pour 1 unité).
+ */
+export function xofToChargeCurrency(amountXof: number, currency: string = DEFAULT_CURRENCY): number {
+  const target = currency.toUpperCase();
+  if (target === "XOF") return Math.max(1, Math.round(amountXof));
+
+  const fallbackRate = target === "USD" ? 600 : target === "EUR" ? 655.957 : 1;
+  const rate = Number(process.env.MONEROO_XOF_PER_UNIT ?? fallbackRate);
+  if (!Number.isFinite(rate) || rate <= 0) return Math.max(1, Math.round(amountXof));
+
+  return Math.max(1, Math.round(amountXof / rate));
+}
+
 /** Formate un montant dans la devise donnée (affichage). */
 export function formatMoney(amount: number, currency = DEFAULT_CURRENCY): string {
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(amount) + " " + currency;

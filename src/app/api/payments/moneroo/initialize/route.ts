@@ -12,7 +12,7 @@
  */
 
 import prisma from "@/lib/prisma";
-import { initializePayment, MonerooError, DEFAULT_CURRENCY } from "@/lib/moneroo";
+import { initializePayment, MonerooError, DEFAULT_CURRENCY, xofToChargeCurrency } from "@/lib/moneroo";
 import { getAuthenticatedUser, getAppUrl, jsonResponse } from "@/lib/api-helpers";
 
 export const dynamic = "force-dynamic";
@@ -88,12 +88,15 @@ export async function POST(request: Request) {
   const appUrl = getAppUrl(request);
   const { firstName, lastName } = splitName(user.name, user.email);
 
+  // La facture est en FCFA ; Moneroo peut exiger une autre devise (bac à sable USD).
+  const chargeAmount = xofToChargeCurrency(invoice.amount, DEFAULT_CURRENCY);
+
   try {
     const init = await initializePayment({
-      amount: invoice.amount,
+      amount: chargeAmount,
       currency: DEFAULT_CURRENCY,
-      description: `Paiement facture #${invoice.id.slice(-6).toUpperCase()}${
-        invoice.description ? ` — ${invoice.description}` : ""
+      description: `Facture #${invoice.id.slice(-6).toUpperCase()} - ${invoice.amount.toLocaleString("fr-FR")} FCFA${
+        invoice.description ? ` - ${invoice.description}` : ""
       }`,
       return_url: `${appUrl}/dashboard/invoices`,
       customer: {
@@ -113,7 +116,7 @@ export async function POST(request: Request) {
       data: {
         invoiceId: invoice.id,
         monerooPaymentId: init.data.id,
-        amount: invoice.amount,
+        amount: chargeAmount,
         currency: DEFAULT_CURRENCY,
         status: "PENDING",
         checkoutUrl: init.data.checkout_url,
