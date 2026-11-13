@@ -197,29 +197,29 @@ export default function RequirementWorkspace({
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-8 border-b border-border/50">
                 <div>
-                    <h3 className="text-3xl font-black text-primary italic uppercase tracking-tighter leading-none mb-3">
-                        WORKSPACE <span className="text-secondary/20">CAHIER DES CHARGES.</span>
+                    <h3 className="text-xl font-semibold tracking-tight mb-1">
+                        Cahier des charges
                     </h3>
-                    <p className="text-[9px] font-black text-secondary/30 uppercase tracking-[0.3em] italic">Espace d'échange et de validation des spécifications</p>
+                    <p className="text-[13px] text-secondary">Chaque besoin est écrit, numéroté et validé avec vous.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => setShowTemplates(!showTemplates)}
                         className="flex items-center gap-3 px-6 py-4 bg-white border border-border/50 text-secondary/60 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:border-primary/30 transition-all italic shadow-sm"
                     >
-                        <LayoutTemplate size={14} /> TEMPLATES
+                        <LayoutTemplate size={14} /> Modèles
                     </button>
                     <button
                         onClick={handleExportPDF}
                         className="flex items-center gap-3 px-6 py-4 bg-white border border-border/50 text-primary font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:border-primary/30 transition-all italic shadow-sm"
                     >
-                        <FileText size={14} /> EXPORT_PDF
+                        <FileText size={14} /> Exporter en PDF
                     </button>
                     <button
                         onClick={() => { setIsAdding(!isAdding); setShowTemplates(false); }}
                         className="flex items-center gap-3 px-8 py-4 bg-primary text-background font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all italic"
                     >
-                        {isAdding ? "ANNULER" : <><Plus size={14} /> NOUVEAU_POINT</>}
+                        {isAdding ? "Annuler" : <><Plus size={14} /> Nouvelle demande</>}
                     </button>
                 </div>
             </div>
@@ -228,7 +228,7 @@ export default function RequirementWorkspace({
             {showTemplates && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-8 bg-slate-50 border border-dashed border-border/50 rounded-[2.5rem] animate-in slide-in-from-top-4 duration-500">
                     <div className="col-span-full flex justify-between items-center mb-4">
-                        <p className="text-[10px] font-black text-secondary/30 uppercase tracking-[0.4em] italic font-heading">// SÉLECTIONNEZ_UN_MODÈLE</p>
+                        <p className="text-[10px] font-black text-secondary/30 uppercase tracking-[0.4em] italic font-heading">Choisissez un modèle</p>
                         <button onClick={() => setShowTemplates(false)} className="text-secondary/20 hover:text-primary transition-colors"><X size={20} /></button>
                     </div>
                     {REQUIREMENT_TEMPLATES.map((tpl, i) => (
@@ -255,23 +255,23 @@ export default function RequirementWorkspace({
                         onChange={(e) => setCategoryFilter(e.target.value as any)}
                         className="h-10 px-4 bg-white border border-border/50 rounded-xl text-[10px] uppercase font-bold text-secondary/70 focus:outline-none focus:border-primary/30"
                     >
-                        <option value="ALL">Toutes Catégories</option>
-                        {['FUNCTIONAL', 'TECHNICAL', 'DESIGN', 'SECURITY', 'PERFORMANCE', 'OTHER'].map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="ALL">Toutes les catégories</option>
+                        {[['FUNCTIONAL', 'Fonctionnel'], ['TECHNICAL', 'Technique'], ['DESIGN', 'Design'], ['SECURITY', 'Sécurité'], ['PERFORMANCE', 'Performance'], ['OTHER', 'Autre']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                     </select>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as any)}
                         className="h-10 px-4 bg-white border border-border/50 rounded-xl text-[10px] uppercase font-bold text-secondary/70 focus:outline-none focus:border-primary/30"
                     >
-                        <option value="ALL">Tous Statuts</option>
-                        {['SUGGESTED', 'IN_REVIEW', 'APPROVED', 'REJECTED'].map(s => <option key={s} value={s}>{s}</option>)}
+                        <option value="ALL">Tous les statuts</option>
+                        {[['SUGGESTED', 'Proposé'], ['IN_REVIEW', 'En revue'], ['APPROVED', 'Validé'], ['REJECTED', 'Écarté']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                     </select>
                 </div>
                 <div className="relative w-full md:w-64">
                     <input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Rechercher un point..."
+                        placeholder="Rechercher une demande…"
                         className="h-10 px-4 w-full bg-white border border-border/50 rounded-xl text-[10px] font-bold text-secondary/70 focus:outline-none focus:border-primary/30 placeholder:text-secondary/20 uppercase tracking-wide"
                     />
                 </div>
@@ -281,7 +281,7 @@ export default function RequirementWorkspace({
             <div className="p-6 bg-amber-500/5 border border-amber-500/10 rounded-[2rem] flex items-start gap-4">
                 <AlertCircle className="text-amber-500 shrink-0 mt-1" size={18} />
                 <div>
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic mb-1">NOTE SUR LA RÉMUNÉRATION</p>
+                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic mb-1">Estimation du budget</p>
                     <p className="text-[9px] text-secondary/50 font-bold leading-relaxed italic">
                         Le montant du contrat est une estimation basée sur {requirements.filter(r => r.status === 'APPROVED').length} points validés. <br />
                         Budget Estimé actuel : <span className="text-primary font-black">{estimatedBudget.toLocaleString()} XOF</span>
