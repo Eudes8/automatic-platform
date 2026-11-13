@@ -39,7 +39,6 @@ const CLIENT_NAV: NavItem[] = [
   { key: "dashboard", label: "Accueil", href: "/dashboard", icon: LayoutDashboard },
   { key: "projects", label: "Mon projet", href: "/dashboard/projects", icon: FolderOpen },
   { key: "invoices", label: "Paiements", href: "/dashboard/invoices", icon: Receipt },
-  { key: "tickets", label: "Aide", href: "/dashboard/tickets", icon: LifeBuoy },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -52,7 +51,7 @@ const ADMIN_NAV: NavItem[] = [
   { key: "chat", label: "Messagerie", href: "/admin/chat", icon: MessageSquare },
 ];
 
-const MOBILE_CLIENT: NavKey[] = ["dashboard", "projects", "invoices", "tickets"];
+const MOBILE_CLIENT: NavKey[] = ["dashboard", "projects", "invoices"];
 const MOBILE_ADMIN: NavKey[] = ["dashboard", "projects", "users", "invoices", "tickets"];
 
 interface AppShellProps {
@@ -188,6 +187,15 @@ export default function AppShell({ user, variant, children }: AppShellProps) {
           <div className="flex items-center gap-1.5">
             {variant === "client" && (
               <Link
+                href="/dashboard/tickets"
+                aria-label="Aide et support"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-muted hover:bg-primary/[0.06] hover:text-foreground transition-colors"
+              >
+                <LifeBuoy size={18} strokeWidth={1.75} aria-hidden="true" />
+              </Link>
+            )}
+            {variant === "client" && (
+              <Link
                 href="/dashboard/settings"
                 aria-label="Paramètres du profil"
                 className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-muted hover:bg-primary/[0.06] hover:text-foreground transition-colors"
@@ -210,7 +218,7 @@ export default function AppShell({ user, variant, children }: AppShellProps) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-md lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-3">
           {mobileItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);

@@ -4,6 +4,7 @@ import { getProjectExecution } from "@/lib/actions/execution";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
 import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
 import ChatSidebar from "@/components/dashboard/ChatSidebar";
+import NewTicketForm from "@/components/dashboard/NewTicketForm";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
 import {
   ChevronLeft,
@@ -14,12 +15,17 @@ import {
   Users,
   Download,
   FileText,
+  MessageSquare,
+  ClipboardList,
+  LifeBuoy,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { RequirementWithDetails } from "@/components/dashboard/RequirementWorkspace";
 import { Project, Asset, Contract, Invoice, User } from "@prisma/client";
-import { PROJECT_STATUS_LABEL, toneFor } from "@/lib/labels";
+import prisma from "@/lib/prisma";
+import { PROJECT_STATUS_LABEL, TICKET_STATUS_LABEL, toneFor } from "@/lib/labels";
 import { formatMoney, formatDate } from "@/lib/format";
 import { MILESTONE_LABEL, MILESTONE_STYLE, TEAM_ROLE_LABEL, formatDay, initialsOf } from "@/types/execution";
 
@@ -33,12 +39,18 @@ type ProjectWithDetails = Project & {
 
 const TABS = [
   { key: "apercu", label: "Aperçu" },
-  { key: "demandes", label: "Mes demandes" },
+  { key: "echanges", label: "Échanges" },
   { key: "livrables", label: "Livrables" },
-  { key: "messages", label: "Messages" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
+type VueKey = "conversation" | "demandes" | "support";
+
+const VUES: { key: VueKey; label: string; icon: typeof MessageSquare }[] = [
+  { key: "conversation", label: "Conversation", icon: MessageSquare },
+  { key: "demandes", label: "Demandes", icon: ClipboardList },
+  { key: "support", label: "Support", icon: LifeBuoy },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +59,10 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; vue?: string }>;
 }) {
   const { id } = await params;
-  const { tab: tabParam } = await searchParams;
+  const { tab: tabParam, vue: vueParam } = await searchParams;
   const user = await getCurrentUser();
   if (!user) return notFound();
 
@@ -70,8 +82,26 @@ export default async function ProjectDetailPage({
     );
   }
 
-  const execution = await getProjectExecution(project.id).catch(() => null);
-  const tab: TabKey = TABS.some((item) => item.key === tabParam) ? (tabParam as TabKey) : "apercu";
+  const [execution, tickets] = await Promise.all([
+    getProjectExecution(project.id).catch(() => null),
+    prisma.ticket.findMany({
+      where: { projectId: project.id },
+      include: { _count: { select: { responses: true } } },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+    }),
+  ]);
+
+  // Les anciennes entrées (?tab=demandes / ?tab=messages) pointent vers Échanges.
+  const legacyTab = tabParam === "demandes" || tabParam === "messages" ? "echanges" : tabParam;
+  const tab: TabKey = TABS.some((item) => item.key === legacyTab) ? (legacyTab as TabKey) : "apercu";
+  const vue: VueKey =
+    vueParam === "demandes" || vueParam === "support"
+      ? vueParam
+      : tabParam === "demandes"
+        ? "demandes"
+        : tabParam === "messages"
+          ? "conversation"
+          : "conversation";
 
   const tasks = execution?.tasks ?? [];
   const done = tasks.filter((task) => task.status === "DONE").length;
@@ -79,6 +109,7 @@ export default async function ProjectDetailPage({
   const validated = milestones.filter((milestone) => milestone.status === "VALIDATED").length;
   const deliverables = execution?.deliverables ?? [];
   const waiting = deliverables.filter((item) => item.status === "SUBMITTED").length;
+  const openTickets = tickets.filter((ticket) => ticket.status === "OPEN" || ticket.status === "IN_PROGRESS").length;
 
   return (
     <div className="space-y-8">
@@ -128,12 +159,10 @@ export default async function ProjectDetailPage({
         </dl>
       </header>
 
-      {/* Navigation interne au projet */}
       <nav aria-label="Sections du projet" className="flex flex-wrap gap-1.5 border-b border-border pb-3">
         {TABS.map((item) => {
           const active = item.key === tab;
-          const badge =
-            item.key === "livrables" && waiting > 0 ? waiting : item.key === "demandes" ? project.requirements.length : null;
+          const badge = item.key === "livrables" ? waiting : item.key === "echanges" ? openTickets : null;
 
           return (
             <Link
@@ -147,9 +176,7 @@ export default async function ProjectDetailPage({
               {item.label}
               {badge !== null && badge > 0 && (
                 <span
-                  className={`rounded-full px-1.5 text-[11px] ${
-                    active ? "bg-background/20" : "bg-primary/10 text-primary"
-                  }`}
+                  className={`rounded-full px-1.5 text-[11px] ${active ? "bg-background/20" : "bg-primary/10 text-primary"}`}
                 >
                   {badge}
                 </span>
@@ -276,13 +303,88 @@ export default async function ProjectDetailPage({
         </section>
       )}
 
-      {tab === "demandes" && (
-        <section className="surface p-4 sm:p-6">
-          <RequirementWorkspace
-            projectId={project.id}
-            initialRequirements={project.requirements || []}
-            currentUser={user}
-          />
+      {tab === "echanges" && (
+        <section className="space-y-5">
+          <nav aria-label="Type d'échange" className="flex flex-wrap gap-1.5">
+            {VUES.map((item) => {
+              const active = item.key === vue;
+              const Icon = item.icon;
+              const count =
+                item.key === "demandes" ? project.requirements.length : item.key === "support" ? openTickets : 0;
+
+              return (
+                <Link
+                  key={item.key}
+                  href={`/dashboard/projects/${project.id}?tab=echanges&vue=${item.key}`}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[12px] font-medium transition-colors ${
+                    active
+                      ? "border-primary/30 bg-primary/[0.06] text-foreground"
+                      : "border-border bg-card text-secondary hover:text-foreground"
+                  }`}
+                >
+                  <Icon size={14} aria-hidden="true" />
+                  {item.label}
+                  {count > 0 && <span className="text-[11px] text-muted">{count}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {vue === "conversation" && (
+            <div className="min-h-[420px] overflow-hidden rounded-[18px] border border-border bg-card">
+              <ChatSidebar projectId={project.id} />
+            </div>
+          )}
+
+          {vue === "demandes" && (
+            <div className="surface p-4 sm:p-6">
+              <RequirementWorkspace
+                projectId={project.id}
+                initialRequirements={project.requirements || []}
+                currentUser={user}
+              />
+            </div>
+          )}
+
+          {vue === "support" && (
+            <div className="space-y-4">
+              {tickets.length === 0 ? (
+                <p className="surface px-5 py-6 text-[14px] text-secondary">
+                  Aucune demande de support pour ce projet. Ouvrez-en une si quelque chose bloque.
+                </p>
+              ) : (
+                <ul className="surface divide-y divide-border">
+                  {tickets.map((ticket) => (
+                    <li key={ticket.id}>
+                      <Link
+                        href={`/dashboard/tickets/${ticket.id}`}
+                        className="flex items-center gap-3 px-4 py-3.5 hover:bg-card-hover transition-colors"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="truncate text-[13px] font-semibold">{ticket.title}</span>
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${toneFor(ticket.status)}`}
+                            >
+                              {TICKET_STATUS_LABEL[ticket.status] ?? ticket.status}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 text-[12px] text-muted">
+                            Ouvert le {formatDate(ticket.createdAt)} · {ticket._count.responses} réponse
+                            {ticket._count.responses > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <ChevronRight size={15} className="text-muted" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <NewTicketForm projects={[{ id: project.id, title: project.title }]} />
+            </div>
+          )}
         </section>
       )}
 
@@ -318,12 +420,6 @@ export default async function ProjectDetailPage({
               </ul>
             </div>
           )}
-        </section>
-      )}
-
-      {tab === "messages" && (
-        <section className="min-h-[420px] overflow-hidden rounded-[18px] border border-border bg-card">
-          <ChatSidebar projectId={project.id} />
         </section>
       )}
     </div>
