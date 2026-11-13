@@ -1,16 +1,27 @@
 import { getClientProjects } from "@/lib/actions/projects";
 import { getCurrentUser } from "@/lib/actions/users";
 import { getProjectExecution } from "@/lib/actions/execution";
-import Deliverables from "@/components/dashboard/Deliverables";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
-import RequirementWorkspace, { type RequirementWithDetails } from "@/components/dashboard/RequirementWorkspace";
-import ClientExecution from "@/components/projects/ClientExecution";
-import { ChevronLeft, CalendarClock, Wallet, Layers } from "lucide-react";
+import RequirementWorkspace from "@/components/dashboard/RequirementWorkspace";
+import ChatSidebar from "@/components/dashboard/ChatSidebar";
+import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
+import {
+  ChevronLeft,
+  CalendarClock,
+  Wallet,
+  Layers,
+  CheckCircle2,
+  Users,
+  Download,
+  FileText,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { RequirementWithDetails } from "@/components/dashboard/RequirementWorkspace";
 import { Project, Asset, Contract, Invoice, User } from "@prisma/client";
 import { PROJECT_STATUS_LABEL, toneFor } from "@/lib/labels";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
+import { MILESTONE_LABEL, MILESTONE_STYLE, TEAM_ROLE_LABEL, formatDay, initialsOf } from "@/types/execution";
 
 type ProjectWithDetails = Project & {
   client: User | null;
@@ -20,20 +31,33 @@ type ProjectWithDetails = Project & {
   requirements: RequirementWithDetails[];
 };
 
+const TABS = [
+  { key: "apercu", label: "Aperçu" },
+  { key: "demandes", label: "Mes demandes" },
+  { key: "livrables", label: "Livrables" },
+  { key: "messages", label: "Messages" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
 export const dynamic = "force-dynamic";
 
-export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProjectDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { id } = await params;
+  const { tab: tabParam } = await searchParams;
   const user = await getCurrentUser();
-
   if (!user) return notFound();
 
   const projects = await getClientProjects();
   const project = (projects as ProjectWithDetails[]).find((item) => item.id.trim() === id.trim());
-
   if (!project) return notFound();
 
-  // Barrière contractuelle : la signature conditionne l'accès au projet.
   if (!project.contractSigned) {
     return (
       <ContractBarrier
@@ -47,11 +71,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   }
 
   const execution = await getProjectExecution(project.id).catch(() => null);
-  const taskTotal = execution?.tasks.length ?? 0;
-  const taskDone = execution?.tasks.filter((task) => task.status === "DONE").length ?? 0;
+  const tab: TabKey = TABS.some((item) => item.key === tabParam) ? (tabParam as TabKey) : "apercu";
+
+  const tasks = execution?.tasks ?? [];
+  const done = tasks.filter((task) => task.status === "DONE").length;
+  const milestones = execution?.milestones ?? [];
+  const validated = milestones.filter((milestone) => milestone.status === "VALIDATED").length;
+  const deliverables = execution?.deliverables ?? [];
+  const waiting = deliverables.filter((item) => item.status === "SUBMITTED").length;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <header className="space-y-4">
         <Link
           href="/dashboard/projects"
@@ -60,83 +90,242 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <ChevronLeft size={15} aria-hidden="true" /> Mes projets
         </Link>
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl sm:text-[2.2rem]">{project.title}</h1>
-              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${toneFor(project.status)}`}>
-                {PROJECT_STATUS_LABEL[project.status] ?? project.status}
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-[2rem]">{project.title}</h1>
+            <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${toneFor(project.status)}`}>
+              {PROJECT_STATUS_LABEL[project.status] ?? project.status}
+            </span>
+            {waiting > 0 && (
+              <span className="rounded-full border border-warn/25 bg-warn/10 px-2.5 py-0.5 text-[11px] font-medium text-warn">
+                {waiting} livrable{waiting > 1 ? "s" : ""} à valider
               </span>
-            </div>
-            {project.description && (
-              <p className="mt-2 max-w-[70ch] text-[14px] leading-relaxed text-secondary">{project.description}</p>
             )}
           </div>
+          {project.description && (
+            <p className="mt-2 max-w-[70ch] text-[14px] leading-relaxed text-secondary">{project.description}</p>
+          )}
         </div>
 
-        <dl className="flex flex-wrap gap-x-8 gap-y-3 border-t border-border pt-4 text-[13px]">
+        <dl className="flex flex-wrap gap-x-8 gap-y-2 border-t border-border pt-4 text-[13px]">
           <div className="flex items-center gap-2">
             <Wallet size={15} className="text-muted" aria-hidden="true" />
             <dt className="text-muted">Budget</dt>
-            <dd className="font-medium text-foreground">
-              {project.budget ? `${formatMoney(project.budget)}` : "À définir"}
-            </dd>
+            <dd className="font-medium">{project.budget ? formatMoney(project.budget) : "À définir"}</dd>
           </div>
           <div className="flex items-center gap-2">
             <CalendarClock size={15} className="text-muted" aria-hidden="true" />
             <dt className="text-muted">Délai</dt>
-            <dd className="font-medium text-foreground">{project.timeline || "À définir"}</dd>
+            <dd className="font-medium">{project.timeline || "À définir"}</dd>
           </div>
           {project.techStack.length > 0 && (
             <div className="flex items-center gap-2">
               <Layers size={15} className="text-muted" aria-hidden="true" />
               <dt className="text-muted">Technologies</dt>
-              <dd className="font-medium text-foreground">{project.techStack.join(", ")}</dd>
+              <dd className="font-medium">{project.techStack.join(", ")}</dd>
             </div>
           )}
         </dl>
       </header>
 
-      <ClientExecution
-        projectId={project.id}
-        progress={project.progress ?? 0}
-        tasks={{ total: taskTotal, done: taskDone }}
-        milestones={execution?.milestones ?? []}
-        deliverables={execution?.deliverables ?? []}
-        members={execution?.members ?? []}
-        canReview={user.role === "ADMIN" || project.clientId === user.id}
-      />
+      {/* Navigation interne au projet */}
+      <nav aria-label="Sections du projet" className="flex flex-wrap gap-1.5 border-b border-border pb-3">
+        {TABS.map((item) => {
+          const active = item.key === tab;
+          const badge =
+            item.key === "livrables" && waiting > 0 ? waiting : item.key === "demandes" ? project.requirements.length : null;
 
-      <section aria-labelledby="cdc" className="space-y-3">
-        <h2 id="cdc" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
-          Cahier des charges
-        </h2>
-        <div className="surface p-4 sm:p-6">
+          return (
+            <Link
+              key={item.key}
+              href={`/dashboard/projects/${project.id}?tab=${item.key}`}
+              aria-current={active ? "page" : undefined}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                active ? "bg-primary text-background" : "text-secondary hover:bg-primary/5 hover:text-foreground"
+              }`}
+            >
+              {item.label}
+              {badge !== null && badge > 0 && (
+                <span
+                  className={`rounded-full px-1.5 text-[11px] ${
+                    active ? "bg-background/20" : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {tab === "apercu" && (
+        <section className="space-y-6">
+          <div className="surface p-5 md:p-6">
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <div>
+                <p className="text-[12px] text-muted">Avancement du projet</p>
+                <p className="numeric mt-1 text-4xl font-semibold leading-none">
+                  {project.progress}
+                  <span className="ml-1 text-base text-muted">%</span>
+                </p>
+                <p className="mt-2 text-[12px] text-secondary">
+                  {done}/{tasks.length} tâche{tasks.length > 1 ? "s" : ""} terminée{done > 1 ? "s" : ""} ·{" "}
+                  {validated}/{milestones.length} jalon{milestones.length > 1 ? "s" : ""} validé
+                  {validated > 1 ? "s" : ""}
+                </p>
+              </div>
+
+              {execution && execution.members.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    {execution.members.slice(0, 5).map((member) => (
+                      <span
+                        key={member.id}
+                        title={`${member.user.name ?? member.user.email} · ${TEAM_ROLE_LABEL[member.role]}`}
+                        className="grid h-9 w-9 place-items-center rounded-full border-2 border-card bg-background text-[9px] font-semibold"
+                      >
+                        {initialsOf(member.user.name, member.user.email)}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">
+                    <Users size={12} aria-hidden="true" /> Équipe
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-primary/[0.07]">
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, project.progress))}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+                Jalons et étapes
+              </h2>
+              {milestones.length === 0 ? (
+                <p className="surface px-5 py-6 text-[14px] text-secondary">
+                  Les jalons seront publiés par l&apos;équipe.
+                </p>
+              ) : (
+                <ul className="surface divide-y divide-border">
+                  {milestones.map((milestone) => (
+                    <li key={milestone.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-medium">{milestone.title}</p>
+                        <p className="text-[12px] text-muted">Échéance {formatDay(milestone.dueDate)}</p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                          MILESTONE_STYLE[milestone.status]
+                        }`}
+                      >
+                        {MILESTONE_LABEL[milestone.status]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+                Contrat et documents
+              </h2>
+              <ul className="surface divide-y divide-border">
+                <li className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <span className="inline-flex items-center gap-2 text-[13px]">
+                    <FileText size={14} className="text-muted" aria-hidden="true" /> Contrat de prestation
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[12px] text-ok">
+                    <CheckCircle2 size={13} aria-hidden="true" /> Signé
+                  </span>
+                </li>
+                {project.contracts[0]?.id && (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3.5">
+                    <span className="text-[13px] text-secondary">
+                      Signature du {formatDate(project.contracts[0].signedAt)}
+                    </span>
+                    <span className="text-[12px] text-muted">
+                      réf. {project.contracts[0].id.slice(-6).toUpperCase()}
+                    </span>
+                  </li>
+                )}
+                {project.assets.slice(0, 3).map((asset) => (
+                  <li key={asset.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                    <span className="truncate text-[13px] text-secondary">{asset.name}</span>
+                    <a
+                      href={asset.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-accent hover:underline"
+                    >
+                      <Download size={12} aria-hidden="true" /> Ouvrir
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {tab === "demandes" && (
+        <section className="surface p-4 sm:p-6">
           <RequirementWorkspace
             projectId={project.id}
             initialRequirements={project.requirements || []}
             currentUser={user}
           />
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section aria-labelledby="documents" className="space-y-3">
-        <h2 id="documents" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
-          Documents et factures
-        </h2>
-        <Deliverables
-          projectId={project.id}
-          projectName={project.title}
-          projectAssets={project.assets}
-          contracts={project.contracts}
-          invoices={project.invoices}
-          clientName={project.client?.name || "Client"}
-          budget={project.budget ? formatMoney(project.budget) : "Non spécifié"}
-          description={project.description || undefined}
-          techStack={project.techStack}
-          timeline={project.timeline || undefined}
-        />
-      </section>
+      {tab === "livrables" && (
+        <section className="space-y-6">
+          <ProjectDeliverables
+            deliverables={deliverables}
+            canReview={user.role === "ADMIN" || project.clientId === user.id}
+          />
+
+          {project.assets.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+                Fichiers joints au projet
+              </h2>
+              <ul className="surface divide-y divide-border">
+                {project.assets.map((asset) => (
+                  <li key={asset.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium">{asset.name}</p>
+                      <p className="text-[12px] text-muted">{formatDate(asset.createdAt)}</p>
+                    </div>
+                    <a
+                      href={asset.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 text-[12px] font-medium text-accent hover:underline"
+                    >
+                      <Download size={12} aria-hidden="true" /> Ouvrir
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      {tab === "messages" && (
+        <section className="min-h-[420px] overflow-hidden rounded-[18px] border border-border bg-card">
+          <ChatSidebar projectId={project.id} />
+        </section>
+      )}
     </div>
   );
 }
