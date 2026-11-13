@@ -170,9 +170,9 @@ export default async function ProjectDetailPage({
                   <span className="ml-1 text-base text-muted">%</span>
                 </p>
                 <p className="mt-2 text-[12px] text-secondary">
-                  {done}/{tasks.length} tâche{tasks.length > 1 ? "s" : ""} terminée{done > 1 ? "s" : ""} ·{" "}
-                  {validated}/{milestones.length} jalon{milestones.length > 1 ? "s" : ""} validé
-                  {validated > 1 ? "s" : ""}
+                  {done} tâche{done > 1 ? "s" : ""} terminée{done > 1 ? "s" : ""} sur {tasks.length} ·{" "}
+                  {validated} jalon{validated > 1 ? "s" : ""} validé{validated > 1 ? "s" : ""} sur{" "}
+                  {milestones.length}
                 </p>
               </div>
 

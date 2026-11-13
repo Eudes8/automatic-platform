@@ -1,11 +1,15 @@
 /** Formatage localisé (français, XOF par défaut). */
 
 export function formatMoney(amount: number, currency = "XOF"): string {
+  // Intl insère des espaces fines insecables (U+202F) que certaines polices
+  // rendent invisibles : on les remplace par une espace normale.
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
-  }).format(amount);
+  })
+    .format(amount)
+    .replace(/[\u202F\u00A0]/g, " ");
 }
 
 export function formatDate(value: Date | string | null | undefined): string {
