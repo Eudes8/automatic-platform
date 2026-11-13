@@ -92,7 +92,29 @@ export default async function ProjectDetailPage({
   const openTickets = tickets.filter((ticket) => ticket.status === "OPEN" || ticket.status === "IN_PROGRESS").length;
 
   // Flux unique : messages, demandes et problemes dans une seule chronologie.
+  // On resout les auteurs en une seule requete pour afficher qui parle.
   const rawMessages = await getProjectMessages(project.id);
+
+  const authorIds = new Set<string>();
+  for (const requirement of project.requirements || []) {
+    authorIds.add(requirement.createdBy);
+    for (const comment of requirement.comments || []) authorIds.add(comment.authorId);
+  }
+  for (const ticket of tickets) authorIds.add(ticket.clientId);
+  for (const message of rawMessages as Array<{ senderId: string }>) authorIds.add(message.senderId);
+
+  const authors = await prisma.user.findMany({
+    where: { id: { in: Array.from(authorIds) } },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  const authorOf = (id: string) => {
+    const found = authors.find((candidate) => candidate.id === id);
+    return {
+      name: found?.name?.trim() || found?.email || "Compte supprimé",
+      role: found?.role ?? "CLIENT",
+    };
+  };
+
   const threadMessages = (rawMessages as Array<{
     id: string;
     text: string;
@@ -101,31 +123,47 @@ export default async function ProjectDetailPage({
     attachment: string | null;
     sender: { name: string | null; role: string } | null;
   }>).map((message) => {
-    const isTeam = message.sender?.role === "ADMIN" || message.sender?.role === "STAFF";
+    const author = authorOf(message.senderId);
     return {
       id: message.id,
       text: message.text,
       createdAt: new Date(message.createdAt).toISOString(),
       mine: message.senderId === user.id,
-      author: isTeam ? "Équipe AUTOMATIC" : message.sender?.name ?? "Vous",
+      authorName: author.name,
+      authorRole: author.role,
       attachment: message.attachment,
     };
   });
 
-  const threadRequirements = (project.requirements || []).map((requirement) => ({
-    id: requirement.id,
-    title: requirement.title,
-    description: requirement.description,
-    status: requirement.status as string,
-    createdAt: new Date(requirement.createdAt).toISOString(),
-    comments: requirement.comments?.length ?? 0,
-  }));
+  const threadRequirements = (project.requirements || []).map((requirement) => {
+    const author = authorOf(requirement.createdBy);
+    return {
+      id: requirement.id,
+      title: requirement.title,
+      description: requirement.description,
+      status: requirement.status as string,
+      createdAt: new Date(requirement.createdAt).toISOString(),
+      authorName: author.name,
+      authorRole: author.role,
+      comments: (requirement.comments || []).map((comment) => {
+        const commentAuthor = authorOf(comment.authorId);
+        return {
+          id: comment.id,
+          text: comment.text,
+          createdAt: new Date(comment.createdAt).toISOString(),
+          authorName: commentAuthor.name,
+          authorRole: commentAuthor.role,
+        };
+      }),
+    };
+  });
 
   const threadTickets = tickets.map((ticket) => ({
     id: ticket.id,
     title: ticket.title,
     status: ticket.status as string,
     createdAt: new Date(ticket.createdAt).toISOString(),
+    authorName: authorOf(ticket.clientId).name,
     responses: ticket._count.responses,
   }));
 

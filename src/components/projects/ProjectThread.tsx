@@ -10,6 +10,7 @@ import {
   Loader2,
   MessageSquare,
   Send,
+  ShieldCheck,
 } from "lucide-react";
 import { sendChatMessage } from "@/lib/actions/messages";
 import { createRequirement, addRequirementComment } from "@/lib/actions/requirements";
@@ -24,8 +25,17 @@ export interface ThreadMessage {
   text: string;
   createdAt: string;
   mine: boolean;
-  author: string;
+  authorName: string;
+  authorRole: "CLIENT" | "STAFF" | "ADMIN" | string;
   attachment?: string | null;
+}
+
+export interface ThreadComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorName: string;
+  authorRole: string;
 }
 
 export interface ThreadRequirement {
@@ -34,7 +44,9 @@ export interface ThreadRequirement {
   description: string;
   status: string;
   createdAt: string;
-  comments: number;
+  authorName: string;
+  authorRole: string;
+  comments: ThreadComment[];
 }
 
 export interface ThreadTicket {
@@ -42,6 +54,7 @@ export interface ThreadTicket {
   title: string;
   status: string;
   createdAt: string;
+  authorName: string;
   responses: number;
 }
 
@@ -96,13 +109,62 @@ function timeLabel(value: string): string {
     : date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 }
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function isTeam(role: string): boolean {
+  return role === "ADMIN" || role === "STAFF";
+}
+
+/** Pastille auteur : qui parle, et à quel titre. */
+function AuthorBadge({
+  name,
+  role,
+  at,
+  inverse = false,
+}: {
+  name: string;
+  role: string;
+  at: string;
+  inverse?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={`grid h-6 w-6 place-items-center rounded-full text-[9px] font-semibold ${
+          inverse ? "bg-background/20 text-background" : "bg-primary/10 text-primary"
+        }`}
+      >
+        {initials(name)}
+      </span>
+      <span className={`text-[12px] font-medium ${inverse ? "text-background" : "text-foreground"}`}>
+        {name}
+      </span>
+      {isTeam(role) && (
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] ${
+            inverse ? "bg-background/20 text-background" : "bg-accent/10 text-accent"
+          }`}
+        >
+          <ShieldCheck size={10} aria-hidden="true" /> Équipe
+        </span>
+      )}
+      <span className={`text-[11px] ${inverse ? "text-background/60" : "text-muted"}`}>{timeLabel(at)}</span>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 
 /**
  * Un seul flux pour tout ce qui se dit sur un projet.
  *
  * Un message, une demande à valider et un problème signalé sont la même chose :
- * une entrée datée dans la conversation. Seul l'état change, pas l'endroit.
+ * une entrée datée, signée par une personne, dans la conversation. Seul l'état
+ * change, pas l'endroit.
  */
 export default function ProjectThread({
   projectId,
@@ -120,24 +182,14 @@ export default function ProjectThread({
   const router = useRouter();
 
   const entries: Entry[] = [
-    ...messages.map((message) => ({
-      id: message.id,
-      kind: "message" as const,
-      at: message.createdAt,
-      message,
-    })),
+    ...messages.map((message) => ({ id: message.id, kind: "message" as const, at: message.createdAt, message })),
     ...requirements.map((requirement) => ({
       id: requirement.id,
       kind: "demande" as const,
       at: requirement.createdAt,
       requirement,
     })),
-    ...tickets.map((ticket) => ({
-      id: ticket.id,
-      kind: "probleme" as const,
-      at: ticket.createdAt,
-      ticket,
-    })),
+    ...tickets.map((ticket) => ({ id: ticket.id, kind: "probleme" as const, at: ticket.createdAt, ticket })),
   ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 
   function submit() {
@@ -186,9 +238,12 @@ export default function ProjectThread({
     });
   }
 
+  if (entries.length === 0 && !canWrite) {
+    return <p className="text-[14px] text-secondary">Aucun échange pour le moment.</p>;
+  }
+
   return (
     <div className="space-y-5">
-      {/* Flux */}
       {entries.length === 0 ? (
         <div className="surface px-5 py-10 text-center">
           <p className="text-[14px] font-medium">Rien ne s&apos;est encore dit sur ce projet.</p>
@@ -197,15 +252,12 @@ export default function ProjectThread({
           </p>
         </div>
       ) : (
-        <ol className="space-y-3">
+        <ol className="space-y-4">
           {entries.map((entry) => {
             if (entry.kind === "message" && entry.message) {
               const message = entry.message;
               return (
-                <li
-                  key={entry.id}
-                  className={`flex ${message.mine ? "justify-end" : "justify-start"}`}
-                >
+                <li key={entry.id} className={`flex ${message.mine ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[85%] rounded-[14px] border px-4 py-3 ${
                       message.mine
@@ -213,17 +265,13 @@ export default function ProjectThread({
                         : "border-border bg-card text-foreground"
                     }`}
                   >
-                    {!message.mine && (
-                      <p className="mb-1 text-[11px] font-semibold opacity-70">{message.author}</p>
-                    )}
-                    <p className="whitespace-pre-line text-[14px] leading-relaxed">{message.text}</p>
-                    <p
-                      className={`mt-1 text-[11px] ${
-                        message.mine ? "text-background/60" : "text-muted"
-                      }`}
-                    >
-                      {timeLabel(message.createdAt)}
-                    </p>
+                    <AuthorBadge
+                      name={message.mine ? "Vous" : message.authorName}
+                      role={message.authorRole}
+                      at={message.createdAt}
+                      inverse={message.mine}
+                    />
+                    <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed">{message.text}</p>
                   </div>
                 </li>
               );
@@ -244,7 +292,14 @@ export default function ProjectThread({
                     >
                       {STATUS_LABEL[requirement.status] ?? requirement.status}
                     </span>
-                    <span className="ml-auto text-[11px] text-muted">{timeLabel(requirement.createdAt)}</span>
+                  </div>
+
+                  <div className="mt-2">
+                    <AuthorBadge
+                      name={requirement.authorName}
+                      role={requirement.authorRole}
+                      at={requirement.createdAt}
+                    />
                   </div>
 
                   <p className="mt-2 text-[14px] font-semibold">{requirement.title}</p>
@@ -254,10 +309,25 @@ export default function ProjectThread({
                     </p>
                   )}
 
+                  {requirement.comments.length > 0 && (
+                    <ul className="mt-3 space-y-2 border-l-2 border-border pl-3">
+                      {requirement.comments.map((comment) => (
+                        <li key={comment.id}>
+                          <AuthorBadge
+                            name={comment.authorName}
+                            role={comment.authorRole}
+                            at={comment.createdAt}
+                          />
+                          <p className="mt-1 text-[13px] leading-relaxed text-secondary">{comment.text}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-muted">
                     <span className="inline-flex items-center gap-1">
-                      <MessageSquare size={12} aria-hidden="true" /> {requirement.comments} commentaire
-                      {requirement.comments > 1 ? "s" : ""}
+                      <MessageSquare size={12} aria-hidden="true" /> {requirement.comments.length} réponse
+                      {requirement.comments.length > 1 ? "s" : ""}
                     </span>
                     {canWrite && (
                       <button
@@ -275,7 +345,7 @@ export default function ProjectThread({
                       <input
                         value={reply}
                         onChange={(event) => setReply(event.target.value)}
-                        placeholder="Votre précision…"
+                        placeholder="Votre réponse…"
                         className="field h-10 flex-1 text-[13px]"
                       />
                       <button
@@ -311,8 +381,12 @@ export default function ProjectThread({
                       >
                         {STATUS_LABEL[ticket.status] ?? ticket.status}
                       </span>
-                      <span className="ml-auto text-[11px] text-muted">{timeLabel(ticket.createdAt)}</span>
                     </div>
+
+                    <div className="mt-2">
+                      <AuthorBadge name={ticket.authorName} role="CLIENT" at={ticket.createdAt} />
+                    </div>
+
                     <div className="mt-2 flex items-center gap-2">
                       <p className="flex-1 text-[14px] font-semibold">{ticket.title}</p>
                       <ChevronRight size={15} className="text-muted" aria-hidden="true" />
@@ -330,7 +404,6 @@ export default function ProjectThread({
         </ol>
       )}
 
-      {/* Un seul champ pour tout dire */}
       {canWrite && (
         <div className="surface p-4">
           <textarea
@@ -342,19 +415,32 @@ export default function ProjectThread({
           />
 
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-            <label htmlFor="thread-kind" className="text-[12px] text-muted">
-              Ce message est
-            </label>
-            <select
-              id="thread-kind"
-              value={kind}
-              onChange={(event) => setKind(event.target.value as EntryKind)}
-              className="rounded-[10px] border border-border bg-background px-2.5 py-1.5 text-[12px] font-medium"
-            >
-              <option value="message">un message</option>
-              <option value="demande">une demande à valider</option>
-              <option value="probleme">un problème à traiter</option>
-            </select>
+            <div role="group" aria-label="Type d'envoi" className="flex flex-wrap gap-1">
+              {[
+                { value: "message" as EntryKind, label: "Message", icon: MessageSquare },
+                { value: "demande" as EntryKind, label: "Demande", icon: ClipboardList },
+                { value: "probleme" as EntryKind, label: "Problème", icon: LifeBuoy },
+              ].map((option) => {
+                const Icon = option.icon;
+                const active = kind === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setKind(option.value)}
+                    className={`inline-flex items-center gap-1.5 rounded-[10px] border px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
+                      active
+                        ? "border-primary/30 bg-primary/[0.07] text-foreground"
+                        : "border-border bg-background text-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <Icon size={12} aria-hidden="true" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
 
             <button
               type="button"
@@ -366,6 +452,11 @@ export default function ProjectThread({
               Envoyer
             </button>
           </div>
+
+          <p className="mt-2 text-[11px] text-muted">
+            Un message reste une discussion. Une demande entre dans le cahier des charges. Un problème ouvre un
+            suivi dédié.
+          </p>
 
           {error && <p className="mt-2 text-[12px] text-danger">{error}</p>}
         </div>
