@@ -40,10 +40,10 @@ export default async function ProjectExecutionPage({ params }: { params: Promise
         <div className="space-y-10 pb-24">
             <header className="space-y-5">
                 <Link
-                    href={`/admin/projects/${id}`}
+                    href="/admin/projects"
                     className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-secondary/40 hover:text-primary transition-colors"
                 >
-                    <ChevronLeft size={14} /> Retour au projet
+                    <ChevronLeft size={14} /> Tous les projets
                 </Link>
 
                 <div className="flex flex-wrap items-end justify-between gap-6">

@@ -1,132 +1,169 @@
 "use client";
 
-import { useState } from "react";
-import { Project, User, Asset, Message, ProjectStatus } from "@prisma/client";
-import { KanbanColumn } from "./kanban/KanbanColumn";
-import { updateProjectStatus } from "@/lib/actions/kanban";
+import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Search, GripVertical, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
-import { LayoutGrid, ListFilter, Search, Zap, Plus, Filter, ChevronDown, ChevronRight } from "lucide-react";
+import { Project, User, ProjectStatus } from "@prisma/client";
+import { updateProjectStatus } from "@/lib/actions/kanban";
+import { PROJECT_STATUS_LABEL } from "@/lib/labels";
+import { formatMoney } from "@/lib/format";
 
 export type ProjectWithClient = Project & {
-    client: User | null;
-    assets: { id: string }[];
-    messages: { id: string }[];
+  client: User | null;
+  assets: { id: string }[];
+  messages: { id: string }[];
 };
 
-/**
- * MODULE KANBAN INDUSTRIEL - COMMAND CENTER AUTOMATIC
- */
-
 const COLUMNS: { status: ProjectStatus; label: string }[] = [
-    { status: "ONBOARDING", label: "Évaluation" },
-    { status: "ANALYSIS", label: "Analyse" },
-    { status: "DESIGN", label: "Conception" },
-    { status: "DEV", label: "Développement" },
-    { status: "QA", label: "Contrôle Qualité" },
-    { status: "DEPLOYMENT", label: "Déploiement" },
-    { status: "DONE", label: "Livré" },
+  { status: "ONBOARDING", label: "Cadrage" },
+  { status: "ANALYSIS", label: "Analyse" },
+  { status: "DESIGN", label: "Design" },
+  { status: "DEV", label: "Développement" },
+  { status: "QA", label: "Recette" },
+  { status: "DEPLOYMENT", label: "Mise en ligne" },
+  { status: "DONE", label: "Livré" },
 ];
 
+/**
+ * Tableau des projets par étape. Le glisser-déposer change le statut ;
+ * un clic ouvre l'espace d'exécution du projet.
+ */
 export default function Kanban({ initialProjects }: { initialProjects: ProjectWithClient[] }) {
-    const [projects, setProjects] = useState(initialProjects);
-    const [searchTerm, setSearchTerm] = useState("");
+  const [projects, setProjects] = useState(initialProjects);
+  const [search, setSearch] = useState("");
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+  const router = useRouter();
 
-    const onDragStart = (e: React.DragEvent, projectId: string) => {
-        e.dataTransfer.setData("projectId", projectId);
-    };
-
-    const onDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-    };
-
-    const onDrop = async (e: React.DragEvent, newStatus: ProjectStatus) => {
-        const projectId = e.dataTransfer.getData("projectId");
-        const projectToUpdate = projects.find(p => p.id === projectId);
-
-        if (projectToUpdate && projectToUpdate.status !== newStatus) {
-            // Optimistic Update
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? { ...p, status: newStatus } : p
-            ));
-
-            const res = await updateProjectStatus(projectId, newStatus);
-            if (res.success) {
-                toast.success(`Succès: Statut du projet mis à jour vers ${newStatus}`);
-            } else {
-                toast.error("Échec de la synchronisation");
-                // Rollback simple pour la démo
-                setProjects(initialProjects);
-            }
-        }
-    };
-
-    const filteredProjects = projects.filter(p =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return projects;
+    return projects.filter((project) =>
+      [project.title, project.id, project.client?.name, project.client?.email]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term))
     );
+  }, [projects, search]);
 
-    return (
-        <div className="h-full flex flex-col space-y-12">
-            {/* Command Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10">
-                <div className="relative w-full md:w-[500px] group">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary/20 group-focus-within:text-primary transition-colors duration-500" />
-                    <input
-                        type="text"
-                        placeholder="Rechercher un projet ou un client..."
-                        className="w-full pl-16 pr-6 py-5 bg-white/50 border border-border/50 rounded-[1.8rem] text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-primary/40 focus:ring-8 focus:ring-primary/5 transition-all duration-500 placeholder:text-secondary/10 shadow-inner italic"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+  function move(projectId: string, status: ProjectStatus) {
+    const current = projects.find((project) => project.id === projectId);
+    if (!current || current.status === status) return;
 
-                <div className="flex items-center gap-6">
-                    <div className="flex bg-white/50 border border-border/50 rounded-2xl p-2 shadow-inner">
-                        <button className="p-3 bg-primary text-background rounded-[1rem] shadow-xl shadow-primary/20 transition-all duration-500 hover:scale-110">
-                            <LayoutGrid size={18} />
-                        </button>
-                        <button className="p-3 text-secondary/20 hover:text-primary transition-colors duration-500">
-                            <ListFilter size={18} />
-                        </button>
+    const previous = projects;
+    setProjects((list) => list.map((project) => (project.id === projectId ? { ...project, status } : project)));
+
+    startTransition(async () => {
+      const result = await updateProjectStatus(projectId, status);
+      if (!result.success) {
+        setProjects(previous);
+        toast.error("Changement de statut impossible");
+        return;
+      }
+      toast.success(`Projet déplacé vers « ${PROJECT_STATUS_LABEL[status] ?? status} »`);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Rechercher un projet ou un client…"
+            className="field h-10 pl-9 text-[13px]"
+          />
+        </div>
+        <p className="text-[12px] text-muted">
+          {filtered.length} projet{filtered.length > 1 ? "s" : ""} affiché{filtered.length > 1 ? "s" : ""}
+        </p>
+      </div>
+
+      <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar">
+        {COLUMNS.map((column) => {
+          const items = filtered.filter((project) => project.status === column.status);
+
+          return (
+            <section
+              key={column.status}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                const id = event.dataTransfer.getData("projectId") || dragging;
+                if (id) move(id, column.status);
+                setDragging(null);
+              }}
+              className={`w-[260px] shrink-0 rounded-[14px] border bg-card/60 p-3 transition-colors ${
+                dragging ? "border-primary/30" : "border-border"
+              }`}
+            >
+              <header className="flex items-center justify-between px-1 pb-2">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-secondary">
+                  {column.label}
+                </h2>
+                <span className="numeric text-[11px] text-muted">{items.length}</span>
+              </header>
+
+              <div className="space-y-2">
+                {items.map((project) => (
+                  <article
+                    key={project.id}
+                    draggable
+                    onDragStart={(event) => {
+                      setDragging(project.id);
+                      event.dataTransfer.setData("projectId", project.id);
+                    }}
+                    onDragEnd={() => setDragging(null)}
+                    className="group rounded-[12px] border border-border bg-background p-3 transition-colors hover:border-primary/30"
+                  >
+                    <div className="flex items-start gap-1.5">
+                      <GripVertical
+                        size={13}
+                        className="mt-0.5 shrink-0 cursor-grab text-muted/60 group-hover:text-muted"
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/admin/projects/${project.id}/execution`}
+                          className="block truncate text-[13px] font-semibold hover:underline"
+                        >
+                          {project.title}
+                        </Link>
+                        <p className="truncate text-[11px] text-muted">
+                          {project.client?.name ?? project.client?.email ?? "Client"}
+                        </p>
+                      </div>
+                      <ArrowUpRight size={13} className="shrink-0 text-muted/50" aria-hidden="true" />
                     </div>
 
-                    <button className="flex items-center gap-4 px-8 py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.05] active:scale-95 transition-all duration-500 shadow-2xl shadow-primary/20 italic group">
-                        <div className="w-6 h-6 rounded-lg bg-background/20 flex items-center justify-center group-hover:rotate-90 transition-transform duration-500">
-                            <Plus size={16} />
-                        </div>
-                        NOUVEAU PROJET
-                    </button>
-                </div>
-            </div>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-secondary">
+                      <span>{project.budget ? formatMoney(project.budget) : "Budget à définir"}</span>
+                      <span className="numeric">{project.progress}%</span>
+                    </div>
 
-            {/* Board Surface */}
-            <div className="flex-1 overflow-x-auto custom-scrollbar flex gap-12 pb-12 min-h-[700px] scroll-smooth relative z-10">
-                {COLUMNS.map((col) => (
-                    <KanbanColumn
-                        key={col.status}
-                        status={col.status}
-                        label={col.label}
-                        projects={filteredProjects.filter(p => p.status === col.status)}
-                        onDragOver={onDragOver}
-                        onDrop={onDrop}
-                        onDragStart={onDragStart}
-                    />
+                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-primary/[0.07]">
+                      <div
+                        className="h-full rounded-full bg-accent"
+                        style={{ width: `${Math.min(100, Math.max(0, project.progress))}%` }}
+                      />
+                    </div>
+                  </article>
                 ))}
-            </div>
 
-            {/* Grid stats (Prestige Footer) */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6 relative z-10 pt-8 border-t border-border/20">
-                {COLUMNS.map(col => {
-                    const count = filteredProjects.filter(p => p.status === col.status).length;
-                    return (
-                        <div key={col.status} className="p-6 bg-white/30 border border-border/50 rounded-[1.5rem] flex flex-col gap-2 items-center justify-center group hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-xl">
-                            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-secondary/20 group-hover:text-primary/40 transition-colors italic truncate w-full text-center">{col.label}</span>
-                            <span className="text-xl font-black text-primary italic uppercase tracking-tighter">{count} UNITÉ{count > 1 ? 'S' : ''}</span>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
+                {items.length === 0 && (
+                  <p className="rounded-[10px] border border-dashed border-border px-3 py-6 text-center text-[11px] text-muted">
+                    Aucun projet
+                  </p>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
