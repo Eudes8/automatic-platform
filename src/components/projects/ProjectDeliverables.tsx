@@ -2,20 +2,38 @@
 
 import { useState, useTransition } from "react";
 import {
+  Archive,
   BadgeCheck,
   CheckCircle2,
   Download,
+  File as FileIcon,
+  FileText,
+  Image as ImageIcon,
   Loader2,
   MessageSquareWarning,
   Package,
 } from "lucide-react";
 import { reviewDeliverable } from "@/lib/actions/execution";
 import {
+  DELIVERABLE_CATEGORY_LABEL,
   DELIVERABLE_LABEL,
   DELIVERABLE_STYLE,
   formatDay,
   type DeliverableView,
 } from "@/types/execution";
+
+function fileIcon(mimeType: string) {
+  if (mimeType.startsWith("image/")) return ImageIcon;
+  if (mimeType === "application/pdf") return FileText;
+  if (mimeType.includes("zip") || mimeType.includes("compressed")) return Archive;
+  return FileIcon;
+}
+
+function fileSize(bytes: number): string {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
 
 interface ProjectDeliverablesProps {
   deliverables: DeliverableView[];
@@ -109,7 +127,32 @@ export default function ProjectDeliverables({ deliverables, canReview }: Project
                 >
                   {DELIVERABLE_LABEL[item.status]}
                 </span>
+                <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-secondary">
+                  {DELIVERABLE_CATEGORY_LABEL[item.category] ?? "Autre"}
+                </span>
               </div>
+
+              {item.files.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {item.files.map((file) => {
+                    const Icon = fileIcon(file.mimeType);
+                    return (
+                      <li key={file.id}>
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-background px-2.5 py-1.5 text-[11px] hover:border-primary/40"
+                        >
+                          <Icon size={12} className="text-accent" aria-hidden="true" />
+                          <span className="max-w-[180px] truncate">{file.name}</span>
+                          {file.size > 0 && <span className="text-muted">{fileSize(file.size)}</span>}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
 
               {item.description && (
                 <p className="mt-2 text-[13px] leading-relaxed text-secondary">{item.description}</p>
@@ -129,7 +172,7 @@ export default function ProjectDeliverables({ deliverables, canReview }: Project
               )}
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {item.fileUrl && (
+                {item.fileUrl && item.files.length === 0 && (
                   <a
                     href={item.fileUrl}
                     target="_blank"

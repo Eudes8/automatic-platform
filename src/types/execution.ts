@@ -4,6 +4,7 @@ export type TaskStatusKey = "BACKLOG" | "TODO" | "IN_PROGRESS" | "REVIEW" | "DON
 export type TaskPriorityKey = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type MilestoneStatusKey = "PLANNED" | "IN_PROGRESS" | "IN_REVIEW" | "VALIDATED";
 export type DeliverableStatusKey = "DRAFT" | "SUBMITTED" | "CHANGES_REQUESTED" | "ACCEPTED";
+export type DeliverableCategoryKey = "DESIGN" | "DEVELOPMENT" | "DOCUMENTATION" | "CONTENT" | "DEPLOYMENT" | "OTHER";
 export type TeamRoleKey = "LEAD" | "DEVELOPER" | "DESIGNER" | "QA" | "DEVOPS" | "CONSULTANT";
 
 export type DateLike = string | Date;
@@ -46,11 +47,21 @@ export interface MilestoneView {
     _count?: { tasks: number; deliverables: number };
 }
 
+export interface DeliverableFileView {
+    id: string;
+    name: string;
+    url: string;
+    mimeType: string;
+    size: number;
+}
+
 export interface DeliverableView {
     id: string;
     name: string;
     description: string | null;
     version: string;
+    category: DeliverableCategoryKey;
+    files: DeliverableFileView[];
     fileUrl: string | null;
     status: DeliverableStatusKey;
     feedback: string | null;
@@ -147,3 +158,13 @@ export function initialsOf(name: string | null, email: string): string {
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return base.slice(0, 2).toUpperCase();
 }
+
+export const DELIVERABLE_CATEGORY_LABEL: Record<DeliverableCategoryKey, string> = {
+    DESIGN: "Design",
+    DEVELOPMENT: "Développement",
+    DOCUMENTATION: "Documentation",
+    CONTENT: "Contenu",
+    DEPLOYMENT: "Mise en ligne",
+    OTHER: "Autre",
+};
+

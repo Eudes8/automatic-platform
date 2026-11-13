@@ -361,25 +361,40 @@ model Task {
 }
 
 model Deliverable {
-  id           String            @id @default(cuid())
+  id           String              @id @default(cuid())
   projectId    String
   milestoneId  String?
   name         String
   description  String?
-  version      String            @default("v1.0")
+  version      String              @default("v1.0")
+  category     DeliverableCategory @default(OTHER)
   fileUrl      String?
-  status       DeliverableStatus @default(DRAFT)
+  status       DeliverableStatus   @default(DRAFT)
   feedback     String?
   submittedAt  DateTime?
   reviewedAt   DateTime?
   reviewedById String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone    Milestone?        @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  project      Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone    Milestone?          @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  files        DeliverableFile[]
 
   @@index([projectId, status])
   @@index([milestoneId])
+}
+
+model DeliverableFile {
+  id            String      @id @default(cuid())
+  deliverableId String
+  name          String
+  url           String
+  mimeType      String      @default("application/octet-stream")
+  size          Int         @default(0)
+  createdAt     DateTime    @default(now())
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@index([deliverableId])
 }
 
 model WebhookLog {
@@ -445,6 +460,15 @@ enum DeliverableStatus {
   SUBMITTED
   CHANGES_REQUESTED
   ACCEPTED
+}
+
+enum DeliverableCategory {
+  DESIGN
+  DEVELOPMENT
+  DOCUMENTATION
+  CONTENT
+  DEPLOYMENT
+  OTHER
 }
 
 enum UserRole {

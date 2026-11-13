@@ -14,6 +14,7 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "./users";
 import { revalidatePath } from "next/cache";
 import {
+    DeliverableCategory,
     DeliverableStatus,
     MilestoneStatus,
     TaskPriority,
@@ -133,7 +134,10 @@ export async function getProjectExecution(projectId: string) {
         }),
         prisma.deliverable.findMany({
             where: { projectId },
-            include: { milestone: { select: { id: true, title: true } } },
+            include: {
+                milestone: { select: { id: true, title: true } },
+                files: { orderBy: { createdAt: "asc" } },
+            },
             orderBy: { createdAt: "desc" },
         }),
         prisma.projectMember.findMany({
@@ -396,13 +400,22 @@ export async function deleteMilestone(milestoneId: string) {
 /* Livrables                                                          */
 /* ------------------------------------------------------------------ */
 
+const deliverableFileSchema = z.object({
+    name: z.string().trim().min(1).max(255),
+    url: z.string().trim().min(1).max(2048),
+    mimeType: z.string().trim().max(160).optional(),
+    size: z.number().int().min(0).max(500 * 1024 * 1024).optional(),
+});
+
 const deliverableSchema = z.object({
     projectId: z.string().min(1),
     name: z.string().trim().min(3, "Nom trop court (3 caractères minimum).").max(160),
     description: z.string().trim().max(2000).optional().nullable(),
     version: z.string().trim().max(24).optional(),
+    category: z.enum(["DESIGN", "DEVELOPMENT", "DOCUMENTATION", "CONTENT", "DEPLOYMENT", "OTHER"]).optional(),
     fileUrl: z.string().trim().max(2048).optional().nullable(),
     milestoneId: z.string().min(1).optional().nullable(),
+    files: z.array(deliverableFileSchema).max(20).optional(),
 });
 
 export async function createDeliverable(input: unknown) {
@@ -420,10 +433,24 @@ export async function createDeliverable(input: unknown) {
             name: data.name,
             description: data.description || null,
             version: data.version || "v1.0",
+            category: (data.category ?? "OTHER") as DeliverableCategory,
             fileUrl: data.fileUrl || null,
             milestoneId: data.milestoneId || null,
             status: DeliverableStatus.DRAFT,
+            ...(data.files && data.files.length > 0
+                ? {
+                      files: {
+                          create: data.files.map((file) => ({
+                              name: file.name,
+                              url: file.url,
+                              mimeType: file.mimeType || "application/octet-stream",
+                              size: file.size ?? 0,
+                          })),
+                      },
+                  }
+                : {}),
         },
+        include: { files: true },
     });
 
     touch(data.projectId);
