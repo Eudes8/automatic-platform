@@ -21,12 +21,12 @@ export default function ProjectCRUDModal() {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="px-8 py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.05] active:scale-95 transition-all duration-500 shadow-2xl shadow-primary/20 italic group"
+                className="btn btn-primary h-11 px-5"
             >
                 <div className="w-6 h-6 rounded-lg bg-background/20 flex items-center justify-center group-hover:rotate-90 transition-transform duration-500">
                     <Plus size={16} />
                 </div>
-                INITIALISER_PROJET
+                Nouveau projet
             </button>
         );
     }
