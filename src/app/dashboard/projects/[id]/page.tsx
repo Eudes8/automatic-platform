@@ -145,6 +145,7 @@ export default async function ProjectDetailPage({
       createdAt: new Date(requirement.createdAt).toISOString(),
       authorName: author.name,
       authorRole: author.role,
+      mine: requirement.createdBy === user.id,
       comments: (requirement.comments || []).map((comment) => {
         const commentAuthor = authorOf(comment.authorId);
         return {
@@ -164,6 +165,7 @@ export default async function ProjectDetailPage({
     status: ticket.status as string,
     createdAt: new Date(ticket.createdAt).toISOString(),
     authorName: authorOf(ticket.clientId).name,
+    mine: ticket.clientId === user.id,
     responses: ticket._count.responses,
   }));
 

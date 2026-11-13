@@ -46,6 +46,7 @@ export interface ThreadRequirement {
   createdAt: string;
   authorName: string;
   authorRole: string;
+  mine: boolean;
   comments: ThreadComment[];
 }
 
@@ -55,6 +56,7 @@ export interface ThreadTicket {
   status: string;
   createdAt: string;
   authorName: string;
+  mine: boolean;
   responses: number;
 }
 
@@ -296,7 +298,7 @@ export default function ProjectThread({
 
                   <div className="mt-2">
                     <AuthorBadge
-                      name={requirement.authorName}
+                      name={requirement.mine ? "Vous" : requirement.authorName}
                       role={requirement.authorRole}
                       at={requirement.createdAt}
                     />
@@ -384,7 +386,11 @@ export default function ProjectThread({
                     </div>
 
                     <div className="mt-2">
-                      <AuthorBadge name={ticket.authorName} role="CLIENT" at={ticket.createdAt} />
+                      <AuthorBadge
+                        name={ticket.mine ? "Vous" : ticket.authorName}
+                        role="CLIENT"
+                        at={ticket.createdAt}
+                      />
                     </div>
 
                     <div className="mt-2 flex items-center gap-2">
