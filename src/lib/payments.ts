@@ -19,9 +19,11 @@ export function mapMonerooStatus(status: MonerooTxStatus | undefined): "PENDING"
     case "success":
     case "succeeded":
     case "completed":
+    case "approved":
       return "SUCCESS";
     case "failed":
     case "error":
+    case "declined":
       return "FAILED";
     case "cancelled":
     case "canceled":

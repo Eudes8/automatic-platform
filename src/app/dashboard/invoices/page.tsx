@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Invoice, Project } from "@prisma/client";
 import PayInvoiceButton from "@/components/dashboard/PayInvoiceButton";
+import PayInvoiceFedapayButton from "@/components/dashboard/PayInvoiceFedapayButton";
 import PaymentReturnHandler from "@/components/dashboard/PaymentReturnHandler";
 
 type InvoiceWithProject = Invoice & {
@@ -112,8 +113,9 @@ export default async function ClientInvoicesPage() {
                             ) : invoice.status === "SENT" || invoice.status === "OVERDUE" ? (
                                 /* Facture payable : paiement Moneroo (Mobile Money, carte, etc.) */
                                 <div className="flex gap-3">
-                                    <div className="flex-1">
+                                    <div className="flex-1 space-y-2">
                                         <PayInvoiceButton invoiceId={invoice.id} amount={invoice.amount} />
+                                        <PayInvoiceFedapayButton invoiceId={invoice.id} />
                                     </div>
                                     {invoice.pdfUrl && (
                                         <Link
