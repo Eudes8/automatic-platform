@@ -42,7 +42,19 @@ export async function GET(
       return jsonResponse({ error: "Accès refusé." }, 403);
     }
   } else if (user.role !== "ADMIN") {
-    return jsonResponse({ error: "Accès refusé." }, 403);
+    // Reçus : accessibles au client propriétaire de la facture.
+    const receiptMatch = file.name.match(/^receipts\/([^/]+)\//);
+    if (receiptMatch) {
+      const invoice = await prisma.invoice.findUnique({
+        where: { id: receiptMatch[1] },
+        select: { clientId: true },
+      });
+      if (invoice?.clientId !== user.id) {
+        return jsonResponse({ error: "Accès refusé." }, 403);
+      }
+    } else {
+      return jsonResponse({ error: "Accès refusé." }, 403);
+    }
   }
 
   // Nom de fichier : celui demandé en query string, sinon le chemin stocké.

@@ -41,9 +41,11 @@ export async function POST(request: Request) {
 
   // 2) Paramètres d'entrée.
   let invoiceId: string;
+  let requestedAmount: number | null = null;
   try {
-    const body = (await request.json()) as { invoiceId?: string };
+    const body = (await request.json()) as { invoiceId?: string; amount?: number };
     invoiceId = (body.invoiceId ?? "").trim();
+    requestedAmount = typeof body.amount === "number" ? Math.round(body.amount) : null;
   } catch {
     return jsonResponse({ error: "Corps de requête invalide." }, 400);
   }
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
   if (reusablePending) {
     return jsonResponse({
       checkoutUrl: reusablePending.checkoutUrl,
-      paymentId: reusablePending.monerooPaymentId,
+      paymentId: reusablePending.providerRef,
       reused: true,
     });
   }
@@ -89,7 +91,17 @@ export async function POST(request: Request) {
   const { firstName, lastName } = splitName(user.name, user.email);
 
   // La facture est en FCFA ; Moneroo peut exiger une autre devise (bac à sable USD).
-  const chargeAmount = xofToChargeCurrency(invoice.amount, DEFAULT_CURRENCY);
+  // Montant demandé : acompte éventuel, plafonné au reste à payer.
+  const remaining = Math.max(0, Math.round(invoice.amount - invoice.amountPaid));
+  if (remaining <= 0) {
+    return jsonResponse({ error: "Cette facture est déjà réglée." }, 409);
+  }
+  const payableAmount = requestedAmount && requestedAmount > 0 ? Math.min(requestedAmount, remaining) : remaining;
+  if (payableAmount <= 0) {
+    return jsonResponse({ error: "Montant de paiement invalide." }, 400);
+  }
+
+  const chargeAmount = xofToChargeCurrency(payableAmount, DEFAULT_CURRENCY);
 
   try {
     const init = await initializePayment({
@@ -115,7 +127,8 @@ export async function POST(request: Request) {
     await prisma.payment.create({
       data: {
         invoiceId: invoice.id,
-        monerooPaymentId: init.data.id,
+        provider: "MONEROO",
+        providerRef: init.data.id,
         amount: chargeAmount,
         currency: DEFAULT_CURRENCY,
         status: "PENDING",

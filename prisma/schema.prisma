@@ -175,6 +175,8 @@ model Invoice {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   description String?
+  amountPaid  Float         @default(0)
+  receiptUrl  String?
   client      User          @relation(fields: [clientId], references: [id])
   project     Project?      @relation(fields: [projectId], references: [id])
   payments    Payment[]
@@ -185,19 +187,21 @@ model Invoice {
 }
 
 model Payment {
-  id               String        @id @default(cuid())
-  invoiceId        String
-  monerooPaymentId String        @unique
-  amount           Float
-  currency         String        @default("XOF")
-  status           PaymentStatus @default(PENDING)
-  method           String?
-  checkoutUrl      String?
-  failureReason    String?
-  paidAt           DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  invoice          Invoice       @relation(fields: [invoiceId], references: [id])
+  id            String          @id @default(cuid())
+  invoiceId     String
+  provider      PaymentProvider @default(MONEROO)
+  providerRef   String          @unique
+  amount        Float
+  currency      String          @default("XOF")
+  status        PaymentStatus   @default(PENDING)
+  method        String?
+  checkoutUrl   String?
+  failureReason String?
+  fee           Float?
+  paidAt        DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  invoice       Invoice         @relation(fields: [invoiceId], references: [id])
 
   @@index([invoiceId])
   @@index([status])
@@ -208,6 +212,12 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   CANCELLED
+}
+
+enum PaymentProvider {
+  MONEROO
+  FEDAPAY
+  MANUAL
 }
 
 model Notification {
@@ -370,6 +380,21 @@ model Deliverable {
 
   @@index([projectId, status])
   @@index([milestoneId])
+}
+
+model WebhookLog {
+  id             String   @id @default(cuid())
+  provider       String
+  event          String?
+  reference      String?
+  signatureValid Boolean  @default(false)
+  status         Int
+  message        String?
+  payload        String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([provider])
 }
 
 model StoredFile {

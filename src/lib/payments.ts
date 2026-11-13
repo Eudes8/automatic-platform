@@ -1,29 +1,37 @@
 /**
- * Logique métier des paiements Moneroo (serveur uniquement).
+ * Service de paiement (serveur uniquement).
  *
- * Factorise la synchronisation : statut Moneroo → Payment (DB) → Invoice →
- * Notifications. Utilisée à la fois par le webhook (source d'information
- * principale) et par la route de vérification appelée au retour du client
- * (filet de sécurité si le webhook est perdu, cf. best practices Moneroo).
+ * Responsabilités :
+ *  - appliquer un statut fournisseur (Moneroo, FedaPay) à un paiement local ;
+ *  - recalculer le cumul encaissé d'une facture ;
+ *  - marquer la facture payée seulement quand le cumul couvre le montant ;
+ *  - produire un reçu PDF à chaque encaissement réussi ;
+ *  - notifier le client et l'équipe.
+ *
+ * Toutes les écritures sont idempotentes : un webhook rejoué ne double pas
+ * un encaissement.
  */
 
 import prisma from "@/lib/prisma";
-import type { Payment } from "@prisma/client";
+import type { Invoice, Payment } from "@prisma/client";
+import { generateReceiptPDF } from "@/lib/receipt";
+import { uploadFileToStorage } from "@/lib/storage";
+import { formatMoney } from "@/lib/format";
 
-/** Statuts de transaction renvoyés par Moneroo. */
-export type MonerooTxStatus = "success" | "failed" | "cancelled" | "initiated" | "pending" | string;
+export type LocalPaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED";
 
-/** Statut local correspondant à un statut Moneroo. */
-export function mapMonerooStatus(status: MonerooTxStatus | undefined): "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED" {
+/** Statuts fournisseurs vers statuts locaux. */
+export function mapProviderStatus(status: string | undefined | null): LocalPaymentStatus {
   switch ((status ?? "").toLowerCase()) {
     case "success":
     case "succeeded":
     case "completed":
     case "approved":
+    case "paid":
       return "SUCCESS";
     case "failed":
-    case "error":
     case "declined":
+    case "error":
       return "FAILED";
     case "cancelled":
     case "canceled":
@@ -33,124 +41,211 @@ export function mapMonerooStatus(status: MonerooTxStatus | undefined): "PENDING"
   }
 }
 
-interface SyncResult {
-  paymentStatus: "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED";
-  invoiceStatus?: string;
+export interface ApplyResult {
+  paymentStatus: LocalPaymentStatus;
+  invoiceStatus: string;
+  amountPaid: number;
   changed: boolean;
 }
 
+/** Recalcule le cumul encaissé d'une facture à partir des paiements réussis. */
+async function recomputeInvoice(invoice: Invoice): Promise<{ invoice: Invoice; settled: boolean }> {
+  const paid = await prisma.payment.aggregate({
+    where: { invoiceId: invoice.id, status: "SUCCESS" },
+    _sum: { amount: true },
+  });
+
+  const amountPaid = Math.round(paid._sum.amount ?? 0);
+  const settled = amountPaid >= Math.round(invoice.amount);
+
+  const updated = await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      amountPaid,
+      status: settled ? "PAID" : invoice.status === "PAID" ? "SENT" : invoice.status,
+    },
+  });
+
+  return { invoice: updated, settled };
+}
+
 /**
- * Synchronise un paiement local avec le statut Moneroo observé.
- * Idempotent : aucun effet si le paiement est déjà dans le même état.
- *
- * @param payment                Paiement local à synchroniser
- * @param monerooStatus          Statut renvoyé par Moneroo (webhook ou API verify)
- * @param method                 Moyen de paiement (optionnel, remonté par l'API)
- * @param failureReason          Raison d'échec éventuelle
+ * Applique un statut fournisseur à un paiement local.
+ * @param providerStatus statut brut renvoyé par Moneroo / FedaPay
  */
-export async function syncPaymentStatus(
+export async function applyPaymentStatus(
   payment: Payment,
-  monerooStatus: MonerooTxStatus | undefined,
+  providerStatus: string | undefined,
   method?: string,
   failureReason?: string
-): Promise<SyncResult> {
-  const targetStatus = mapMonerooStatus(monerooStatus);
+): Promise<ApplyResult> {
+  const target = mapProviderStatus(providerStatus);
 
-  // Aucun changement : on sort immédiatement (idempotence des webhooks).
-  if (payment.status === targetStatus) {
-    const invoice = await prisma.invoice.findUnique({
-      where: { id: payment.invoiceId },
-      select: { status: true },
-    });
-    return { paymentStatus: payment.status, invoiceStatus: invoice?.status, changed: false };
+  const invoice = await prisma.invoice.findUnique({ where: { id: payment.invoiceId } });
+  if (!invoice) {
+    return { paymentStatus: payment.status, invoiceStatus: "UNKNOWN", amountPaid: 0, changed: false };
   }
 
-  // Un paiement ne repart jamais en arrière depuis SUCCESS (garde-fou anti-rejeu).
+  // Déjà dans cet état : aucun effet (idempotence).
+  if (payment.status === target) {
+    return {
+      paymentStatus: payment.status,
+      invoiceStatus: invoice.status,
+      amountPaid: Math.round(invoice.amountPaid),
+      changed: false,
+    };
+  }
+
+  // Un paiement réussi ne repart jamais en arrière.
   if (payment.status === "SUCCESS") {
-    return { paymentStatus: "SUCCESS", invoiceStatus: "PAID", changed: false };
+    return {
+      paymentStatus: "SUCCESS",
+      invoiceStatus: invoice.status,
+      amountPaid: Math.round(invoice.amountPaid),
+      changed: false,
+    };
   }
 
   await prisma.payment.update({
     where: { id: payment.id },
     data: {
-      status: targetStatus,
+      status: target,
       method: method ?? payment.method,
-      failureReason:
-        targetStatus === "FAILED" ? failureReason ?? "Paiement refusé par Moneroo" : null,
-      paidAt: targetStatus === "SUCCESS" ? new Date() : null,
+      failureReason: target === "FAILED" ? failureReason ?? "Paiement refusé par le fournisseur" : null,
+      paidAt: target === "SUCCESS" ? new Date() : null,
     },
   });
 
-  let invoiceStatus: string | undefined;
+  let updatedInvoice = invoice;
+  let settled = false;
 
-  if (targetStatus === "SUCCESS") {
-    // Passe la facture en PAID si elle n'est pas déjà réglée.
-    const invoice = await prisma.invoice.updateMany({
-      where: { id: payment.invoiceId, status: { notIn: ["PAID", "CANCELLED"] } },
-      data: { status: "PAID" },
-    });
-    if (invoice.count > 0) {
-      invoiceStatus = "PAID";
-      await notifyPaymentSuccess(payment);
-    } else {
-      const existing = await prisma.invoice.findUnique({
-        where: { id: payment.invoiceId },
-        select: { status: true },
-      });
-      invoiceStatus = existing?.status;
+  if (target === "SUCCESS") {
+    const result = await recomputeInvoice(invoice);
+    updatedInvoice = result.invoice;
+    settled = result.settled;
+
+    const receiptUrl = await createReceipt(payment, updatedInvoice, method);
+    if (receiptUrl) {
+      await prisma.invoice.update({ where: { id: invoice.id }, data: { receiptUrl } });
+      await prisma.payment.update({ where: { id: payment.id }, data: { method: method ?? payment.method } });
     }
-  } else if (targetStatus === "CANCELLED" || targetStatus === "FAILED") {
-    // La facture reste "SENT"/"OVERDUE" : le client peut retenter un paiement.
-    invoiceStatus = undefined;
+
+    await notifyPaymentSettled(updatedInvoice, payment, settled);
   }
 
-  return { paymentStatus: targetStatus, invoiceStatus, changed: true };
+  return {
+    paymentStatus: target,
+    invoiceStatus: updatedInvoice.status,
+    amountPaid: Math.round(updatedInvoice.amountPaid),
+    changed: true,
+  };
 }
 
-/** Crée les notifications (client + administrateurs) après un paiement réussi. */
-async function notifyPaymentSuccess(payment: Payment): Promise<void> {
+/** Génère et archive le reçu PDF du paiement. Ne bloque jamais l'encaissement. */
+async function createReceipt(
+  payment: Payment,
+  invoice: Invoice,
+  method?: string
+): Promise<string | null> {
   try {
-    const invoice = await prisma.invoice.findUnique({
-      where: { id: payment.invoiceId },
-      include: { project: { select: { title: true } } },
+    const pdf = await generateReceiptPDF({
+      invoiceId: invoice.id,
+      paymentId: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      provider: payment.provider,
+      method: method ?? payment.method ?? "Mobile Money",
+      paidAt: new Date(),
+      invoiceAmount: invoice.amount,
+      amountPaid: invoice.amountPaid,
+      clientName: invoice.description ? undefined : undefined,
     });
-    if (!invoice) return;
 
-    const amountLabel = `${new Intl.NumberFormat("fr-FR").format(payment.amount)} ${payment.currency}`;
-    const title = "Paiement confirmé";
-    const message = `Votre paiement de ${amountLabel} pour la facture #${invoice.id.slice(-6).toUpperCase()} a été confirmé. Merci !`;
+    const path = `receipts/${invoice.id}/${payment.id}.pdf`;
+    return await uploadFileToStorage("project-assets", path, Buffer.from(pdf), "application/pdf");
+  } catch (error) {
+    console.error("[payments] Génération du reçu impossible :", error);
+    return null;
+  }
+}
 
-    // Notification client propriétaire de la facture.
+async function notifyPaymentSettled(invoice: Invoice, payment: Payment, settled: boolean): Promise<void> {
+  try {
+    const amountLabel = formatMoney(payment.amount, payment.currency);
+    const remaining = Math.max(0, Math.round(invoice.amount - invoice.amountPaid));
+
     await prisma.notification.create({
       data: {
         userId: invoice.clientId,
-        title,
-        message,
+        title: settled ? "Facture réglée" : "Paiement reçu",
+        message: settled
+          ? `Votre paiement de ${amountLabel} a été confirmé. La facture est intégralement réglée.`
+          : `Paiement de ${amountLabel} confirmé. Reste à régler : ${formatMoney(remaining)}.`,
         type: "PAYMENT",
         link: "/dashboard/invoices",
       },
     });
 
-    // Notification de l'équipe (admins) pour suivi encaissement.
-    const admins = await prisma.user.findMany({
-      where: { role: "ADMIN" },
-      select: { id: true },
-    });
+    const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
     if (admins.length > 0) {
       await prisma.notification.createMany({
         data: admins.map((admin) => ({
           userId: admin.id,
-          title: "Encaissement Moneroo",
-          message: `Facture #${invoice.id.slice(-6).toUpperCase()} payée (${amountLabel})${
-            invoice.project?.title ? ` — projet « ${invoice.project.title} »` : ""
-          }.`,
+          title: settled ? "Facture soldée" : "Encaissement partiel",
+          message: `${formatMoney(payment.amount, payment.currency)} reçus sur la facture #${invoice.id
+            .slice(-6)
+            .toUpperCase()}${settled ? "" : ` (reste ${formatMoney(remaining)})`}.`,
           type: "PAYMENT",
           link: "/admin/invoices",
         })),
       });
     }
   } catch (error) {
-    // Une erreur de notification ne doit jamais invalider un paiement réussi.
-    console.error("[payments] Échec de la création des notifications de paiement :", error);
+    console.error("[payments] Notification de paiement impossible :", error);
   }
+}
+
+/**
+ * Encaisse manuellement (virement, espèces) : utilisé par l'administration.
+ * Crée un paiement SUCCESS sans passer par un fournisseur.
+ */
+export async function recordManualPayment(input: {
+  invoiceId: string;
+  amount: number;
+  method: string;
+  note?: string;
+}): Promise<ApplyResult> {
+  const invoice = await prisma.invoice.findUnique({ where: { id: input.invoiceId } });
+  if (!invoice) throw new Error("Facture introuvable.");
+  if (invoice.status === "CANCELLED") throw new Error("Facture annulée.");
+
+  const amount = Math.round(input.amount);
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Montant invalide.");
+
+  const payment = await prisma.payment.create({
+    data: {
+      invoiceId: invoice.id,
+      provider: "MANUAL",
+      providerRef: `manual_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      amount,
+      currency: "XOF",
+      status: "SUCCESS",
+      method: input.method,
+      paidAt: new Date(),
+    },
+  });
+
+  const result = await recomputeInvoice(invoice);
+  const receiptUrl = await createReceipt(payment, result.invoice, input.method);
+  if (receiptUrl) {
+    await prisma.invoice.update({ where: { id: invoice.id }, data: { receiptUrl } });
+  }
+  await notifyPaymentSettled(result.invoice, payment, result.settled);
+
+  return {
+    paymentStatus: "SUCCESS",
+    invoiceStatus: result.invoice.status,
+    amountPaid: Math.round(result.invoice.amountPaid),
+    changed: true,
+  };
 }

@@ -11,7 +11,7 @@
 
 import prisma from "@/lib/prisma";
 import { verifyPayment, MonerooError } from "@/lib/moneroo";
-import { syncPaymentStatus } from "@/lib/payments";
+import { applyPaymentStatus } from "@/lib/payments";
 import { getAuthenticatedUser, jsonResponse } from "@/lib/api-helpers";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   const payment = await prisma.payment.findUnique({
-    where: { monerooPaymentId },
+    where: { providerRef: monerooPaymentId },
     include: { invoice: { select: { id: true, clientId: true, status: true } } },
   });
 
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
   try {
     const tx = await verifyPayment(monerooPaymentId);
-    const result = await syncPaymentStatus(payment, tx.status, (tx as { method?: string }).method);
+    const result = await applyPaymentStatus(payment, tx.status, (tx as { method?: string }).method);
 
     const invoice = await prisma.invoice.findUnique({
       where: { id: payment.invoiceId },

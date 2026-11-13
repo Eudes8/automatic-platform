@@ -37,9 +37,11 @@ export async function POST(request: Request) {
   }
 
   let invoiceId: string;
+  let requestedAmount: number | null = null;
   try {
-    const body = (await request.json()) as { invoiceId?: string };
+    const body = (await request.json()) as { invoiceId?: string; amount?: number };
     invoiceId = (body.invoiceId ?? "").trim();
+    requestedAmount = typeof body.amount === "number" ? Math.round(body.amount) : null;
   } catch {
     return jsonResponse({ error: "Corps de requête invalide." }, 400);
   }
@@ -76,7 +78,7 @@ export async function POST(request: Request) {
   if (reusable) {
     return jsonResponse({
       checkoutUrl: reusable.checkoutUrl,
-      paymentId: reusable.monerooPaymentId,
+      paymentId: reusable.providerRef,
       provider: "fedapay",
       reused: true,
     });
@@ -86,8 +88,14 @@ export async function POST(request: Request) {
   const { firstname, lastname } = splitName(user.name, user.email);
 
   try {
+    const remaining = Math.max(0, Math.round(invoice.amount - invoice.amountPaid));
+    if (remaining <= 0) {
+      return jsonResponse({ error: "Cette facture est déjà réglée." }, 409);
+    }
+    const payableAmount = requestedAmount && requestedAmount > 0 ? Math.min(requestedAmount, remaining) : remaining;
+
     const transaction = await createFedapayTransaction({
-      amount: invoice.amount,
+      amount: payableAmount,
       description: `Facture #${invoice.id.slice(-6).toUpperCase()}${
         invoice.description ? ` - ${invoice.description}` : ""
       }`,
@@ -103,8 +111,9 @@ export async function POST(request: Request) {
     await prisma.payment.create({
       data: {
         invoiceId: invoice.id,
-        monerooPaymentId: String(transaction.id),
-        amount: invoice.amount,
+        provider: "FEDAPAY",
+        providerRef: String(transaction.id),
+        amount: payableAmount,
         currency: "XOF",
         status: "PENDING",
         checkoutUrl: transaction.payment_url,

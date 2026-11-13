@@ -2,6 +2,7 @@ import { getAllInvoices } from "@/lib/actions/invoices";
 import { FileText, Download, Eye, DollarSign, Calendar, User as UserIcon, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import InvoiceCRUDModal from "@/components/admin/invoices/InvoiceCRUDModal";
+import ManualPaymentButton from "@/components/admin/invoices/ManualPaymentButton";
 import { cn } from "@/lib/utils";
 import { Invoice, User, Project } from "@prisma/client";
 
@@ -132,6 +133,12 @@ export default async function AdminInvoicesPage() {
                                             <button className="w-10 h-10 rounded-xl bg-background border border-border/50 flex items-center justify-center text-primary/40 hover:text-primary hover:border-primary/50 transition-all duration-500 shadow-inner group/icon">
                                                 <Eye size={16} className="group-hover/icon:scale-110 transition-transform" />
                                             </button>
+                                            {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && (
+                                                <ManualPaymentButton
+                                                    invoiceId={invoice.id}
+                                                    remaining={Math.max(0, invoice.amount - (invoice.amountPaid ?? 0))}
+                                                />
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
