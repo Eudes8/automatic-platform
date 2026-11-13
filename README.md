@@ -52,6 +52,27 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 🏦 FedaPay (second fournisseur de paiement)
+
+FedaPay est branché **en complément** de Moneroo : la même facture peut être
+réglée par l'un ou l'autre, depuis deux boutons distincts.
+
+| Élément | Valeur |
+|---------|--------|
+| Variables | `FEDAPAY_SECRET_KEY`, `FEDAPAY_WEBHOOK_SECRET` |
+| Devise | FCFA natif, aucune conversion |
+| Init | `POST /api/payments/fedapay/initialize` |
+| Webhook | `POST /api/webhooks/fedapay` |
+
+Sécurité du webhook : signature `X-FEDAPAY-SIGNATURE` vérifiée sur le corps
+brut (format Stripe `t=...,s=...` et HMAC direct acceptés), puis la
+transaction est **re-interrogée** chez FedaPay. Un faux événement
+`transaction.approved` ne peut donc pas marquer une facture comme payée.
+
+En sandbox, la page FedaPay demande un code de confirmation opérateur :
+le paiement ne peut pas être finalisé automatiquement. Utilise le compte
+live pour un test de bout en bout.
+
 ## 💳 Mise en production Moneroo (checklist)
 
 La plateforme facture en **FCFA**. Le bac à sable Moneroo n'accepte que l'USD
