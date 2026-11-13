@@ -52,6 +52,33 @@ AUTOMATIC est une plateforme SaaS permettant de gérer le cycle de vie complet d
    npm run dev
    ```
 
+## 💰 Système d'encaissement
+
+Un seul chemin pour tout l'argent : facture → paiement (en ligne ou manuel)
+→ encaissement cumulé → reçu → notifications.
+
+| Capacité | Détail |
+|----------|--------|
+| Fournisseurs | `MONEROO`, `FEDAPAY`, `MANUAL` (virement, espèces, chèque) |
+| Acomptes | Montant libre, plafonné au reste à payer, cumulé sur la facture |
+| Statut facture | `PAID` seulement si le cumul couvre le montant |
+| Reçus | PDF généré à chaque encaissement réussi, archivé et servi sur `/api/files/[id]` |
+| Journal | Table `WebhookLog` : événement, référence, signature valide, code de réponse |
+| Idempotence | Un webhook rejoué ne double jamais un encaissement |
+
+### Règles de calcul
+
+- `Invoice.amountPaid` = somme des `Payment.status = SUCCESS`.
+- Paiement partiel : la facture reste `SENT`, l'interface affiche « Partiellement payée ».
+- Un paiement passé en `SUCCESS` ne repasse jamais en `PENDING` ou `FAILED`.
+- Montant fournisseur incohérent avec le paiement local : la synchronisation est bloquée.
+
+### Encaissement manuel
+
+Depuis `/admin/invoices`, le bouton « Encaisser » enregistre un règlement reçu hors
+plateforme. Il crée un `Payment` `MANUAL` en `SUCCESS`, recalcule le solde et produit
+le même reçu qu'un paiement en ligne.
+
 ## 🏦 FedaPay (second fournisseur de paiement)
 
 FedaPay est branché **en complément** de Moneroo : la même facture peut être
