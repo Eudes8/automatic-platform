@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   CheckCircle2,
@@ -68,6 +69,14 @@ export default function DeliverableManager({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const router = useRouter();
+
+  /** Element absent en base : on le retire de la liste et on resynchronise. */
+  function dropStale(id: string, message: string) {
+    setItems((list) => list.filter((item) => item.id !== id));
+    setError(`${message} La liste vient d'être actualisée.`);
+    router.refresh();
+  }
 
   useEffect(() => {
     setItems(deliverables);
@@ -78,6 +87,10 @@ export default function DeliverableManager({
     startTransition(async () => {
       const result = await submitDeliverable(id);
       if (!result.success) {
+        if (/introuvable/i.test(result.error ?? "")) {
+          dropStale(id, "Ce livrable n'existe plus.");
+          return;
+        }
         setError(result.error ?? "Envoi impossible.");
         return;
       }
@@ -98,6 +111,10 @@ export default function DeliverableManager({
     startTransition(async () => {
       const result = await deleteDeliverable(id);
       if (!result.success) {
+        if (/introuvable/i.test(result.error ?? "")) {
+          dropStale(id, "Ce livrable n'existe plus.");
+          return;
+        }
         setItems(previous);
         setError(result.error ?? "Suppression impossible.");
       }

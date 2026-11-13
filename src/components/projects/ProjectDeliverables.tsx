@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Archive,
   BadgeCheck,
@@ -50,6 +51,7 @@ export default function ProjectDeliverables({ deliverables, canReview }: Project
   const [error, setError] = useState<string | null>(null);
   const [openFeedback, setOpenFeedback] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const router = useRouter();
 
   function decide(id: string, decision: "ACCEPT" | "REQUEST_CHANGES") {
     setError(null);
@@ -61,6 +63,12 @@ export default function ProjectDeliverables({ deliverables, canReview }: Project
     startTransition(async () => {
       const result = await reviewDeliverable(id, decision, decision === "REQUEST_CHANGES" ? feedback : undefined);
       if (!result.success) {
+        if (/introuvable/i.test(result.error ?? "")) {
+          setItems((list) => list.filter((item) => item.id !== id));
+          setError("Ce livrable n'existe plus. La liste vient d'être actualisée.");
+          router.refresh();
+          return;
+        }
         setError(result.error ?? "Action impossible.");
         return;
       }
