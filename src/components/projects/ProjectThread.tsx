@@ -248,9 +248,11 @@ export default function ProjectThread({
                   </div>
 
                   <p className="mt-2 text-[14px] font-semibold">{requirement.title}</p>
-                  <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-secondary">
-                    {requirement.description}
-                  </p>
+                  {requirement.description.trim() !== requirement.title.trim() && (
+                    <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-secondary">
+                      {requirement.description}
+                    </p>
+                  )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-muted">
                     <span className="inline-flex items-center gap-1">
