@@ -28,7 +28,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                 : project?.id ? await updatePortfolioProject(project.id, formData) : { success: false, error: "Missing project ID" };
 
             if (res.success) {
-                toast.success(mode === "CREATE" ? "PROJET_ARCHIVÉ: Succès" : "PROJET_MIS_À_JOUR: Succès");
+                toast.success(mode === "CREATE" ? "Réalisation ajoutée" : "Réalisation mise à jour");
                 setIsOpen(false);
             } else {
                 toast.error("ERREUR_SYSTÈME: " + res.error);
@@ -60,19 +60,16 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
     return (
         <>
             {mode === "CREATE" ? (
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="px-4 sm:px-6 py-3 sm:py-4 bg-primary text-background rounded-xl sm:rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2 sm:gap-3"
-                >
-                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">ARCHIVER_NOUVEAU_PROJET</span><span className="sm:hidden">ARCHIVER</span>
+                <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
+                    <Plus size={15} aria-hidden="true" /> Nouvelle réalisation
                 </button>
             ) : (
                 <button
+                    type="button"
                     onClick={() => setIsOpen(true)}
-                    className="p-2 hover:bg-primary/10 rounded-lg text-primary/40 hover:text-primary transition-colors"
-                    title="Modifier le projet"
+                    className="rounded-[8px] border border-border px-2.5 py-1.5 text-[12px] text-secondary transition-colors hover:border-primary/40 hover:text-foreground"
                 >
-                    <Plus className="w-4 h-4" />
+                    Modifier
                 </button>
             )}
 
@@ -93,24 +90,24 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                         <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
                             <span className="w-6 sm:w-8 h-[1px] bg-accent" />
                             <h3 className="text-base sm:text-xl font-black text-primary uppercase italic tracking-tighter">
-                                {mode === "CREATE" ? "Initialisation_Archive" : "Modification_Protocole"}
+                                {mode === "CREATE" ? "Nouvelle réalisation" : "Modifier la réalisation"}
                             </h3>
                         </div>
 
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Titre_Projet</label>
-                                    <input name="title" defaultValue={project?.title} required className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-sm font-bold focus:border-accent outline-none transition-all" placeholder="Ex: EcoSphere Core" />
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Titre du projet</label>
+                                    <input name="title" defaultValue={project?.title} required className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-sm font-bold focus:border-accent outline-none transition-all" placeholder="Ex. Boutique en ligne agro" />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Catégorie</label>
-                                    <input name="category" defaultValue={project?.category} required className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-sm font-bold focus:border-accent outline-none" placeholder="Ex: SaaS Platform" />
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Catégorie</label>
+                                    <input name="category" defaultValue={project?.category} required className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-sm font-bold focus:border-accent outline-none" placeholder="Ex. Plateforme SaaS" />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Stack_Technique (virgules)</label>
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Technologies (séparées par des virgules)</label>
                                     <input name="tech" defaultValue={project?.tech?.join(", ")} required className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-[11px] font-mono focus:border-accent outline-none" placeholder="Next.js, Tailwind, Prisma" />
                                 </div>
 
@@ -124,7 +121,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// URL_Image_Nexus</label>
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Adresse du visuel</label>
                                     <div className="relative">
                                         <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20" />
                                         <input name="image" defaultValue={project?.image} required className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="https://unsplash.com/..." />
@@ -132,7 +129,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Live_Link</label>
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Lien du site</label>
                                     <div className="relative">
                                         <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20" />
                                         <input name="url" defaultValue={project?.url || ""} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="https://app.client.com" />
@@ -140,7 +137,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Code_Repository</label>
+                                    <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Lien du dépôt</label>
                                     <div className="relative">
                                         <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/20" />
                                         <input name="github" defaultValue={project?.github || ""} className="w-full bg-background border border-border/50 rounded-xl p-4 pl-12 text-primary text-xs font-medium focus:border-accent outline-none" placeholder="github.com/automatic/..." />
@@ -149,7 +146,7 @@ export default function PortfolioCRUDModal({ project, mode }: PortfolioCRUDModal
                             </div>
 
                             <div className="md:col-span-2 space-y-2">
-                                <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">// Mission_Details (Markdown Support)</label>
+                                <label className="text-[10px] font-black text-secondary/40 uppercase tracking-widest italic">Description</label>
                                 <textarea name="description" defaultValue={project?.description} required rows={4} className="w-full bg-background border border-border/50 rounded-xl p-4 text-primary text-sm font-medium focus:border-accent outline-none resize-none" placeholder="Décrivez les enjeux techniques et la solution apportée..." />
                             </div>
 

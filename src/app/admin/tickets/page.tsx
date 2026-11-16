@@ -1,48 +1,45 @@
 import { Suspense } from "react";
 import { getAllTickets } from "@/lib/actions/tickets";
-import { TicketList } from "@/components/admin/tickets/TicketList";
-import { TicketStats } from "@/components/admin/tickets/TicketStats";
+import TicketTable from "@/components/admin/tickets/TicketTable";
 import { Skeleton } from "@/components/shared/Skeleton";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-async function TicketsPageContent({ searchParams }: { searchParams: { page?: string } }) {
-    const page = parseInt(searchParams.page || "1");
-    const { tickets, total, page: currentPage, limit, totalPages } = await getAllTickets(page);
+async function TicketsContent({ page }: { page: number }) {
+  const { tickets, total } = await getAllTickets(page, 100);
 
-    return (
-        <div className="space-y-12 p-10 lg:p-14 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-border/50 pb-12 mb-12">
-                <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="w-10 h-px bg-primary/30" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.5em] italic">GESTIONNAIRE DES TICKETS</span>
-                    </div>
-                    <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
-                        TICKETS <span className="text-secondary/20">Support.</span>
-                    </h1>
-                </div>
-            </header>
+  const open = tickets.filter((ticket) => ticket.status === "OPEN").length;
+  const running = tickets.filter((ticket) => ticket.status === "IN_PROGRESS").length;
+  const closed = tickets.filter((ticket) => ticket.status === "CLOSED").length;
 
-            <TicketStats />
+  return (
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-3xl sm:text-[2.2rem]">Assistance</h1>
+        <p className="mt-2 text-[15px] text-secondary">
+          {total} demande{total > 1 ? "s" : ""} au total : {open} à prendre, {running} en cours, {closed} résolue
+          {closed > 1 ? "s" : ""}.
+        </p>
+      </header>
 
-            <div className="relative z-10">
-                <TicketList
-                    tickets={tickets}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    total={total}
-                />
-            </div>
-        </div>
-    );
+      {tickets.length === 0 ? (
+        <p className="surface px-5 py-10 text-center text-[14px] text-secondary">
+          Aucune demande pour le moment. Les messages clients marqués comme problème arrivent ici.
+        </p>
+      ) : (
+        <TicketTable tickets={tickets} />
+      )}
+    </div>
+  );
 }
 
 export default async function TicketsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-    const resolvedParams = await searchParams;
-    return (
-        <Suspense fallback={<Skeleton className="h-96" />}>
-            <TicketsPageContent searchParams={resolvedParams} />
-        </Suspense>
-    );
+  const resolved = await searchParams;
+  const page = Number.parseInt(resolved.page ?? "1", 10) || 1;
+
+  return (
+    <Suspense fallback={<Skeleton className="h-96" />}>
+      <TicketsContent page={page} />
+    </Suspense>
+  );
 }

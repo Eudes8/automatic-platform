@@ -1,120 +1,111 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ExternalLink, Github } from "lucide-react";
 import { getPortfolioItemsAdmin } from "@/lib/actions/adminPortfolio";
 import PortfolioCRUDModal from "@/components/admin/portfolio/PortfolioCRUDModal";
-import Image from "next/image";
-import { ExternalLink, Github, Terminal, Grid2X2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { PortfolioProject } from "@prisma/client";
+import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPortfolio() {
-    const projects = await getPortfolioItemsAdmin();
+export default async function AdminPortfolioPage() {
+  const projects = await getPortfolioItemsAdmin();
+  const featured = projects.filter((project) => project.featured).length;
 
-    return (
-        <div className="space-y-14 p-10 lg:p-14 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-border/50 pb-10">
-                <div>
-                    <div className="flex items-center gap-3 mb-4">
-                        <Terminal className="w-5 h-5 text-accent" />
-                        <p className="text-[10px] text-primary/40 font-black uppercase tracking-[0.2em] italic">Portfolio & Réalisations</p>
-                    </div>
-                    <h1 className="text-5xl md:text-6xl font-black text-primary italic uppercase tracking-tighter leading-none">
-                        GESTION <span className="text-secondary/20">Portfolio.</span>
-                    </h1>
-                    <p className="text-secondary/40 font-black text-[10px] uppercase tracking-[0.2em] mt-3 italic max-w-lg">
-                        Gérez les projets affichés sur votre site vitrine.
-                    </p>
-                </div>
-                <PortfolioCRUDModal mode="CREATE" />
-            </header>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {projects.map((project: PortfolioProject) => (
-                    <div key={project.id} className="group bg-white/40 backdrop-blur-3xl border border-border/50 rounded-[3rem] p-10 flex flex-col sm:flex-row gap-10 items-start hover:border-primary/50 transition-all duration-700 shadow-xl hover:shadow-2xl relative overflow-hidden group/item">
-                        {/* Background identifier */}
-                        <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none uppercase font-black text-6xl italic group-hover/item:opacity-[0.05] transition-opacity duration-700">
-                            {project.category}
-                        </div>
-
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/2 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-                        <div className="relative w-48 h-48 flex-shrink-0 rounded-[2rem] overflow-hidden border border-border/50 shadow-inner group/img">
-                            <Image
-                                src={project.image}
-                                alt={project.title}
-                                fill
-                                className="object-cover grayscale group-hover/img:grayscale-0 group-hover/img:scale-110 transition-all duration-1000"
-                            />
-                            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/img:opacity-100 transition-opacity" />
-                        </div>
-
-                        <div className="flex-grow space-y-6 min-w-0">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <span className="text-[9px] font-black text-accent uppercase tracking-[0.2em] italic mb-3 block border-l-2 border-accent/30 pl-3">
-                                        Catégorie : {project.category}
-                                    </span>
-                                    <h3 className="text-3xl font-black text-primary uppercase italic tracking-tighter group-hover:text-accent transition-colors duration-500">
-                                        {project.title}
-                                    </h3>
-                                </div>
-                                <PortfolioCRUDModal mode="EDIT" project={project} />
-                            </div>
-
-                            <p className="text-secondary/40 text-[11px] font-bold uppercase italic tracking-tight line-clamp-3 leading-relaxed">
-                                {project.description}
-                            </p>
-
-                            <div className="flex flex-wrap gap-3 pt-2">
-                                {project.tech.map((t) => (
-                                    <span key={t} className="text-[8px] font-black text-secondary/20 uppercase tracking-widest border border-border/50 bg-background/50 px-3 py-1 rounded-lg italic group-hover:bg-primary/5 group-hover:text-primary transition-all duration-500">
-                                        {t}
-                                    </span>
-                                ))}
-                            </div>
-
-                            <div className="flex items-center gap-8 pt-8 border-t border-border/30">
-                                {project.url && (
-                                    <a href={project.url} target="_blank" className="flex items-center gap-2 text-[9px] font-black uppercase text-secondary/20 hover:text-primary transition-all duration-500 group/link">
-                                        <ExternalLink size={14} className="group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 transition-transform" />
-                                        VOIR LE SITE
-                                    </a>
-                                )}
-                                {project.github && (
-                                    <a href={project.github} target="_blank" className="flex items-center gap-2 text-[9px] font-black uppercase text-secondary/20 hover:text-primary transition-all duration-500 group/link">
-                                        <Github size={14} className="group-hover/link:scale-110 transition-transform" />
-                                        CODE SOURCE
-                                    </a>
-                                )}
-                                <div className="ml-auto flex items-center gap-3">
-                                    <div className={cn(
-                                        "w-2 h-2 rounded-full",
-                                        project.featured ? 'bg-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)]' : 'bg-secondary/20'
-                                    )} />
-                                    <span className="text-[8px] font-black uppercase text-secondary/20 tracking-widest italic pt-0.5">
-                                        {project.featured ? 'EN VEDETTE' : 'STANDARD'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Scanline Effect */}
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700">
-                            <div className="w-full h-[1px] bg-primary animate-scan-line" />
-                        </div>
-                    </div>
-                ))}
-
-                {projects.length === 0 && (
-                    <div className="col-span-full py-48 text-center bg-white/40 backdrop-blur-3xl border border-dashed border-border/50 rounded-[3rem] shadow-inner relative overflow-hidden">
-                        <div className="absolute inset-0 bg-primary/2 pointer-events-none" />
-                        <Grid2X2 className="w-20 h-20 text-primary/5 mx-auto mb-10" />
-                        <p className="text-secondary/20 font-black uppercase tracking-[0.2em] italic leading-relaxed">
-                            Aucun projet dans le portfolio pour le moment.
-                        </p>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="space-y-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl sm:text-[2.2rem]">Vitrine</h1>
+          <p className="mt-2 text-[15px] text-secondary">
+            {projects.length} réalisation{projects.length > 1 ? "s" : ""} publiée{projects.length > 1 ? "s" : ""}
+            {featured > 0 ? `, dont ${featured} mise${featured > 1 ? "s" : ""} en avant` : ""}. Ces fiches
+            apparaissent sur la page d&apos;accueil.
+          </p>
         </div>
-    );
+        <PortfolioCRUDModal mode="CREATE" />
+      </header>
+
+      {projects.length === 0 ? (
+        <p className="surface px-5 py-10 text-center text-[14px] text-secondary">
+          Aucune réalisation publiée. Ajoutez un projet pour alimenter la vitrine.
+        </p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {projects.map((project) => (
+            <li key={project.id} className="surface flex flex-col overflow-hidden">
+              <div className="relative aspect-[16/10] w-full bg-primary/[0.04]">
+                {project.image ? (
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center text-[12px] text-muted">Sans visuel</div>
+                )}
+              </div>
+
+              <div className="flex flex-1 flex-col gap-2 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-[14px] font-semibold">{project.title}</h2>
+                  {project.featured && (
+                    <span className="rounded-full border border-accent/30 bg-accent/[0.08] px-2 py-0.5 text-[11px] font-medium text-accent">
+                      En avant
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[12px] text-muted">
+                  {project.category} · ajouté le {formatDate(project.createdAt)}
+                </p>
+
+                <p className="line-clamp-2 text-[13px] text-secondary">{project.description}</p>
+
+                {project.tech.length > 0 && (
+                  <ul className="flex flex-wrap gap-1.5">
+                    {project.tech.slice(0, 5).map((tech) => (
+                      <li
+                        key={tech}
+                        className="rounded-[6px] border border-border px-1.5 py-0.5 text-[11px] text-secondary"
+                      >
+                        {tech}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="mt-auto flex items-center gap-3 pt-2">
+                  {project.url && (
+                    <Link
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:underline"
+                    >
+                      <ExternalLink size={13} aria-hidden="true" /> Voir le site
+                    </Link>
+                  )}
+                  {project.github && (
+                    <Link
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[12px] text-secondary hover:underline"
+                    >
+                      <Github size={13} aria-hidden="true" /> Dépôt
+                    </Link>
+                  )}
+                  <span className="ml-auto">
+                    <PortfolioCRUDModal mode="EDIT" project={project} />
+                  </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }

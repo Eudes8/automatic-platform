@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   LifeBuoy,
   LogOut,
-  MessageSquare,
   Receipt,
   Settings,
   Users,
@@ -48,7 +47,6 @@ const ADMIN_NAV: NavItem[] = [
   { key: "tickets", label: "Assistance", href: "/admin/tickets", icon: LifeBuoy },
   { key: "invoices", label: "Facturation", href: "/admin/invoices", icon: Receipt },
   { key: "portfolio", label: "Vitrine", href: "/admin/portfolio", icon: Briefcase },
-  { key: "chat", label: "Messagerie", href: "/admin/chat", icon: MessageSquare },
 ];
 
 const MOBILE_CLIENT: NavKey[] = ["dashboard", "projects", "invoices"];

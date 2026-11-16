@@ -37,14 +37,9 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
 
     if (!isOpen && !isEditing) {
         return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="px-8 py-5 bg-primary text-background rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all duration-500 flex items-center gap-4 italic group"
-            >
-                <div className="p-2 bg-background/20 rounded-lg group-hover:rotate-90 transition-transform duration-500">
-                    <Plus className="w-5 h-5" />
-                </div>
-                INITIALISER_CLIENT
+            <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
+                <Plus size={15} aria-hidden="true" />
+                Nouveau client
             </button>
         );
     }
@@ -58,7 +53,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                 <div className="w-8 h-8 rounded-lg bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-inner group-hover:scale-110">
                     <Edit className="w-3.5 h-3.5" />
                 </div>
-                // MODIFIER_PROFIL
+                Modifier le client
             </button>
         );
     }
@@ -80,7 +75,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                 <div className="mb-12 relative z-10">
                     <div className="flex items-center gap-4 mb-6">
                         <span className="w-12 h-px bg-primary/20" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">SYNC_USER_PROFIL_V3</span>
+                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">Nouveau client</span>
                     </div>
                     <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">
                         {isEditing ? "EDITION_NODE." : "REJOINDRE_MAINFRAME."}
@@ -101,7 +96,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">FLUX_XFER_IDENTITY</label>
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Identité</label>
                             <input
                                 name="email"
                                 type="email"
@@ -113,7 +108,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">CANAL_VOIX (CONTACT)</label>
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Contact</label>
                             <input
                                 name="phone"
                                 defaultValue={editingUser?.phone || ""}
@@ -123,7 +118,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">ENTITÉ_DESIGNATION</label>
+                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Nom complet</label>
                             <input
                                 name="companyName"
                                 defaultValue={editingUser?.companyName || ""}
@@ -134,7 +129,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">SECTEUR_ACTIVITÉ_LOG</label>
+                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Secteur d’activité</label>
                         <input
                             name="industry"
                             defaultValue={editingUser?.industry || ""}
@@ -152,9 +147,9 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                                     defaultValue={editingUser?.role || "CLIENT"}
                                     className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 outline-none transition-all appearance-none shadow-inner"
                                 >
-                                    <option value="CLIENT">NODES_CLIENT</option>
-                                    <option value="STAFF">UNITE_OPÉRATIONNELLE</option>
-                                    <option value="ADMIN">MAINFRAME_ROOT</option>
+                                    <option value="CLIENT">Client</option>
+                                    <option value="STAFF">Compte</option>
+                                    <option value="ADMIN">Clients</option>
                                 </select>
                                 <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
                                     <Plus className="w-4 h-4 rotate-45" />

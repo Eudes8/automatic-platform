@@ -48,7 +48,7 @@ export default function ProjectCRUDModal() {
                 <div className="mb-6 sm:mb-10 relative z-10">
                     <div className="flex items-center gap-4 mb-4">
                         <span className="w-8 sm:w-12 h-px bg-primary/20" />
-                        <span className="text-[8px] sm:text-[10px] font-black text-primary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] italic">DEPLOY_CONFIG_NODE_V4</span>
+                        <span className="text-[8px] sm:text-[10px] font-black text-primary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] italic">Nouveau projet</span>
                     </div>
                     <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">Nouveau Project.</h3>
                 </div>
@@ -65,7 +65,7 @@ export default function ProjectCRUDModal() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">IDENTIFIANT_CLIENT (EMAIL)</label>
+                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">Client (e-mail)</label>
                             <input
                                 name="clientEmail"
                                 type="email"
@@ -80,25 +80,25 @@ export default function ProjectCRUDModal() {
                         <div className="space-y-2">
                             <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">CATÉGORIE_UNIT</label>
                             <select name="category" className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.2rem] p-3 sm:p-4 text-[10px] sm:text-[11px] text-primary focus:outline-none transition-all font-black uppercase italic tracking-widest shadow-inner appearance-none">
-                                <option value="WEB">WEB_APPLICATION</option>
-                                <option value="MOBILE">MOBILE_APP</option>
-                                <option value="AI">AI_INTEGRATION</option>
-                                <option value="SAAS">SAAS_PLATFORM</option>
-                                <option value="UIUX">UI_UX_REDESIGN</option>
+                                <option value="WEB">Application web</option>
+                                <option value="MOBILE">Application mobile</option>
+                                <option value="AI">Intégration IA</option>
+                                <option value="SAAS">Plateforme SaaS</option>
+                                <option value="UIUX">Refonte UI/UX</option>
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">PRIORITÉ_DÉPLOIEMENT</label>
+                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">Priorité</label>
                             <select name="timeline" className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.2rem] p-3 sm:p-4 text-[10px] sm:text-[11px] text-primary focus:outline-none transition-all font-black uppercase italic tracking-widest shadow-inner appearance-none">
-                                <option value="STANDARD">PROTOCOLE_STANDARD</option>
+                                <option value="STANDARD">Standard</option>
                                 <option value="FAST">ACCÉLÉRATION_X2</option>
-                                <option value="URGENT">MODE_URGENCE_CRITIQUE</option>
+                                <option value="URGENT">Urgent</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">STACK_TECHNIQUE (SÉPARÉ PAR VIRGULE)</label>
+                        <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">Stack technique (séparée par des virgules)</label>
                         <input
                             name="techStack"
                             className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.2rem] p-3 sm:p-4 text-[10px] sm:text-[11px] text-primary focus:outline-none focus:border-primary/50 transition-all font-black uppercase italic tracking-widest shadow-inner"
@@ -107,7 +107,7 @@ export default function ProjectCRUDModal() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">ALLOCATION_BUDGÉTAIRE (CFA)</label>
+                        <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">Budget (F CFA)</label>
                         <input
                             name="budget"
                             type="number"

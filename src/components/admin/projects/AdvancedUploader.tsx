@@ -125,17 +125,18 @@ export default function AdvancedUploader({ projectId, onSuccess }: AdvancedUploa
             } else {
                 throw new Error(result.error || 'Upload failed');
             }
-        } catch (error: any) {
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Erreur inconnue';
             setFiles(prev => prev.map((f, i) =>
                 i === index ? {
                     ...f,
                     status: 'error' as const,
-                    error: error.message || 'Erreur inconnue',
+                    error: message,
                     progress: 0
                 } : f
             ));
             toast.error(`Erreur: ${uploadFile.file.name}`, {
-                description: error.message,
+                description: message,
                 icon: <AlertCircle className="text-rose-500" />
             });
         }
@@ -223,7 +224,7 @@ export default function AdvancedUploader({ projectId, onSuccess }: AdvancedUploa
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h4 className="text-[10px] font-black text-secondary/30 uppercase tracking-[0.4em] italic">
-                            // FICHIERS_EN_ATTENTE ({files.length})
+                            Fichiers en attente ({files.length})
                         </h4>
                         {files.some(f => f.status === 'pending') && (
                             <button

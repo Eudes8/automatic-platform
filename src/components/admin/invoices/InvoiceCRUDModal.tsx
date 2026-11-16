@@ -5,10 +5,16 @@ import { Plus, X, Loader2 } from "lucide-react";
 import { createInvoice } from "@/lib/actions/invoices";
 import { getProjectsByStatus } from "@/lib/actions/admin";
 
+interface ProjectOption {
+    id: string;
+    title: string;
+    client: { name: string | null; email: string } | null;
+}
+
 export default function InvoiceCRUDModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [projects, setProjects] = useState<any[]>([]);
+    const [projects, setProjects] = useState<ProjectOption[]>([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -27,15 +33,9 @@ export default function InvoiceCRUDModal() {
 
     if (!isOpen) {
         return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="group relative px-10 py-5 bg-primary text-background rounded-[1.5rem] font-black uppercase tracking-[0.3em] text-[11px] italic shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-500 overflow-hidden"
-            >
-                <div className="relative z-10 flex items-center gap-3">
-                    <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-                    GÉNÉRER_UNIT_FACTURE
-                </div>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
+                <Plus size={15} aria-hidden="true" />
+                Nouvelle facture
             </button>
         );
     }
@@ -56,25 +56,25 @@ export default function InvoiceCRUDModal() {
                 <div className="mb-8 sm:mb-12">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                        <p className="text-[9px] sm:text-[10px] text-primary/40 font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] italic">FINANCE_TERMINAL // V2.4</p>
+                        <p className="text-[9px] sm:text-[10px] text-primary/40 font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] italic">Nouvelle facture</p>
                     </div>
                     <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-primary italic uppercase tracking-tighter leading-none">
                         INITIALISER <span className="text-secondary/20">Invoice.</span>
                     </h3>
                     <p className="text-secondary/40 font-black text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] mt-2 sm:mt-3 italic">
-                        // GÉNÉRATION_D_IMAGE_DISK_FINANCIÈRE.
+                        Génération de la facture.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-8 relative z-10">
                     <div className="space-y-2 sm:space-y-3">
-                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">CIBLE_UNIT_PROJET</label>
+                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Projet concerné</label>
                         <select
                             name="projectId"
                             required
                             className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner appearance-none"
                         >
-                            <option value="">SÉLECTIONNER_IDENTITÉ</option>
+                            <option value="">Sélectionner un projet</option>
                             {projects.map((project) => (
                                 <option key={project.id} value={project.id}>
                                     /{project.title} — {project.client?.name?.toUpperCase()}
@@ -85,7 +85,7 @@ export default function InvoiceCRUDModal() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">FLUX_VALEUR (CFA)</label>
+                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Montant (F CFA)</label>
                             <input
                                 name="amount"
                                 type="number"
@@ -96,7 +96,7 @@ export default function InvoiceCRUDModal() {
                             />
                         </div>
                         <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">SYNC_EXPIRATION</label>
+                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Échéance</label>
                             <input
                                 name="dueDate"
                                 type="date"
@@ -107,7 +107,7 @@ export default function InvoiceCRUDModal() {
                     </div>
 
                     <div className="space-y-2 sm:space-y-3">
-                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">OBJET_DE_LA_FACTURE</label>
+                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Objet de la facture</label>
                         <textarea
                             name="description"
                             rows={3}
@@ -141,8 +141,8 @@ export default function InvoiceCRUDModal() {
 
                 {/* Footer decorations */}
                 <div className="mt-8 sm:mt-12 flex items-center justify-between text-[7px] sm:text-[8px] font-black text-secondary/10 uppercase tracking-[0.4em] sm:tracking-[0.5em] italic">
-                    <span>UNIT_ADMIN_TERMINAL</span>
-                    <span>SECURE_ENCRYPTION_V2_ACTIVE</span>
+                    <span>Facturation</span>
+                    <span>Les montants sont enregistrés en FCFA.</span>
                 </div>
             </div>
         </div>
