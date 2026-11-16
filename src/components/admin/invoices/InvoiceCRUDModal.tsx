@@ -92,7 +92,7 @@ export default function InvoiceCRUDModal() {
                                 step="1"
                                 required
                                 className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
-                                placeholder="VALUE_LOG..."
+                                placeholder="Objet, période, acompte…"
                             />
                         </div>
                         <div className="space-y-2 sm:space-y-3">
@@ -127,7 +127,7 @@ export default function InvoiceCRUDModal() {
                                 ) : (
                                     <Plus className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-700" />
                                 )}
-                                {loading ? "SYNC_EN_COURS..." : "DÉPLOYER_PROTOCOLE_FACTURE"}
+                                {loading ? "Création en cours…" : "Créer la facture"}
                             </div>
                             {/* Scanline effect inside button */}
                             {loading && (

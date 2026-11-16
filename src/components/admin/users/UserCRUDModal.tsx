@@ -78,7 +78,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                         <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">Nouveau client</span>
                     </div>
                     <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">
-                        {isEditing ? "EDITION_NODE." : "REJOINDRE_MAINFRAME."}
+                        {isEditing ? "Modifier le client" : "Nouveau client"}
                     </h3>
                 </div>
 
@@ -103,7 +103,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                                 required
                                 defaultValue={editingUser?.email || ""}
                                 className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                                placeholder="CLIENT@XFER.COM"
+                                placeholder="client@exemple.com"
                             />
                         </div>
 
@@ -134,7 +134,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                             name="industry"
                             defaultValue={editingUser?.industry || ""}
                             className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                            placeholder="EX: TECH, FINANCES, BTP..."
+                            placeholder="Ex. tech, finances, BTP…"
                         />
                     </div>
 
@@ -170,7 +170,7 @@ export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalPro
                                     <div className="w-6 h-6 rounded-lg bg-background/20 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 border border-white/10">
                                         <Plus className="w-4 h-4" />
                                     </div>
-                                    {isEditing ? "METTRE_A_JOUR_LOGS" : "DÉPLOYER_NODE_CLI"}
+                                    {isEditing ? "Enregistrer les modifications" : "Créer le compte"}
                                 </>
                             )}
                         </button>

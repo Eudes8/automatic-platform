@@ -61,7 +61,7 @@ export default function ProjectCRUDModal() {
                                 name="title"
                                 required
                                 className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.2rem] p-3 sm:p-4 text-[10px] sm:text-[11px] text-primary focus:outline-none focus:border-primary/50 transition-all font-black uppercase italic tracking-widest shadow-inner placeholder:text-secondary/10"
-                                placeholder="EX: INTERFACE_SaaS_2026"
+                                placeholder="Ex. Boutique en ligne 2026"
                             />
                         </div>
                         <div className="space-y-2">
@@ -78,7 +78,7 @@ export default function ProjectCRUDModal() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-2">
-                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">CATÉGORIE_UNIT</label>
+                            <label className="text-[8px] sm:text-[9px] font-black text-secondary/40 uppercase tracking-[0.3em] sm:tracking-[0.4em] ml-2 italic">Catégorie</label>
                             <select name="category" className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.2rem] p-3 sm:p-4 text-[10px] sm:text-[11px] text-primary focus:outline-none transition-all font-black uppercase italic tracking-widest shadow-inner appearance-none">
                                 <option value="WEB">Application web</option>
                                 <option value="MOBILE">Application mobile</option>
