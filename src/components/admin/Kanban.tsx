@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, GripVertical, ArrowUpRight } from "lucide-react";
@@ -34,6 +34,7 @@ export default function Kanban({ initialProjects }: { initialProjects: ProjectWi
   const [projects, setProjects] = useState(initialProjects);
   const [search, setSearch] = useState("");
   const [dragging, setDragging] = useState<string | null>(null);
+  const draggingRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
   const router = useRouter();
 
@@ -93,8 +94,9 @@ export default function Kanban({ initialProjects }: { initialProjects: ProjectWi
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
-                const id = event.dataTransfer.getData("projectId") || dragging;
+                const id = event.dataTransfer.getData("projectId") || draggingRef.current || dragging;
                 if (id) move(id, column.status);
+                draggingRef.current = null;
                 setDragging(null);
               }}
               className={`w-[260px] shrink-0 rounded-[14px] border bg-card/60 p-3 transition-colors ${
@@ -114,10 +116,15 @@ export default function Kanban({ initialProjects }: { initialProjects: ProjectWi
                     key={project.id}
                     draggable
                     onDragStart={(event) => {
+                      draggingRef.current = project.id;
                       setDragging(project.id);
                       event.dataTransfer.setData("projectId", project.id);
+                      event.dataTransfer.effectAllowed = "move";
                     }}
-                    onDragEnd={() => setDragging(null)}
+                    onDragEnd={() => {
+                      draggingRef.current = null;
+                      setDragging(null);
+                    }}
                     className="group rounded-[12px] border border-border bg-background p-3 transition-colors hover:border-primary/30"
                   >
                     <div className="flex items-start gap-1.5">
@@ -151,6 +158,21 @@ export default function Kanban({ initialProjects }: { initialProjects: ProjectWi
                         style={{ width: `${Math.min(100, Math.max(0, project.progress))}%` }}
                       />
                     </div>
+
+                    <label className="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
+                      <span className="sr-only">Étape de {project.title}</span>
+                      <select
+                        value={project.status}
+                        onChange={(event) => move(project.id, event.target.value as ProjectStatus)}
+                        className="w-full cursor-pointer rounded-md border border-transparent bg-transparent py-1 text-[11px] text-secondary transition-colors hover:border-border focus:border-primary/40 focus:outline-none"
+                      >
+                        {COLUMNS.map((option) => (
+                          <option key={option.status} value={option.status}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </article>
                 ))}
 
