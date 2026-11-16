@@ -1,7 +1,6 @@
 import { getClientProjects } from "@/lib/actions/projects";
 import { getCurrentUser } from "@/lib/actions/users";
 import { getProjectExecution } from "@/lib/actions/execution";
-import { getProjectMessages } from "@/lib/actions/messages";
 import ContractBarrier from "@/components/dashboard/ContractBarrier";
 import ProjectThread from "@/components/projects/ProjectThread";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
@@ -19,7 +18,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { RequirementWithDetails } from "@/components/dashboard/RequirementWorkspace";
 import { Project, Asset, Contract, Invoice, User } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import { getProjectThreadData } from "@/lib/thread";
 import { PROJECT_STATUS_LABEL, toneFor } from "@/lib/labels";
 import { formatMoney, formatDate } from "@/lib/format";
 import { MILESTONE_LABEL, MILESTONE_STYLE, TEAM_ROLE_LABEL, formatDay, initialsOf } from "@/types/execution";
@@ -70,14 +69,10 @@ export default async function ProjectDetailPage({
     );
   }
 
-  const [execution, tickets] = await Promise.all([
-    getProjectExecution(project.id).catch(() => null),
-    prisma.ticket.findMany({
-      where: { projectId: project.id },
-      include: { _count: { select: { responses: true } } },
-      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    }),
-  ]);
+  const execution = await getProjectExecution(project.id).catch(() => null);
+
+  // Flux unique : messages, demandes et problemes dans une seule chronologie.
+  const thread = await getProjectThreadData(project.id, user.id);
 
   // Les anciennes entrées (?tab=demandes / ?tab=messages) pointent vers Échanges.
   const legacyTab = tabParam === "demandes" || tabParam === "messages" ? "echanges" : tabParam;
@@ -89,85 +84,7 @@ export default async function ProjectDetailPage({
   const validated = milestones.filter((milestone) => milestone.status === "VALIDATED").length;
   const deliverables = execution?.deliverables ?? [];
   const waiting = deliverables.filter((item) => item.status === "SUBMITTED").length;
-  const openTickets = tickets.filter((ticket) => ticket.status === "OPEN" || ticket.status === "IN_PROGRESS").length;
-
-  // Flux unique : messages, demandes et problemes dans une seule chronologie.
-  // On resout les auteurs en une seule requete pour afficher qui parle.
-  const rawMessages = await getProjectMessages(project.id);
-
-  const authorIds = new Set<string>();
-  for (const requirement of project.requirements || []) {
-    authorIds.add(requirement.createdBy);
-    for (const comment of requirement.comments || []) authorIds.add(comment.authorId);
-  }
-  for (const ticket of tickets) authorIds.add(ticket.clientId);
-  for (const message of rawMessages as Array<{ senderId: string }>) authorIds.add(message.senderId);
-
-  const authors = await prisma.user.findMany({
-    where: { id: { in: Array.from(authorIds) } },
-    select: { id: true, name: true, email: true, role: true },
-  });
-  const authorOf = (id: string) => {
-    const found = authors.find((candidate) => candidate.id === id);
-    return {
-      name: found?.name?.trim() || found?.email || "Compte supprimé",
-      role: found?.role ?? "CLIENT",
-    };
-  };
-
-  const threadMessages = (rawMessages as Array<{
-    id: string;
-    text: string;
-    createdAt: Date;
-    senderId: string;
-    attachment: string | null;
-    sender: { name: string | null; role: string } | null;
-  }>).map((message) => {
-    const author = authorOf(message.senderId);
-    return {
-      id: message.id,
-      text: message.text,
-      createdAt: new Date(message.createdAt).toISOString(),
-      mine: message.senderId === user.id,
-      authorName: author.name,
-      authorRole: author.role,
-      attachment: message.attachment,
-    };
-  });
-
-  const threadRequirements = (project.requirements || []).map((requirement) => {
-    const author = authorOf(requirement.createdBy);
-    return {
-      id: requirement.id,
-      title: requirement.title,
-      description: requirement.description,
-      status: requirement.status as string,
-      createdAt: new Date(requirement.createdAt).toISOString(),
-      authorName: author.name,
-      authorRole: author.role,
-      mine: requirement.createdBy === user.id,
-      comments: (requirement.comments || []).map((comment) => {
-        const commentAuthor = authorOf(comment.authorId);
-        return {
-          id: comment.id,
-          text: comment.text,
-          createdAt: new Date(comment.createdAt).toISOString(),
-          authorName: commentAuthor.name,
-          authorRole: commentAuthor.role,
-        };
-      }),
-    };
-  });
-
-  const threadTickets = tickets.map((ticket) => ({
-    id: ticket.id,
-    title: ticket.title,
-    status: ticket.status as string,
-    createdAt: new Date(ticket.createdAt).toISOString(),
-    authorName: authorOf(ticket.clientId).name,
-    mine: ticket.clientId === user.id,
-    responses: ticket._count.responses,
-  }));
+  const openTickets = thread.tickets.filter((ticket) => ticket.status === "OPEN" || ticket.status === "IN_PROGRESS").length;
 
   return (
     <div className="space-y-8">
@@ -365,9 +282,9 @@ export default async function ProjectDetailPage({
         <section>
           <ProjectThread
             projectId={project.id}
-            messages={threadMessages}
-            requirements={threadRequirements}
-            tickets={threadTickets}
+            messages={thread.messages}
+            requirements={thread.requirements}
+            tickets={thread.tickets}
             canWrite
           />
         </section>

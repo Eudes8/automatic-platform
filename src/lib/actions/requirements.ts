@@ -7,7 +7,7 @@ import { RequirementStatus, RequirementCategory } from "@prisma/client";
 import { notifyNewRequirement, notifyRequirementStatusChange } from "./notifications";
 import { requireProjectRead, requireProjectWrite } from "@/lib/utils/projectAccess";
 
-export async function createRequirement(projectId: string, title: string, description: string, category: RequirementCategory = "OTHER") {
+export async function createRequirement(projectId: string, title: string, description: string, category: RequirementCategory = "OTHER", attachment?: string) {
     const user = await getCurrentUser();
     if (!user) throw new Error("Non autorisé");
     await requireProjectRead(projectId, user);
@@ -18,6 +18,7 @@ export async function createRequirement(projectId: string, title: string, descri
             title,
             description,
             category,
+            attachment: attachment ?? null,
             createdBy: user.id,
             status: RequirementStatus.SUGGESTED
         }

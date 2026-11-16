@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Archive,
   CheckCircle2,
+  Download,
   File as FileIcon,
   FileText,
   FileUp,
@@ -181,6 +182,14 @@ export default function DeliverableManager({
                     <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-border text-secondary">
                       {DELIVERABLE_CATEGORY_LABEL[item.category] ?? "Autre"}
                     </span>
+                    {item.files.length > 1 && (
+                      <a
+                        href={`/api/deliverables/${item.id}/zip`}
+                        className="text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1 rounded-full border border-border px-2 py-1 text-accent hover:border-accent/40"
+                      >
+                        <Download size={10} aria-hidden="true" /> ZIP
+                      </a>
+                    )}
                     <span
                       className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${
                         DELIVERABLE_STYLE[item.status]

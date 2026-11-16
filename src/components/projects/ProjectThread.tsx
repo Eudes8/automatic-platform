@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronRight,
   ClipboardList,
+  FileUp,
   LifeBuoy,
   Loader2,
   MessageSquare,
+  Paperclip,
   Send,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { sendChatMessage } from "@/lib/actions/messages";
 import { createRequirement, addRequirementComment } from "@/lib/actions/requirements";
@@ -28,6 +31,7 @@ export interface ThreadMessage {
   authorName: string;
   authorRole: "CLIENT" | "STAFF" | "ADMIN" | string;
   attachment?: string | null;
+  attachmentName?: string | null;
 }
 
 export interface ThreadComment {
@@ -47,6 +51,8 @@ export interface ThreadRequirement {
   authorName: string;
   authorRole: string;
   mine: boolean;
+  attachment?: string | null;
+  attachmentName?: string | null;
   comments: ThreadComment[];
 }
 
@@ -58,6 +64,8 @@ export interface ThreadTicket {
   authorName: string;
   mine: boolean;
   responses: number;
+  attachment?: string | null;
+  attachmentName?: string | null;
 }
 
 interface ProjectThreadProps {
@@ -121,6 +129,33 @@ function isTeam(role: string): boolean {
   return role === "ADMIN" || role === "STAFF";
 }
 
+/** Pièce jointe affichée comme une puce téléchargeable. */
+function AttachmentChip({
+  url,
+  name,
+  inverse = false,
+}: {
+  url: string;
+  name?: string | null;
+  inverse?: boolean;
+}) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`mt-2 inline-flex max-w-full items-center gap-1.5 rounded-[10px] border px-2.5 py-1.5 text-[12px] transition-colors ${
+        inverse
+          ? "border-background/30 bg-background/15 text-background hover:bg-background/25"
+          : "border-border bg-background text-secondary hover:border-primary/40 hover:text-foreground"
+      }`}
+    >
+      <Paperclip size={12} aria-hidden="true" className="shrink-0" />
+      <span className="truncate">{name ?? "Pièce jointe"}</span>
+    </a>
+  );
+}
+
 /** Pastille auteur : qui parle, et à quel titre. */
 function AuthorBadge({
   name,
@@ -181,6 +216,8 @@ export default function ProjectThread({
   const [error, setError] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [reply, setReply] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const entries: Entry[] = [
@@ -194,9 +231,26 @@ export default function ProjectThread({
     ...tickets.map((ticket) => ({ id: ticket.id, kind: "probleme" as const, at: ticket.createdAt, ticket })),
   ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 
+  const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
+  /** Envoie le fichier choisi, puis crée l'entrée avec son URL. */
+  async function uploadAttachment(): Promise<string | null> {
+    if (!file) return null;
+    const body = new FormData();
+    body.append("file", file);
+    body.append("projectId", projectId);
+    body.append("folder", "echanges");
+    const response = await fetch("/api/files/upload", { method: "POST", body });
+    const payload = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+    if (!response.ok || !payload?.url) {
+      throw new Error(payload?.error ?? "Envoi de la pièce jointe impossible.");
+    }
+    return payload.url;
+  }
+
   function submit() {
     const value = text.trim();
-    if (value.length < 2) {
+    if (value.length < 2 && !file) {
       setError("Écrivez quelque chose avant d'envoyer.");
       return;
     }
@@ -204,20 +258,24 @@ export default function ProjectThread({
 
     startTransition(async () => {
       try {
+        const attachmentUrl = await uploadAttachment();
         if (kind === "message") {
-          await sendChatMessage(projectId, value);
+          await sendChatMessage(projectId, value || "Pièce jointe", attachmentUrl ?? undefined);
         } else if (kind === "demande") {
           const title = value.split("\n")[0].slice(0, 80);
-          await createRequirement(projectId, title, value, "FUNCTIONAL" as never);
+          await createRequirement(projectId, title, value, "FUNCTIONAL" as never, attachmentUrl ?? undefined);
         } else {
           const formData = new FormData();
           formData.append("title", value.split("\n")[0].slice(0, 80));
           formData.append("description", value);
           formData.append("priority", "MEDIUM");
           formData.append("projectId", projectId);
+          if (attachmentUrl) formData.append("attachment", attachmentUrl);
           await createTicket(formData);
         }
         setText("");
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         router.refresh();
       } catch {
         setError("L'envoi a échoué. Réessayez.");
@@ -274,6 +332,9 @@ export default function ProjectThread({
                       inverse={message.mine}
                     />
                     <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed">{message.text}</p>
+                    {message.attachment && (
+                      <AttachmentChip url={message.attachment} name={message.attachmentName} inverse={message.mine} />
+                    )}
                   </div>
                 </li>
               );
@@ -309,6 +370,9 @@ export default function ProjectThread({
                     <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-secondary">
                       {requirement.description}
                     </p>
+                  )}
+                  {requirement.attachment && (
+                    <AttachmentChip url={requirement.attachment} name={requirement.attachmentName} />
                   )}
 
                   {requirement.comments.length > 0 && (
@@ -400,6 +464,11 @@ export default function ProjectThread({
                     <p className="mt-1 text-[12px] text-muted">
                       {ticket.responses} réponse{ticket.responses > 1 ? "s" : ""}
                     </p>
+                    {ticket.attachment && (
+                      <div className="mt-2">
+                        <AttachmentChip url={ticket.attachment} name={ticket.attachmentName} />
+                      </div>
+                    )}
                   </Link>
                 </li>
               );
@@ -419,6 +488,25 @@ export default function ProjectThread({
             placeholder="Écrivez votre message…"
             className="field resize-none border-0 bg-transparent px-0 focus:shadow-none"
           />
+
+          {file && (
+            <div className="mb-2 inline-flex items-center gap-2 rounded-[10px] border border-border bg-background px-2.5 py-1.5 text-[12px] text-secondary">
+              <Paperclip size={12} aria-hidden="true" />
+              <span className="max-w-[220px] truncate">{file.name}</span>
+              <span className="text-muted">{Math.max(1, Math.round(file.size / 1024))} Ko</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                aria-label="Retirer la pièce jointe"
+                className="text-muted hover:text-danger"
+              >
+                <X size={13} aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border pt-3">
             <div role="group" aria-label="Type d'envoi" className="flex flex-wrap gap-1">
@@ -447,6 +535,26 @@ export default function ProjectThread({
                 );
               })}
             </div>
+
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-border bg-background px-2.5 py-1.5 text-[12px] font-medium text-secondary transition-colors hover:text-foreground">
+              <FileUp size={12} aria-hidden="true" />
+              Joindre
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(event) => {
+                  const chosen = event.target.files?.[0] ?? null;
+                  if (chosen && chosen.size > MAX_ATTACHMENT_BYTES) {
+                    setError("Pièce jointe trop lourde : 5 Mo maximum.");
+                    event.target.value = "";
+                    return;
+                  }
+                  setError(null);
+                  setFile(chosen);
+                }}
+              />
+            </label>
 
             <button
               type="button"

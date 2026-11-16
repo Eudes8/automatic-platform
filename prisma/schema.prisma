@@ -76,6 +76,7 @@ model Requirement {
   createdAt     DateTime                   @default(now())
   updatedAt     DateTime                   @updatedAt
   category      RequirementCategory        @default(OTHER)
+  attachment    String?
   project       Project                    @relation(fields: [projectId], references: [id])
   comments      RequirementComment[]
   statusHistory RequirementStatusHistory[]
@@ -258,6 +259,7 @@ model Ticket {
   description  String
   status       TicketStatus     @default(OPEN)
   priority     TicketPriority   @default(MEDIUM)
+  attachment   String?
   clientId     String
   assignedToId String?
   projectId    String?

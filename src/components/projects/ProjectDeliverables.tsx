@@ -138,6 +138,14 @@ export default function ProjectDeliverables({ deliverables, canReview }: Project
                 <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-secondary">
                   {DELIVERABLE_CATEGORY_LABEL[item.category] ?? "Autre"}
                 </span>
+                {item.files.length > 1 && (
+                  <a
+                    href={`/api/deliverables/${item.id}/zip`}
+                    className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-accent transition-colors hover:border-accent/40 hover:bg-accent/[0.06]"
+                  >
+                    <Download size={11} aria-hidden="true" /> Tout télécharger
+                  </a>
+                )}
               </div>
 
               {item.files.length > 0 && (

@@ -56,12 +56,14 @@ export async function createTicket(formData: FormData) {
     const description = formData.get("description") as string;
     const priority = formData.get("priority") as TicketPriority || "MEDIUM";
     const projectId = formData.get("projectId") as string || null;
+    const attachment = formData.get("attachment") as string || null;
 
     const ticket = await prisma.ticket.create({
         data: {
             title,
             description,
             priority,
+            attachment,
             clientId: user.id,
             projectId
         }

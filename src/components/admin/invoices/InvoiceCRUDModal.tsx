@@ -1,150 +1,150 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, X, Loader2 } from "lucide-react";
 import { createInvoice } from "@/lib/actions/invoices";
 import { getProjectsByStatus } from "@/lib/actions/admin";
 
 interface ProjectOption {
-    id: string;
-    title: string;
-    client: { name: string | null; email: string } | null;
+  id: string;
+  title: string;
+  client: { name: string | null; email: string } | null;
 }
 
+const KNOWN_ERRORS: Record<string, string> = {
+  "Project not found": "Le projet sélectionné n'existe plus. Rechargez la page.",
+  "Create failed": "Création impossible. Réessayez.",
+};
+
+/**
+ * Fenêtre de création de facture. Champs attendus par l'action : projectId,
+ * amount, dueDate, description.
+ */
 export default function InvoiceCRUDModal() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            getProjectsByStatus().then(setProjects);
-        }
-    }, [isOpen]);
+  /** Ouverture : charge la liste des projets à chaque ouverture pour rester à jour. */
+  function open() {
+    setIsOpen(true);
+    setLoadingProjects(true);
+    getProjectsByStatus()
+      .then((rows) => setProjects(rows))
+      .catch(() => setProjects([]))
+      .finally(() => setLoadingProjects(false));
+  }
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
-        const formData = new FormData(e.currentTarget);
-        await createInvoice(formData);
-        setLoading(false);
-        setIsOpen(false);
-    };
-
-    if (!isOpen) {
-        return (
-            <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
-                <Plus size={15} aria-hidden="true" />
-                Nouvelle facture
-            </button>
-        );
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+    const formData = new FormData(event.currentTarget);
+    const result = await createInvoice(formData);
+    setLoading(false);
+    if (result && result.success === false) {
+      setError(KNOWN_ERRORS[result.error ?? ""] ?? "Création impossible. Réessayez.");
+      return;
     }
+    setIsOpen(false);
+  }
 
+  if (!isOpen) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-md p-4 sm:p-6 animate-in fade-in duration-500">
-            <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white border border-border/50 rounded-[2rem] sm:rounded-[3.5rem] p-6 sm:p-8 md:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] relative overflow-hidden">
-                {/* Background Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-
-                <button
-                    onClick={() => setIsOpen(false)}
-                    className="absolute top-4 right-4 sm:top-10 sm:right-10 text-secondary/20 hover:text-primary transition-all duration-500 hover:rotate-90"
-                >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-
-                <div className="mb-8 sm:mb-12">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                        <p className="text-[9px] sm:text-[10px] text-primary/40 font-black uppercase tracking-[0.4em] sm:tracking-[0.5em] italic">Nouvelle facture</p>
-                    </div>
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-primary italic uppercase tracking-tighter leading-none">
-                        INITIALISER <span className="text-secondary/20">Invoice.</span>
-                    </h3>
-                    <p className="text-secondary/40 font-black text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] mt-2 sm:mt-3 italic">
-                        Génération de la facture.
-                    </p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-8 relative z-10">
-                    <div className="space-y-2 sm:space-y-3">
-                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Projet concerné</label>
-                        <select
-                            name="projectId"
-                            required
-                            className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner appearance-none"
-                        >
-                            <option value="">Sélectionner un projet</option>
-                            {projects.map((project) => (
-                                <option key={project.id} value={project.id}>
-                                    /{project.title} — {project.client?.name?.toUpperCase()}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-                        <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Montant (F CFA)</label>
-                            <input
-                                name="amount"
-                                type="number"
-                                step="1"
-                                required
-                                className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10"
-                                placeholder="Objet, période, acompte…"
-                            />
-                        </div>
-                        <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Échéance</label>
-                            <input
-                                name="dueDate"
-                                type="date"
-                                required
-                                className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2 sm:space-y-3">
-                        <label className="text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic ml-2">Objet de la facture</label>
-                        <textarea
-                            name="description"
-                            rows={3}
-                            className="w-full bg-background border border-border/50 rounded-[1rem] sm:rounded-[1.5rem] p-4 sm:p-6 text-[10px] sm:text-[11px] font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner placeholder:text-secondary/10 resize-none"
-                            placeholder="DÉTAILS DES SERVICES RENDUS..."
-                        />
-                    </div>
-
-                    <div className="pt-4 sm:pt-6">
-                        <button
-                            disabled={loading}
-                            className="w-full py-5 sm:py-8 bg-primary text-background rounded-[1.5rem] sm:rounded-[2rem] text-[10px] sm:text-[12px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] italic flex items-center justify-center gap-3 sm:gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 shadow-2xl shadow-primary/20 disabled:grayscale disabled:opacity-50 group/submit overflow-hidden relative"
-                        >
-                            <div className="relative z-10 flex items-center gap-3 sm:gap-4">
-                                {loading ? (
-                                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                                ) : (
-                                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-90 transition-transform duration-700" />
-                                )}
-                                {loading ? "Création en cours…" : "Créer la facture"}
-                            </div>
-                            {/* Scanline effect inside button */}
-                            {loading && (
-                                <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
-                                    <div className="w-full h-1 bg-white animate-scan-line" />
-                                </div>
-                            )}
-                        </button>
-                    </div>
-                </form>
-
-                {/* Footer decorations */}
-                <div className="mt-8 sm:mt-12 flex items-center justify-between text-[7px] sm:text-[8px] font-black text-secondary/10 uppercase tracking-[0.4em] sm:tracking-[0.5em] italic">
-                    <span>Facturation</span>
-                    <span>Les montants sont enregistrés en FCFA.</span>
-                </div>
-            </div>
-        </div>
+      <button type="button" onClick={open} className="btn btn-primary h-11 px-5">
+        <Plus size={15} aria-hidden="true" />
+        Nouvelle facture
+      </button>
     );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute inset-0 bg-foreground/40" onClick={() => setIsOpen(false)} aria-hidden="true" />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nouvelle-facture-titre"
+        className="surface relative w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 sm:p-8"
+      >
+        <button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          aria-label="Fermer"
+          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-[10px] text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+
+        <h3 id="nouvelle-facture-titre" className="text-xl font-semibold">
+          Nouvelle facture
+        </h3>
+        <p className="mt-1 text-[13px] text-secondary">
+          Le client la voit dans son espace Paiements et peut payer en ligne. Montants en F CFA.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <label className="block space-y-1.5">
+            <span className="label">Projet concerné</span>
+            <select name="projectId" required defaultValue="" className="field text-[14px]" disabled={loadingProjects}>
+              <option value="">
+                {loadingProjects ? "Chargement des projets…" : "Sélectionner un projet"}
+              </option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.title}
+                  {project.client?.name ? ` — ${project.client.name}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="label">Montant (F CFA)</span>
+              <input
+                name="amount"
+                type="number"
+                min="0"
+                step="1"
+                required
+                className="field text-[14px]"
+                placeholder="450000"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="label">Échéance</span>
+              <input name="dueDate" type="date" required className="field text-[14px]" />
+            </label>
+          </div>
+
+          <label className="block space-y-1.5">
+            <span className="label">Objet de la facture</span>
+            <textarea
+              name="description"
+              rows={3}
+              className="field resize-none text-[14px]"
+              placeholder="Ex. Acompte 40 % sur la refonte du catalogue…"
+            />
+          </label>
+
+          {error && <p className="text-[13px] font-medium text-danger">{error}</p>}
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setIsOpen(false)} className="btn btn-outline h-11 px-5">
+              Annuler
+            </button>
+            <button type="submit" disabled={loading} className="btn btn-primary h-11 min-w-40 px-5">
+              {loading ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}
+              Créer la facture
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

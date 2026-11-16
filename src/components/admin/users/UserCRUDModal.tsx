@@ -1,187 +1,181 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Loader2, Edit } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import { createClientUser, updateUser } from "@/lib/actions/adminUserCRUD";
-
 import { User } from "@prisma/client";
 
 interface UserCRUDModalProps {
-    editingUser?: User;
-    onClose?: () => void;
+  editingUser?: User;
+  onClose?: () => void;
 }
 
+const KNOWN_ERRORS: Record<string, string> = {
+  "Failed to create user": "Création du compte impossible. Cet e-mail est peut-être déjà utilisé.",
+  "Failed to update user": "Mise à jour impossible. Réessayez.",
+};
+
+/**
+ * Fenêtre de création / modification d'un compte client. Champs attendus par
+ * les actions : name, email, phone, companyName, industry, role (édition).
+ */
 export default function UserCRUDModal({ editingUser, onClose }: UserCRUDModalProps) {
-    const [isOpen, setIsOpen] = useState(!editingUser);
-    const [loading, setLoading] = useState(false);
-    const isEditing = !!editingUser;
+  const [isOpen, setIsOpen] = useState(!editingUser);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isEditing = !!editingUser;
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
-        const formData = new FormData(e.currentTarget);
-        if (isEditing && editingUser) {
-            await updateUser(editingUser.id, formData);
-        } else {
-            await createClientUser(formData);
-        }
-        setLoading(false);
-        if (onClose) onClose();
-        setIsOpen(false);
-    };
-
-    const handleClose = () => {
-        setIsOpen(false);
-        if (onClose) onClose();
-    };
-
-    if (!isOpen && !isEditing) {
-        return (
-            <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
-                <Plus size={15} aria-hidden="true" />
-                Nouveau client
-            </button>
-        );
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+    const formData = new FormData(event.currentTarget);
+    const result = isEditing && editingUser
+      ? await updateUser(editingUser.id, formData)
+      : await createClientUser(formData);
+    setLoading(false);
+    if (result && result.success === false) {
+      setError(KNOWN_ERRORS[result.error ?? ""] ?? "Opération impossible. Réessayez.");
+      return;
     }
+    if (onClose) onClose();
+    setIsOpen(false);
+  }
 
-    if (isEditing && !isOpen) {
-        return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="flex items-center gap-3 text-[10px] font-black text-secondary/40 uppercase tracking-[0.3em] hover:text-primary transition-all italic group"
-            >
-                <div className="w-8 h-8 rounded-lg bg-background border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-inner group-hover:scale-110">
-                    <Edit className="w-3.5 h-3.5" />
-                </div>
-                Modifier le client
-            </button>
-        );
-    }
+  function handleClose() {
+    setIsOpen(false);
+    if (onClose) onClose();
+  }
 
+  if (!isOpen && !isEditing) {
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10 animate-in fade-in duration-500">
-            <div className="absolute inset-0 bg-background/60 backdrop-blur-xl" onClick={handleClose} />
-
-            <div className="w-full max-w-2xl bg-white border border-border/50 rounded-[3rem] p-12 relative shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-700 overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/2 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
-
-                <button
-                    onClick={() => setIsOpen(false)}
-                    className="absolute top-10 right-10 p-3 hover:bg-secondary/5 rounded-xl text-secondary/20 hover:text-primary transition-all duration-500 border border-transparent hover:border-border/50 group/close"
-                >
-                    <X className="w-5 h-5 group-hover/close:rotate-90 transition-transform duration-500" />
-                </button>
-
-                <div className="mb-12 relative z-10">
-                    <div className="flex items-center gap-4 mb-6">
-                        <span className="w-12 h-px bg-primary/20" />
-                        <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em] italic">Nouveau client</span>
-                    </div>
-                    <h3 className="text-4xl font-black text-primary italic uppercase tracking-tighter leading-tight">
-                        {isEditing ? "Modifier le client" : "Nouveau client"}
-                    </h3>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">DÉSIGNATION_NOM</label>
-                            <input
-                                name="name"
-                                required
-                                defaultValue={editingUser?.name || ""}
-                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                                placeholder="NOM COMPLET"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Identité</label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                defaultValue={editingUser?.email || ""}
-                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                                placeholder="client@exemple.com"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Contact</label>
-                            <input
-                                name="phone"
-                                defaultValue={editingUser?.phone || ""}
-                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                                placeholder="+225 00 00 00 00"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Nom complet</label>
-                            <input
-                                name="companyName"
-                                defaultValue={editingUser?.companyName || ""}
-                                className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                                placeholder="NOM DE L'ENTREPRISE"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">Secteur d’activité</label>
-                        <input
-                            name="industry"
-                            defaultValue={editingUser?.industry || ""}
-                            className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 focus:ring-8 focus:ring-primary/5 outline-none transition-all duration-500 shadow-inner"
-                            placeholder="Ex. tech, finances, BTP…"
-                        />
-                    </div>
-
-                    {isEditing && (
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.4em] ml-2 italic">HIÉRARCHIE_SYSTÈME</label>
-                            <div className="relative">
-                                <select
-                                    name="role"
-                                    defaultValue={editingUser?.role || "CLIENT"}
-                                    className="w-full bg-background border border-border/50 rounded-[1.5rem] p-5 text-sm font-black uppercase italic tracking-widest text-primary focus:border-primary/50 outline-none transition-all appearance-none shadow-inner"
-                                >
-                                    <option value="CLIENT">Client</option>
-                                    <option value="STAFF">Compte</option>
-                                    <option value="ADMIN">Clients</option>
-                                </select>
-                                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
-                                    <Plus className="w-4 h-4 rotate-45" />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="pt-8">
-                        <button
-                            disabled={loading}
-                            className="w-full py-6 bg-primary text-background rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/20 hover:scale-[1.03] active:scale-95 transition-all duration-500 flex items-center justify-center gap-4 italic group"
-                        >
-                            {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <>
-                                    <div className="w-6 h-6 rounded-lg bg-background/20 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 border border-white/10">
-                                        <Plus className="w-4 h-4" />
-                                    </div>
-                                    {isEditing ? "Enregistrer les modifications" : "Créer le compte"}
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </form>
-
-                {/* Footer Scanline */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.03]">
-                    <div className="w-full h-[1px] bg-primary animate-scan-line" />
-                </div>
-            </div>
-        </div>
+      <button type="button" onClick={() => setIsOpen(true)} className="btn btn-primary h-11 px-5">
+        <Plus size={15} aria-hidden="true" />
+        Nouveau client
+      </button>
     );
+  }
+
+  if (isEditing && !isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="rounded-[8px] border border-border px-2.5 py-1.5 text-[12px] text-secondary transition-colors hover:border-primary/40 hover:text-foreground"
+      >
+        Modifier
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute inset-0 bg-foreground/40" onClick={handleClose} aria-hidden="true" />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="client-titre"
+        className="surface relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8"
+      >
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Fermer"
+          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-[10px] text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+
+        <h3 id="client-titre" className="text-xl font-semibold">
+          {isEditing ? "Modifier le client" : "Nouveau client"}
+        </h3>
+        <p className="mt-1 text-[13px] text-secondary">
+          {isEditing
+            ? "Les modifications sont visibles immédiatement par le client."
+            : "Un compte lui permettra de suivre son projet, payer et récupérer ses livrables."}
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="label">Nom complet</span>
+              <input
+                name="name"
+                required
+                defaultValue={editingUser?.name || ""}
+                className="field text-[14px]"
+                placeholder="Ex. Awa Koné"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="label">E-mail</span>
+              <input
+                name="email"
+                type="email"
+                required
+                defaultValue={editingUser?.email || ""}
+                className="field text-[14px]"
+                placeholder="client@exemple.com"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="label">Téléphone</span>
+              <input
+                name="phone"
+                defaultValue={editingUser?.phone || ""}
+                className="field text-[14px]"
+                placeholder="+225 00 00 00 00"
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="label">Société</span>
+              <input
+                name="companyName"
+                defaultValue={editingUser?.companyName || ""}
+                className="field text-[14px]"
+                placeholder="Ex. Koné Distribution"
+              />
+            </label>
+          </div>
+
+          <label className="block space-y-1.5">
+            <span className="label">Secteur d&apos;activité</span>
+            <input
+              name="industry"
+              defaultValue={editingUser?.industry || ""}
+              className="field text-[14px]"
+              placeholder="Ex. tech, commerce, BTP…"
+            />
+          </label>
+
+          {isEditing && (
+            <label className="block space-y-1.5">
+              <span className="label">Rôle du compte</span>
+              <select name="role" defaultValue={editingUser?.role || "CLIENT"} className="field text-[14px]">
+                <option value="CLIENT">Client</option>
+                <option value="STAFF">Membre de l&apos;équipe</option>
+                <option value="ADMIN">Administrateur</option>
+              </select>
+            </label>
+          )}
+
+          {error && <p className="text-[13px] font-medium text-danger">{error}</p>}
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onClick={handleClose} className="btn btn-outline h-11 px-5">
+              Annuler
+            </button>
+            <button type="submit" disabled={loading} className="btn btn-primary h-11 min-w-40 px-5">
+              {loading ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}
+              {isEditing ? "Enregistrer" : "Créer le compte"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

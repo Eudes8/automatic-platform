@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, KanbanSquare, Users2, Flag, Package } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { getProjectThreadData } from "@/lib/thread";
+import ProjectThread from "@/components/projects/ProjectThread";
 import { getProjectExecution, getAssignableUsers } from "@/lib/actions/execution";
+import { getCurrentUser } from "@/lib/actions/users";
 import TaskBoard from "@/components/projects/TaskBoard";
 import MilestonePanel from "@/components/projects/MilestonePanel";
 import DeliverableManager from "@/components/projects/DeliverableManager";
@@ -28,10 +31,12 @@ export default async function ProjectExecutionPage({ params }: { params: Promise
 
     if (!project) notFound();
 
-    const [{ tasks, milestones, deliverables, members }, assignableUsers] = await Promise.all([
+    const [{ tasks, milestones, deliverables, members }, assignableUsers, viewer] = await Promise.all([
         getProjectExecution(id),
         getAssignableUsers(),
+        getCurrentUser(),
     ]);
+    const thread = await getProjectThreadData(id, viewer?.id ?? "");
 
     const doneTasks = tasks.filter((task) => task.status === "DONE").length;
     const validatedMilestones = milestones.filter((milestone) => milestone.status === "VALIDATED").length;
@@ -97,6 +102,16 @@ export default async function ProjectExecutionPage({ params }: { params: Promise
                     />
                 </section>
             </div>
+
+            <section className="rounded-[2rem] border border-border/60 bg-card/40 p-6 md:p-8">
+                <ProjectThread
+                    projectId={id}
+                    messages={thread.messages}
+                    requirements={thread.requirements}
+                    tickets={thread.tickets}
+                    canWrite
+                />
+            </section>
 
             <section className="rounded-[2rem] border border-border/60 bg-card/40 p-6 md:p-8">
                 <DeliverableManager
